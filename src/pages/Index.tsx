@@ -304,22 +304,22 @@ const Index = () => {
               />
             )}
 
-            {/* Element Legend - compact, below tray */}
+            {/* Element Legend - Tablet/Mobile only (below tray) */}
             {hasStarted && (
-              <div className="mt-2">
+              <div className="mt-2 lg:hidden">
                 <ElementLegend />
               </div>
             )}
           </div>
 
-          {/* Reaction Feed Panel - Desktop always visible, Tablet/Mobile toggleable */}
+          {/* Right Sidebar - Desktop only */}
           {hasStarted && (
-            <AnimatePresence>
-              {/* Desktop: Always visible */}
+            <div className="hidden lg:flex lg:flex-col lg:gap-4 lg:w-48 sticky top-24 self-start max-h-[calc(100vh-8rem)]">
+              {/* Reaction Feed Panel */}
               <motion.div
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
-                className="hidden lg:block w-48 sticky top-24 self-start max-h-[calc(100vh-8rem)] overflow-y-auto bg-game-grid-dark/50 border border-game-grid-border/30 rounded-xl p-4"
+                className="bg-game-grid-dark/50 border border-game-grid-border/30 rounded-xl p-4 overflow-y-auto max-h-[50vh]"
               >
                 <ReactionFeed 
                   reactions={reactionEvents}
@@ -327,28 +327,40 @@ const Index = () => {
                 />
               </motion.div>
               
-              {/* Tablet/Mobile: Toggleable overlay */}
-              {showReactionFeed && (
-                <motion.div
-                  initial={{ opacity: 0, x: 20, scale: 0.95 }}
-                  animate={{ opacity: 1, x: 0, scale: 1 }}
-                  exit={{ opacity: 0, x: 20, scale: 0.95 }}
-                  className="lg:hidden fixed top-20 right-4 z-40 w-52 md:w-56 bg-game-grid-dark/95 backdrop-blur-md border border-game-grid-border/50 rounded-xl p-4 shadow-2xl"
-                >
-                  <button
-                    onClick={() => setShowReactionFeed(false)}
-                    className="absolute top-2 right-2 text-white/40 hover:text-white/80 transition-colors"
-                  >
-                    ✕
-                  </button>
-                  <ReactionFeed 
-                    reactions={reactionEvents}
-                    preview={reactionPreviewSummary}
-                  />
-                </motion.div>
-              )}
-            </AnimatePresence>
+              {/* Element Legend Panel */}
+              <motion.div
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.1 }}
+                className="bg-game-grid-dark/50 border border-game-grid-border/30 rounded-xl p-4"
+              >
+                <ElementLegend variant="vertical" />
+              </motion.div>
+            </div>
           )}
+
+          {/* Tablet/Mobile: Toggleable Reaction Feed overlay */}
+          <AnimatePresence>
+            {showReactionFeed && (
+              <motion.div
+                initial={{ opacity: 0, x: 20, scale: 0.95 }}
+                animate={{ opacity: 1, x: 0, scale: 1 }}
+                exit={{ opacity: 0, x: 20, scale: 0.95 }}
+                className="lg:hidden fixed top-20 right-4 z-40 w-52 md:w-56 bg-game-grid-dark/95 backdrop-blur-md border border-game-grid-border/50 rounded-xl p-4 shadow-2xl"
+              >
+                <button
+                  onClick={() => setShowReactionFeed(false)}
+                  className="absolute top-2 right-2 text-white/40 hover:text-white/80 transition-colors"
+                >
+                  ✕
+                </button>
+                <ReactionFeed 
+                  reactions={reactionEvents}
+                  preview={reactionPreviewSummary}
+                />
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       </main>
       

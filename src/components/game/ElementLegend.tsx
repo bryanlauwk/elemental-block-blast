@@ -6,14 +6,20 @@ import { ElementBlock } from './ElementBlock';
 
 const DISPLAY_ELEMENTS: ElementType[] = ['stone', 'wood', 'fire', 'water', 'acid', 'helium'];
 
-export function ElementLegend() {
+interface ElementLegendProps {
+  variant?: 'horizontal' | 'vertical';
+}
+
+export function ElementLegend({ variant = 'horizontal' }: ElementLegendProps) {
   const [activeElement, setActiveElement] = useState<ElementType | null>(null);
   const activeInfo = activeElement ? ELEMENT_INFO[activeElement] : null;
 
+  const isVertical = variant === 'vertical';
+
   return (
     <div className="relative">
-      {/* Compact horizontal element bar */}
-      <div className="flex items-center justify-center gap-2 sm:gap-3">
+      {/* Element bar - horizontal or vertical layout */}
+      <div className={`flex items-center gap-2 ${isVertical ? 'flex-col' : 'justify-center sm:gap-3'}`}>
         {DISPLAY_ELEMENTS.map((element) => {
           const info = ELEMENT_INFO[element];
           const isActive = activeElement === element;
@@ -29,16 +35,21 @@ export function ElementLegend() {
               whileTap={{ scale: 0.95 }}
             >
               <div className={`
-                p-1.5 rounded-lg transition-all
+                flex items-center gap-2 p-1.5 rounded-lg transition-all
                 ${isActive ? 'bg-white/20 ring-2 ring-white/30' : 'bg-white/5 hover:bg-white/10'}
               `}>
-                <ElementBlock element={element} size={28} isPreview />
+                <ElementBlock element={element} size={isVertical ? 24 : 28} isPreview />
+                {isVertical && (
+                  <span className="text-xs text-game-text-muted pr-1">{info.name}</span>
+                )}
               </div>
               
-              {/* Element name on hover - desktop only */}
-              <span className="absolute -bottom-5 left-1/2 -translate-x-1/2 text-[10px] text-game-text-muted opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap hidden sm:block">
-                {info.name}
-              </span>
+              {/* Element name on hover - horizontal only, desktop only */}
+              {!isVertical && (
+                <span className="absolute -bottom-5 left-1/2 -translate-x-1/2 text-[10px] text-game-text-muted opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap hidden sm:block">
+                  {info.name}
+                </span>
+              )}
             </motion.button>
           );
         })}
@@ -51,7 +62,10 @@ export function ElementLegend() {
             initial={{ opacity: 0, y: 10, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 5, scale: 0.95 }}
-            className="absolute left-1/2 -translate-x-1/2 mt-8 z-50 w-64 sm:w-72"
+            className={`absolute z-50 ${isVertical 
+              ? 'left-full top-0 ml-2 w-56' 
+              : 'left-1/2 -translate-x-1/2 mt-8 w-64 sm:w-72'
+            }`}
           >
             <div className="bg-game-grid-dark/95 backdrop-blur-sm rounded-xl p-3 border border-game-grid-border shadow-xl">
               <div className="flex items-center gap-2 mb-2">
