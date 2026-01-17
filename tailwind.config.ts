@@ -57,6 +57,23 @@ export default {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
+        // Block Blast Game Colors
+        game: {
+          "bg-start": "hsl(var(--game-bg-start))",
+          "bg-end": "hsl(var(--game-bg-end))",
+          "grid-dark": "hsl(var(--game-grid-dark))",
+          "grid-darker": "hsl(var(--game-grid-darker))",
+          "grid-border": "hsl(var(--game-grid-border))",
+          "cell": "hsl(var(--game-cell))",
+          "cell-hover": "hsl(var(--game-cell-hover))",
+          "tray": "hsl(var(--game-tray))",
+          "tray-dark": "hsl(var(--game-tray-dark))",
+          "accent": "hsl(var(--game-accent))",
+          "score-start": "hsl(var(--game-score-start))",
+          "score-mid": "hsl(var(--game-score-mid))",
+          "score-end": "hsl(var(--game-score-end))",
+          "text-muted": "hsl(var(--game-text-muted))",
+        },
       },
       borderRadius: {
         lg: "var(--radius)",
