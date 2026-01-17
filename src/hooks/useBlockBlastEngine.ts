@@ -65,12 +65,29 @@ export interface ReactionPreview {
   affectedPositions: Position[];
 }
 
+export interface ReactionEvent {
+  id: string;
+  type: 'burn' | 'extinguish' | 'dissolve';
+  source: string;
+  target: string;
+  points: number;
+  timestamp: number;
+}
+
+export interface ReactionPreviewSummary {
+  type: 'burn' | 'extinguish' | 'dissolve';
+  count: number;
+  points: number;
+}
+
 export interface BlockBlastEngine {
   gameState: BlockBlastState;
   shakeIntensity: number;
   comboDisplay: { count: number; show: boolean; text: string };
-  scorePopup: { score: number; show: boolean };
+  scorePopup: { score: number; show: boolean; reactionType?: 'burn' | 'extinguish' | 'dissolve' };
   reactionPreviews: ReactionPreview[];
+  reactionEvents: ReactionEvent[];
+  reactionPreviewSummary: ReactionPreviewSummary | null;
   startGame: () => void;
   selectPiece: (piece: DraggablePiece | null) => void;
   setDropPreview: (pos: Position | null) => void;
@@ -93,9 +110,10 @@ export function useBlockBlastEngine(): BlockBlastEngine {
   
   const [shakeIntensity, setShakeIntensity] = useState(0);
   const [comboDisplay, setComboDisplay] = useState({ count: 0, show: false, text: '' });
-  const [scorePopup, setScorePopup] = useState({ score: 0, show: false });
+  const [scorePopup, setScorePopup] = useState<{ score: number; show: boolean; reactionType?: 'burn' | 'extinguish' | 'dissolve' }>({ score: 0, show: false });
   const [reactionPreviews, setReactionPreviews] = useState<ReactionPreview[]>([]);
-
+  const [reactionEvents, setReactionEvents] = useState<ReactionEvent[]>([]);
+  const [reactionPreviewSummary, setReactionPreviewSummary] = useState<ReactionPreviewSummary | null>(null);
   // Check if piece can be placed at position
   const canPlacePiece = useCallback((piece: DraggablePiece, pos: Position): boolean => {
     return piece.shape.every((p) => {
@@ -183,12 +201,13 @@ export function useBlockBlastEngine(): BlockBlastEngine {
   }, []);
 
   // Process elemental reactions - SIMPLIFIED: mutual destruction, one-shot effects
-  const processReactions = useCallback((grid: Cell[][]): { grid: Cell[][]; reacted: boolean; reactionCount: number } => {
+  const processReactions = useCallback((grid: Cell[][]): { grid: Cell[][]; reacted: boolean; reactionCount: number; events: ReactionEvent[] } => {
     const newGrid = grid.map(row => row.map(cell => ({ ...cell })));
     let reacted = false;
     let reactionCount = 0;
     const toRemove = new Set<string>(); // Use set to avoid duplicates
     const toAdd: { pos: Position; element: ElementType }[] = [];
+    const events: ReactionEvent[] = [];
 
     const posKey = (x: number, y: number) => `${x},${y}`;
 
@@ -212,6 +231,14 @@ export function useBlockBlastEngine(): BlockBlastEngine {
               toAdd.push({ pos, element: 'ash' });
               reacted = true;
               reactionCount++;
+              events.push({
+                id: `burn-${Date.now()}-${Math.random()}`,
+                type: 'burn',
+                source: 'fire',
+                target: 'wood',
+                points: 50,
+                timestamp: Date.now(),
+              });
               playSound('sizzle');
             }
           });
@@ -225,6 +252,14 @@ export function useBlockBlastEngine(): BlockBlastEngine {
               toRemove.add(posKey(pos.x, pos.y)); // Remove water
               reacted = true;
               reactionCount++;
+              events.push({
+                id: `extinguish-${Date.now()}-${Math.random()}`,
+                type: 'extinguish',
+                source: 'water',
+                target: 'fire',
+                points: 50,
+                timestamp: Date.now(),
+              });
               playSound('splash');
             }
           });
@@ -238,6 +273,14 @@ export function useBlockBlastEngine(): BlockBlastEngine {
               toRemove.add(posKey(x, y)); // Acid consumes itself
               reacted = true;
               reactionCount++;
+              events.push({
+                id: `dissolve-${Date.now()}-${Math.random()}`,
+                type: 'dissolve',
+                source: 'acid',
+                target: neighbor.element,
+                points: 50,
+                timestamp: Date.now(),
+              });
               playSound('dissolve');
               break; // Only ONE block per acid
             }
@@ -265,16 +308,18 @@ export function useBlockBlastEngine(): BlockBlastEngine {
       }
     });
 
-    return { grid: newGrid, reacted, reactionCount };
+    return { grid: newGrid, reacted, reactionCount, events };
   }, []);
 
   // NEW: Resolve grid - LINE CLEARS FIRST, then reactions (strategic order)
-  const resolveGrid = useCallback((grid: Cell[][]): { grid: Cell[][]; totalScore: number; maxCombo: number; linesCleared: number } => {
+  const resolveGrid = useCallback((grid: Cell[][]): { grid: Cell[][]; totalScore: number; maxCombo: number; linesCleared: number; allReactionEvents: ReactionEvent[]; primaryReactionType?: 'burn' | 'extinguish' | 'dissolve' } => {
     let currentGrid = grid;
     let totalScore = 0;
     let combo = 0;
     let totalLinesCleared = 0;
     let hasChanges = true;
+    const allReactionEvents: ReactionEvent[] = [];
+    let primaryReactionType: 'burn' | 'extinguish' | 'dissolve' | undefined;
 
     while (hasChanges) {
       hasChanges = false;
@@ -292,10 +337,14 @@ export function useBlockBlastEngine(): BlockBlastEngine {
       }
 
       // STEP 2: Process reactions AFTER line clears (bonus mechanic)
-      const { grid: reactedGrid, reacted, reactionCount } = processReactions(currentGrid);
+      const { grid: reactedGrid, reacted, reactionCount, events } = processReactions(currentGrid);
       if (reacted) {
         currentGrid = reactedGrid;
         hasChanges = true;
+        allReactionEvents.push(...events);
+        if (!primaryReactionType && events.length > 0) {
+          primaryReactionType = events[0].type;
+        }
         // Reactions are BONUS points (50 per reaction), with chain multiplier (1.5x)
         const reactionBonus = reactionCount * 50 * Math.pow(1.5, combo);
         totalScore += Math.floor(reactionBonus);
@@ -303,7 +352,7 @@ export function useBlockBlastEngine(): BlockBlastEngine {
       }
     }
 
-    return { grid: currentGrid, totalScore, maxCombo: combo, linesCleared: totalLinesCleared };
+    return { grid: currentGrid, totalScore, maxCombo: combo, linesCleared: totalLinesCleared, allReactionEvents, primaryReactionType };
   }, [clearLines, processReactions]);
 
   // Get combo text
@@ -394,6 +443,8 @@ export function useBlockBlastEngine(): BlockBlastEngine {
       lastLifeTick: Date.now(),
     });
     setReactionPreviews([]);
+    setReactionEvents([]);
+    setReactionPreviewSummary(null);
   }, []);
 
   // Select piece
@@ -408,8 +459,29 @@ export function useBlockBlastEngine(): BlockBlastEngine {
       if (pos && prev.selectedPiece && canPlacePiece(prev.selectedPiece, pos)) {
         const previews = getReactionPreview(prev.selectedPiece, pos);
         setReactionPreviews(previews);
+        
+        // Calculate summary for the side panel
+        if (previews.length > 0) {
+          const typeCounts: Record<string, { count: number; points: number }> = {};
+          previews.forEach(p => {
+            const key = p.type;
+            if (!typeCounts[key]) typeCounts[key] = { count: 0, points: 0 };
+            typeCounts[key].count += p.affectedPositions.length;
+            typeCounts[key].points += p.affectedPositions.length * 50;
+          });
+          // Get the primary reaction type
+          const primaryType = Object.entries(typeCounts).sort((a, b) => b[1].count - a[1].count)[0];
+          setReactionPreviewSummary({
+            type: primaryType[0] as 'burn' | 'extinguish' | 'dissolve',
+            count: Object.values(typeCounts).reduce((sum, t) => sum + t.count, 0),
+            points: Object.values(typeCounts).reduce((sum, t) => sum + t.points, 0),
+          });
+        } else {
+          setReactionPreviewSummary(null);
+        }
       } else {
         setReactionPreviews([]);
+        setReactionPreviewSummary(null);
       }
       return { ...prev, dropPreview: pos };
     });
@@ -438,13 +510,18 @@ export function useBlockBlastEngine(): BlockBlastEngine {
       playSound('drop');
       
       // Resolve grid (line clears FIRST, then reactions)
-      const { grid: resolvedGrid, totalScore, maxCombo, linesCleared } = resolveGrid(newGrid);
+      const { grid: resolvedGrid, totalScore, maxCombo, linesCleared, allReactionEvents, primaryReactionType } = resolveGrid(newGrid);
+      
+      // Add reaction events to history
+      if (allReactionEvents.length > 0) {
+        setReactionEvents(prev => [...prev, ...allReactionEvents].slice(-20)); // Keep last 20
+      }
       
       // Show combo display if significant
       if (maxCombo > 0 || linesCleared > 0) {
         const text = getComboText(maxCombo, linesCleared);
         setComboDisplay({ count: maxCombo, show: true, text });
-        setScorePopup({ score: totalScore, show: true });
+        setScorePopup({ score: totalScore, show: true, reactionType: primaryReactionType });
         
         if (maxCombo > 1 || linesCleared >= 2) {
           setShakeIntensity(Math.min(maxCombo * 3 + linesCleared * 2, 12));
@@ -486,6 +563,7 @@ export function useBlockBlastEngine(): BlockBlastEngine {
     });
     
     setReactionPreviews([]);
+    setReactionPreviewSummary(null);
   }, [resolveGrid, canAnyPieceFit]);
 
   return {
@@ -494,6 +572,8 @@ export function useBlockBlastEngine(): BlockBlastEngine {
     comboDisplay,
     scorePopup,
     reactionPreviews,
+    reactionEvents,
+    reactionPreviewSummary,
     startGame,
     selectPiece,
     setDropPreview,
