@@ -1,210 +1,244 @@
 import { motion } from 'framer-motion';
 
-const BLOCK_SIZE = 40;
-const SMALL_BLOCK = 32;
+// Element colors matching the game
+const ELEMENT_COLORS = {
+  fire: { bg: 'hsl(15, 90%, 55%)', glow: 'rgba(239, 68, 68, 0.6)', emoji: '🔥' },
+  water: { bg: 'hsl(200, 80%, 55%)', glow: 'rgba(59, 130, 246, 0.6)', emoji: '💧' },
+  wood: { bg: 'hsl(30, 50%, 35%)', glow: 'rgba(180, 83, 9, 0.6)', emoji: '🪵' },
+  stone: { bg: 'hsl(0, 0%, 45%)', glow: 'rgba(107, 114, 128, 0.6)', emoji: '🪨' },
+  acid: { bg: 'hsl(120, 80%, 40%)', glow: 'rgba(34, 197, 94, 0.6)', emoji: '🧪' },
+  helium: { bg: 'hsl(330, 80%, 70%)', glow: 'rgba(236, 72, 153, 0.6)', emoji: '🎈' },
+};
 
-interface ElementConfig {
-  type: string;
-  symbol: string;
-  color: string;
-  glow: string;
-}
+type ElementType = keyof typeof ELEMENT_COLORS;
 
-const elements: ElementConfig[] = [
-  { type: 'fire', symbol: '🔥', color: 'hsl(15, 90%, 55%)', glow: 'hsl(15, 100%, 65%)' },
-  { type: 'water', symbol: '💧', color: 'hsl(200, 80%, 50%)', glow: 'hsl(200, 90%, 60%)' },
-  { type: 'wood', symbol: '🪵', color: 'hsl(30, 50%, 35%)', glow: 'hsl(30, 60%, 45%)' },
-  { type: 'stone', symbol: '🪨', color: 'hsl(0, 0%, 45%)', glow: 'hsl(0, 0%, 55%)' },
-  { type: 'acid', symbol: '🧪', color: 'hsl(120, 70%, 40%)', glow: 'hsl(120, 80%, 50%)' },
-  { type: 'helium', symbol: '🎈', color: 'hsl(330, 70%, 65%)', glow: 'hsl(330, 80%, 75%)' },
+const CELL_SIZE = 28;
+const GRID_SIZE = 8;
+
+// Pre-placed blocks on the grid to show gameplay
+const PLACED_BLOCKS: { row: number; col: number; element: ElementType }[] = [
+  // Some fire blocks
+  { row: 1, col: 2, element: 'fire' },
+  { row: 1, col: 3, element: 'fire' },
+  { row: 2, col: 2, element: 'fire' },
+  // Water blocks
+  { row: 2, col: 4, element: 'water' },
+  { row: 2, col: 5, element: 'water' },
+  { row: 3, col: 4, element: 'water' },
+  // Stone blocks 
+  { row: 4, col: 5, element: 'stone' },
+  { row: 4, col: 6, element: 'stone' },
+  { row: 5, col: 5, element: 'stone' },
+  { row: 5, col: 6, element: 'stone' },
+  // Wood blocks
+  { row: 5, col: 1, element: 'wood' },
+  { row: 6, col: 1, element: 'wood' },
+  { row: 6, col: 2, element: 'wood' },
 ];
 
-const SingleBlock = ({ 
-  symbol, 
-  color, 
-  glow, 
-  delay = 0,
-  size = BLOCK_SIZE 
-}: { symbol: string; color: string; glow: string; delay?: number; size?: number }) => (
-  <motion.div
-    className="relative rounded-lg flex items-center justify-center"
-    style={{
-      width: size,
-      height: size,
-      background: `linear-gradient(135deg, ${glow} 0%, ${color} 50%, ${color} 100%)`,
-      boxShadow: `
-        inset 2px 2px 4px rgba(255,255,255,0.3),
-        inset -2px -2px 4px rgba(0,0,0,0.3),
-        0 4px 8px rgba(0,0,0,0.4)
-      `,
-    }}
-    initial={{ opacity: 0, scale: 0 }}
-    animate={{ opacity: 1, scale: 1 }}
-    transition={{ delay, type: 'spring', stiffness: 200, damping: 15 }}
-  >
-    <span className="text-lg drop-shadow-md" style={{ fontSize: size * 0.5 }}>
-      {symbol}
-    </span>
-  </motion.div>
-);
+// Piece shapes for the tray
+const PIECE_SHAPES = {
+  L: [
+    { row: 0, col: 0 },
+    { row: 1, col: 0 },
+    { row: 2, col: 0 },
+    { row: 2, col: 1 },
+  ],
+  T: [
+    { row: 0, col: 0 },
+    { row: 0, col: 1 },
+    { row: 0, col: 2 },
+    { row: 1, col: 1 },
+  ],
+  Square: [
+    { row: 0, col: 0 },
+    { row: 0, col: 1 },
+    { row: 1, col: 0 },
+    { row: 1, col: 1 },
+  ],
+};
 
-// L-piece on left
-const LeftPiece = () => {
-  const piece = [
-    { row: 0, col: 0, ...elements[0] }, // fire
-    { row: 1, col: 0, ...elements[0] }, // fire
-    { row: 2, col: 0, ...elements[2] }, // wood
-    { row: 2, col: 1, ...elements[2] }, // wood
-  ];
+interface BlockCellProps {
+  element: ElementType;
+  size?: number;
+  delay?: number;
+}
 
+const BlockCell = ({ element, size = CELL_SIZE, delay = 0 }: BlockCellProps) => {
+  const { bg, glow, emoji } = ELEMENT_COLORS[element];
+  
   return (
-    <motion.div 
-      className="relative"
-      initial={{ x: -30, opacity: 0 }}
-      animate={{ x: 0, opacity: 1 }}
-      transition={{ delay: 0.4, duration: 0.5 }}
+    <motion.div
+      className="rounded-md flex items-center justify-center shadow-md border border-white/20"
+      style={{
+        width: size,
+        height: size,
+        backgroundColor: bg,
+        boxShadow: `0 2px 8px ${glow}, inset 0 1px 0 rgba(255,255,255,0.3)`,
+      }}
+      initial={{ scale: 0, opacity: 0 }}
+      animate={{ scale: 1, opacity: 1 }}
+      transition={{ 
+        delay, 
+        duration: 0.3, 
+        type: 'spring', 
+        stiffness: 300 
+      }}
     >
-      <motion.div
-        className="relative"
-        animate={{ y: [0, -6, 0] }}
-        transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut', delay: 0.2 }}
-      >
-        <div className="grid gap-1" style={{ gridTemplateColumns: `repeat(2, ${SMALL_BLOCK}px)` }}>
-          {piece.map((block, i) => (
-            <div 
-              key={i}
-              style={{
-                gridColumn: block.col + 1,
-                gridRow: block.row + 1,
-              }}
-            >
-              <SingleBlock {...block} delay={0.5 + i * 0.08} size={SMALL_BLOCK} />
-            </div>
-          ))}
-        </div>
-      </motion.div>
+      <span style={{ fontSize: size * 0.55 }}>{emoji}</span>
     </motion.div>
   );
 };
 
-// Square piece on right  
-const RightPiece = () => {
-  const piece = [
-    { row: 0, col: 0, ...elements[3] }, // stone
-    { row: 0, col: 1, ...elements[3] }, // stone
-    { row: 1, col: 0, ...elements[1] }, // water
-    { row: 1, col: 1, ...elements[1] }, // water
-  ];
-
+const GameGridPreview = () => {
   return (
-    <motion.div 
+    <motion.div
       className="relative"
-      initial={{ x: 30, opacity: 0 }}
-      animate={{ x: 0, opacity: 1 }}
-      transition={{ delay: 0.4, duration: 0.5 }}
+      initial={{ opacity: 0, scale: 0.9 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ duration: 0.5 }}
     >
-      <motion.div
-        className="relative"
-        animate={{ y: [0, -6, 0] }}
-        transition={{ duration: 3.2, repeat: Infinity, ease: 'easeInOut', delay: 0.5 }}
-      >
-        <div className="grid grid-cols-2 gap-1">
-          {piece.map((block, i) => (
-            <SingleBlock key={i} {...block} delay={0.5 + i * 0.08} size={SMALL_BLOCK} />
-          ))}
-        </div>
-      </motion.div>
-    </motion.div>
-  );
-};
-
-// Hero T-piece in center with mini grid behind
-const HeroPiece = () => {
-  const pieceBlocks = [
-    { x: 0, y: 0, ...elements[0] }, // fire
-    { x: 1, y: 0, ...elements[1] }, // water
-    { x: 2, y: 0, ...elements[2] }, // wood
-    { x: 1, y: 1, ...elements[4] }, // acid
-  ];
-
-  return (
-    <motion.div 
-      className="relative"
-      initial={{ y: 20, opacity: 0, scale: 0.8 }}
-      animate={{ y: 0, opacity: 1, scale: 1 }}
-      transition={{ delay: 0.6, type: 'spring', stiffness: 150, damping: 15 }}
-    >
-      {/* Mini grid preview behind */}
-      <div className="absolute -inset-4 flex items-center justify-center pointer-events-none">
-        <div 
-          className="grid gap-0.5 opacity-20"
-          style={{ gridTemplateColumns: `repeat(5, 20px)` }}
-        >
-          {Array.from({ length: 15 }).map((_, i) => (
-            <div
-              key={i}
-              className="rounded-sm"
-              style={{
-                width: 20,
-                height: 20,
-                background: 'rgba(255,255,255,0.1)',
-                border: '1px solid rgba(255,255,255,0.15)',
-              }}
-            />
-          ))}
-        </div>
-      </div>
-
-      {/* Glow underneath */}
-      <motion.div
-        className="absolute -inset-6 rounded-full blur-2xl"
-        style={{
-          background: 'radial-gradient(circle, hsl(200, 80%, 50%) 0%, transparent 70%)',
-          opacity: 0.4,
-        }}
-        animate={{
-          scale: [1, 1.15, 1],
-          opacity: [0.3, 0.5, 0.3],
-        }}
-        transition={{
-          duration: 2,
-          repeat: Infinity,
-          ease: 'easeInOut',
+      {/* Grid glow */}
+      <div 
+        className="absolute inset-0 rounded-xl blur-xl opacity-40"
+        style={{ 
+          background: 'linear-gradient(135deg, rgba(251, 146, 60, 0.4), rgba(59, 130, 246, 0.4), rgba(34, 197, 94, 0.4))',
+          transform: 'scale(1.1)'
         }}
       />
       
-      {/* The T-piece */}
-      <motion.div 
-        className="relative grid gap-1"
+      {/* Grid container */}
+      <div 
+        className="relative rounded-xl p-2 border border-white/10"
         style={{
-          gridTemplateColumns: `repeat(3, ${BLOCK_SIZE}px)`,
-          gridTemplateRows: `repeat(2, ${BLOCK_SIZE}px)`,
+          background: 'linear-gradient(135deg, rgba(30, 30, 40, 0.9), rgba(20, 20, 30, 0.95))',
+          boxShadow: '0 8px 32px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.1)',
         }}
-        animate={{ y: [0, -8, 0] }}
-        transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut' }}
       >
-        {pieceBlocks.map((block, i) => (
-          <div 
-            key={i}
-            style={{
-              gridColumn: block.x + 1,
-              gridRow: block.y + 1,
-            }}
-          >
-            <SingleBlock {...block} delay={0.7 + i * 0.1} />
-          </div>
-        ))}
-      </motion.div>
+        {/* Grid cells */}
+        <div 
+          className="grid gap-0.5"
+          style={{ 
+            gridTemplateColumns: `repeat(${GRID_SIZE}, ${CELL_SIZE}px)`,
+            gridTemplateRows: `repeat(${GRID_SIZE}, ${CELL_SIZE}px)`,
+          }}
+        >
+          {Array.from({ length: GRID_SIZE * GRID_SIZE }).map((_, index) => {
+            const row = Math.floor(index / GRID_SIZE);
+            const col = index % GRID_SIZE;
+            const placedBlock = PLACED_BLOCKS.find(b => b.row === row && b.col === col);
+            
+            if (placedBlock) {
+              return (
+                <BlockCell 
+                  key={index} 
+                  element={placedBlock.element} 
+                  delay={0.05 * index * 0.1}
+                />
+              );
+            }
+            
+            return (
+              <div
+                key={index}
+                className="rounded-sm"
+                style={{
+                  width: CELL_SIZE,
+                  height: CELL_SIZE,
+                  backgroundColor: 'rgba(255,255,255,0.03)',
+                  border: '1px solid rgba(255,255,255,0.05)',
+                }}
+              />
+            );
+          })}
+        </div>
+      </div>
+    </motion.div>
+  );
+};
+
+interface PiecePreviewProps {
+  shape: { row: number; col: number }[];
+  element: ElementType;
+  delay: number;
+}
+
+const PiecePreview = ({ shape, element, delay }: PiecePreviewProps) => {
+  const maxRow = Math.max(...shape.map(s => s.row)) + 1;
+  const maxCol = Math.max(...shape.map(s => s.col)) + 1;
+  const pieceSize = 20;
+  
+  return (
+    <motion.div
+      className="relative"
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ 
+        opacity: 1, 
+        y: [0, -4, 0],
+      }}
+      transition={{ 
+        opacity: { delay, duration: 0.4 },
+        y: { delay: delay + 0.5, duration: 2, repeat: Infinity, ease: 'easeInOut' }
+      }}
+    >
+      {/* Piece glow */}
+      <div 
+        className="absolute inset-0 rounded-lg blur-md opacity-50"
+        style={{ backgroundColor: ELEMENT_COLORS[element].glow, transform: 'scale(1.3)' }}
+      />
+      
+      {/* Piece container */}
+      <div 
+        className="relative p-2 rounded-lg"
+        style={{
+          background: 'rgba(30, 30, 40, 0.8)',
+          border: '1px solid rgba(255,255,255,0.1)',
+        }}
+      >
+        <div 
+          className="grid gap-0.5"
+          style={{
+            gridTemplateColumns: `repeat(${maxCol}, ${pieceSize}px)`,
+            gridTemplateRows: `repeat(${maxRow}, ${pieceSize}px)`,
+          }}
+        >
+          {Array.from({ length: maxRow * maxCol }).map((_, index) => {
+            const row = Math.floor(index / maxCol);
+            const col = index % maxCol;
+            const isBlock = shape.some(s => s.row === row && s.col === col);
+            
+            if (isBlock) {
+              return <BlockCell key={index} element={element} size={pieceSize} delay={delay + 0.1} />;
+            }
+            
+            return <div key={index} style={{ width: pieceSize, height: pieceSize }} />;
+          })}
+        </div>
+      </div>
+    </motion.div>
+  );
+};
+
+const PieceTray = () => {
+  return (
+    <motion.div
+      className="flex items-end justify-center gap-4 mt-4"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ delay: 0.3, duration: 0.5 }}
+    >
+      <PiecePreview shape={PIECE_SHAPES.L} element="fire" delay={0.4} />
+      <PiecePreview shape={PIECE_SHAPES.T} element="water" delay={0.5} />
+      <PiecePreview shape={PIECE_SHAPES.Square} element="acid" delay={0.6} />
     </motion.div>
   );
 };
 
 export const HeroBlockDisplay = () => {
   return (
-    <div className="flex items-center justify-center gap-4 sm:gap-8 mt-2">
-      <LeftPiece />
-      <HeroPiece />
-      <RightPiece />
+    <div className="flex flex-col items-center">
+      <GameGridPreview />
+      <PieceTray />
     </div>
   );
 };
