@@ -10,6 +10,7 @@ import { ElementLegend } from '@/components/game/ElementLegend';
 import { LeaderboardModal } from '@/components/game/LeaderboardModal';
 import ReactionFeed from '@/components/game/ReactionFeed';
 import ReactionTutorial from '@/components/game/ReactionTutorial';
+import ReactionParticles from '@/components/game/ReactionParticles';
 import { Button } from '@/components/ui/button';
 import { Trophy, Play, RotateCcw, HelpCircle, Zap } from 'lucide-react';
 import { Position } from '@/game/types';
@@ -24,6 +25,7 @@ const Index = () => {
     reactionPreviews,
     reactionEvents,
     reactionPreviewSummary,
+    particleTrigger,
     startGame,
     selectPiece,
     setDropPreview,
@@ -183,6 +185,13 @@ const Index = () => {
                   onCellClick={handleCellClick}
                   onGridLeave={handleGridLeave}
                   reactionPreviews={reactionPreviews}
+                />
+                
+                {/* Reaction Particles */}
+                <ReactionParticles 
+                  trigger={particleTrigger}
+                  cellSize={44}
+                  gridOffset={{ x: 12, y: 12 }}
                 />
                 
                 {/* Score popup overlay */}
