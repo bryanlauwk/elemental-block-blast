@@ -10,13 +10,14 @@ interface ElementBadge {
   floatDelay: number;
 }
 
+// Responsive positions: default (mobile), md (tablet), lg (desktop)
 const elementBadges: ElementBadge[] = [
   { 
     id: 'fire', 
     emoji: '🔥', 
     gradient: 'from-orange-500 to-red-600',
     glowColor: 'rgba(251, 146, 60, 0.5)',
-    position: { x: '18%', y: '32%' }, 
+    position: { x: '8%', y: '32%' }, // Pushed further left for tablets
     size: 48,
     floatDelay: 0
   },
@@ -25,7 +26,7 @@ const elementBadges: ElementBadge[] = [
     emoji: '💧', 
     gradient: 'from-blue-400 to-blue-600',
     glowColor: 'rgba(96, 165, 250, 0.5)',
-    position: { x: '32%', y: '25%' }, 
+    position: { x: '22%', y: '20%' }, // Top left area
     size: 42,
     floatDelay: 0.3
   },
@@ -34,7 +35,7 @@ const elementBadges: ElementBadge[] = [
     emoji: '🪵', 
     gradient: 'from-amber-600 to-amber-800',
     glowColor: 'rgba(217, 119, 6, 0.5)',
-    position: { x: '15%', y: '58%' }, 
+    position: { x: '5%', y: '58%' }, // Lower left
     size: 44,
     floatDelay: 0.6
   },
@@ -43,7 +44,7 @@ const elementBadges: ElementBadge[] = [
     emoji: '🪨', 
     gradient: 'from-gray-400 to-gray-600',
     glowColor: 'rgba(156, 163, 175, 0.5)',
-    position: { x: '78%', y: '28%' }, 
+    position: { x: '88%', y: '28%' }, // Top right
     size: 46,
     floatDelay: 0.2
   },
@@ -52,7 +53,7 @@ const elementBadges: ElementBadge[] = [
     emoji: '🧪', 
     gradient: 'from-green-400 to-emerald-600',
     glowColor: 'rgba(74, 222, 128, 0.5)',
-    position: { x: '82%', y: '52%' }, 
+    position: { x: '92%', y: '52%' }, // Right side
     size: 44,
     floatDelay: 0.5
   },
@@ -61,7 +62,7 @@ const elementBadges: ElementBadge[] = [
     emoji: '🎈', 
     gradient: 'from-pink-400 to-pink-600',
     glowColor: 'rgba(244, 114, 182, 0.5)',
-    position: { x: '68%', y: '22%' }, 
+    position: { x: '78%', y: '18%' }, // Top right corner
     size: 40,
     floatDelay: 0.8
   },
