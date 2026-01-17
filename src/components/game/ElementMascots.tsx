@@ -1,76 +1,69 @@
 import { motion } from 'framer-motion';
 
-import fireMascot from '@/assets/mascots/fire.png';
-import waterMascot from '@/assets/mascots/water.png';
-import woodMascot from '@/assets/mascots/wood.png';
-import stoneMascot from '@/assets/mascots/stone.png';
-import acidMascot from '@/assets/mascots/acid.png';
-import heliumMascot from '@/assets/mascots/helium.png';
-
-interface MascotConfig {
+interface ElementBadge {
   id: string;
-  src: string;
+  emoji: string;
+  gradient: string;
+  glowColor: string;
   position: { x: string; y: string };
   size: number;
   floatDelay: number;
-  floatDuration: number;
-  rotation: number;
 }
 
-const mascots: MascotConfig[] = [
+const elementBadges: ElementBadge[] = [
   { 
     id: 'fire', 
-    src: fireMascot, 
-    position: { x: '8%', y: '35%' }, 
-    size: 55, 
-    floatDelay: 0, 
-    floatDuration: 3.5,
-    rotation: -5
+    emoji: '🔥', 
+    gradient: 'from-orange-500 to-red-600',
+    glowColor: 'rgba(251, 146, 60, 0.5)',
+    position: { x: '18%', y: '32%' }, 
+    size: 48,
+    floatDelay: 0
   },
   { 
     id: 'water', 
-    src: waterMascot, 
-    position: { x: '82%', y: '32%' }, 
-    size: 50, 
-    floatDelay: 0.5, 
-    floatDuration: 4,
-    rotation: 5
+    emoji: '💧', 
+    gradient: 'from-blue-400 to-blue-600',
+    glowColor: 'rgba(96, 165, 250, 0.5)',
+    position: { x: '32%', y: '25%' }, 
+    size: 42,
+    floatDelay: 0.3
   },
   { 
     id: 'wood', 
-    src: woodMascot, 
-    position: { x: '5%', y: '58%' }, 
-    size: 48, 
-    floatDelay: 1, 
-    floatDuration: 3.8,
-    rotation: 4
+    emoji: '🪵', 
+    gradient: 'from-amber-600 to-amber-800',
+    glowColor: 'rgba(217, 119, 6, 0.5)',
+    position: { x: '15%', y: '58%' }, 
+    size: 44,
+    floatDelay: 0.6
   },
   { 
     id: 'stone', 
-    src: stoneMascot, 
-    position: { x: '85%', y: '55%' }, 
-    size: 45, 
-    floatDelay: 1.5, 
-    floatDuration: 4.2,
-    rotation: -3
+    emoji: '🪨', 
+    gradient: 'from-gray-400 to-gray-600',
+    glowColor: 'rgba(156, 163, 175, 0.5)',
+    position: { x: '78%', y: '28%' }, 
+    size: 46,
+    floatDelay: 0.2
   },
   { 
     id: 'acid', 
-    src: acidMascot, 
-    position: { x: '12%', y: '75%' }, 
-    size: 42, 
-    floatDelay: 0.8, 
-    floatDuration: 3.2,
-    rotation: 6
+    emoji: '🧪', 
+    gradient: 'from-green-400 to-emerald-600',
+    glowColor: 'rgba(74, 222, 128, 0.5)',
+    position: { x: '82%', y: '52%' }, 
+    size: 44,
+    floatDelay: 0.5
   },
   { 
     id: 'helium', 
-    src: heliumMascot, 
-    position: { x: '78%', y: '72%' }, 
-    size: 42, 
-    floatDelay: 1.2, 
-    floatDuration: 4.5,
-    rotation: -4
+    emoji: '🎈', 
+    gradient: 'from-pink-400 to-pink-600',
+    glowColor: 'rgba(244, 114, 182, 0.5)',
+    position: { x: '68%', y: '22%' }, 
+    size: 40,
+    floatDelay: 0.8
   },
 ];
 
@@ -81,67 +74,54 @@ interface ElementMascotsProps {
 export const ElementMascots = ({ isPlaying = false }: ElementMascotsProps) => {
   return (
     <div className="absolute inset-0 pointer-events-none overflow-hidden">
-      {mascots.map((mascot) => (
+      {elementBadges.map((badge) => (
         <motion.div
-          key={mascot.id}
-          className="absolute pointer-events-auto cursor-pointer"
+          key={badge.id}
+          className="absolute pointer-events-none"
           style={{
-            left: mascot.position.x,
-            top: mascot.position.y,
-            width: mascot.size,
-            height: mascot.size,
+            left: badge.position.x,
+            top: badge.position.y,
+            width: badge.size,
+            height: badge.size,
           }}
-          initial={{ 
-            opacity: 0, 
-            scale: 0.5,
-            rotate: mascot.rotation 
-          }}
+          initial={{ opacity: 0, scale: 0 }}
           animate={{ 
             opacity: isPlaying ? 0 : 1, 
-            scale: isPlaying ? 0.5 : 1,
-            rotate: mascot.rotation,
-            y: [0, -12, 0],
-          }}
-          exit={{ 
-            opacity: 0, 
-            scale: 0.5,
-            transition: { duration: 0.3 }
+            scale: isPlaying ? 0 : 1,
+            y: [0, -8, 0],
           }}
           transition={{
-            opacity: { duration: 0.5 },
-            scale: { duration: 0.5 },
+            opacity: { duration: 0.4 },
+            scale: { duration: 0.4, type: 'spring', stiffness: 200 },
             y: {
-              duration: mascot.floatDuration,
+              duration: 3 + badge.floatDelay,
               repeat: Infinity,
               ease: "easeInOut",
-              delay: mascot.floatDelay,
+              delay: badge.floatDelay,
             }
           }}
-          whileHover={{
-            scale: 1.15,
-            rotate: mascot.rotation + (mascot.rotation > 0 ? -10 : 10),
-            transition: { duration: 0.2 }
-          }}
         >
-          <motion.img
-            src={mascot.src}
-            alt={`${mascot.id} mascot`}
-            className="w-full h-full object-contain"
-            style={{
-              filter: 'drop-shadow(0 4px 12px rgba(0,0,0,0.4))',
-              mixBlendMode: 'multiply',
-              background: 'transparent',
-            }}
-            animate={{
-              scale: [1, 1.03, 1],
-            }}
-            transition={{
-              duration: 2.5,
-              repeat: Infinity,
-              ease: "easeInOut",
-              delay: mascot.floatDelay + 0.5,
-            }}
+          {/* Glow effect */}
+          <div 
+            className="absolute inset-0 rounded-full blur-lg opacity-60"
+            style={{ backgroundColor: badge.glowColor }}
           />
+          
+          {/* Badge container */}
+          <div 
+            className={`relative w-full h-full rounded-full bg-gradient-to-br ${badge.gradient} flex items-center justify-center shadow-lg border-2 border-white/20`}
+          >
+            {/* Inner highlight */}
+            <div className="absolute inset-1 rounded-full bg-gradient-to-br from-white/30 to-transparent" />
+            
+            {/* Emoji */}
+            <span 
+              className="relative text-center select-none"
+              style={{ fontSize: badge.size * 0.5 }}
+            >
+              {badge.emoji}
+            </span>
+          </div>
         </motion.div>
       ))}
     </div>
