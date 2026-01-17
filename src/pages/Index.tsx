@@ -1,33 +1,28 @@
-import { useEffect, useRef } from 'react';
-import { useGameEngine } from '@/hooks/useGameEngine';
-import { useKeyboardControls } from '@/hooks/useKeyboardControls';
+import { useEffect, useRef, useCallback } from 'react';
+import { useBlockBlastEngine } from '@/hooks/useBlockBlastEngine';
 import { useHighScores } from '@/hooks/useHighScores';
-import { GameGrid } from '@/components/game/GameGrid';
-import { NextPiecePreview } from '@/components/game/NextPiecePreview';
+import { BlockBlastGrid } from '@/components/game/BlockBlastGrid';
+import { PieceTray } from '@/components/game/PieceTray';
+import { BlockBlastScoreboard } from '@/components/game/BlockBlastScoreboard';
+import { ScorePopup } from '@/components/game/ScorePopup';
 import { PeriodicTable } from '@/components/game/PeriodicTable';
-import { Scoreboard } from '@/components/game/Scoreboard';
-import { ComboDisplay } from '@/components/game/ComboDisplay';
-import { TouchControls } from '@/components/game/TouchControls';
-import { GameControls } from '@/components/game/GameControls';
-import { KeyboardHints } from '@/components/game/KeyboardHints';
 import { Leaderboard } from '@/components/game/Leaderboard';
-import { Beaker, FlaskConical } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Atom, Play, RotateCcw } from 'lucide-react';
+import { Position } from '@/game/types';
 
 const Index = () => {
   const {
     gameState,
     shakeIntensity,
     comboDisplay,
+    scorePopup,
     startGame,
-    pauseGame,
-    resumeGame,
-    moveLeft,
-    moveRight,
-    moveDown,
-    hardDrop,
-    rotateClockwise,
-    rotateCounterClockwise,
-  } = useGameEngine();
+    selectPiece,
+    setDropPreview,
+    canPlacePiece,
+    placePiece,
+  } = useBlockBlastEngine();
 
   const { highScores, topScore, saveScore, clearScores } = useHighScores();
   const hasGameEnded = useRef(false);
@@ -43,99 +38,148 @@ const Index = () => {
     }
   }, [gameState.isGameOver, gameState.score, saveScore]);
 
-  useKeyboardControls({
-    onMoveLeft: moveLeft,
-    onMoveRight: moveRight,
-    onMoveDown: moveDown,
-    onHardDrop: hardDrop,
-    onRotateClockwise: rotateClockwise,
-    onRotateCounterClockwise: rotateCounterClockwise,
-    onPause: pauseGame,
-    onResume: resumeGame,
-    isPaused: gameState.isPaused,
-    isGameOver: gameState.isGameOver,
-  });
+  // Handle cell hover for preview
+  const handleCellHover = useCallback((pos: Position) => {
+    if (gameState.selectedPiece && canPlacePiece(gameState.selectedPiece, pos)) {
+      setDropPreview(pos);
+    } else if (gameState.selectedPiece) {
+      // Try to find a valid position near the hovered cell
+      setDropPreview(pos);
+    }
+  }, [gameState.selectedPiece, canPlacePiece, setDropPreview]);
+
+  // Handle cell click for placement
+  const handleCellClick = useCallback((pos: Position) => {
+    if (gameState.selectedPiece && canPlacePiece(gameState.selectedPiece, pos)) {
+      placePiece(gameState.selectedPiece, pos);
+    }
+  }, [gameState.selectedPiece, canPlacePiece, placePiece]);
+
+  // Handle grid leave
+  const handleGridLeave = useCallback(() => {
+    setDropPreview(null);
+  }, [setDropPreview]);
+
+  const hasStarted = gameState.availablePieces.length > 0;
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 text-white">
+    <div className="min-h-screen bg-gradient-to-b from-game-bg-start to-game-bg-end text-white overflow-hidden">
       {/* Header */}
-      <header className="text-center py-4 border-b border-slate-800">
+      <header className="text-center py-4">
         <div className="flex items-center justify-center gap-3">
-          <FlaskConical className="w-8 h-8 text-green-400" />
-          <h1 className="text-2xl md:text-3xl font-black tracking-tight">
-            <span className="text-orange-400">Elemental</span>{' '}
-            <span className="text-blue-400">Tetris</span>
+          <Atom className="w-7 h-7 text-game-accent animate-pulse" />
+          <h1 className="text-2xl sm:text-3xl font-black tracking-tight">
+            <span className="bg-gradient-to-r from-game-score-start via-game-score-mid to-game-score-end bg-clip-text text-transparent">
+              Elemental Blast
+            </span>
           </h1>
-          <Beaker className="w-8 h-8 text-purple-400" />
+          <Atom className="w-7 h-7 text-game-accent animate-pulse" />
         </div>
-        <p className="text-slate-500 text-sm mt-1">The Meltdown Edition</p>
+        <p className="text-game-text-muted text-xs mt-1">Match elements • Clear lines • Chain reactions</p>
       </header>
 
       {/* Main Game Area */}
-      <main className="container mx-auto px-4 py-6">
+      <main className="container mx-auto px-4 pb-6">
         <div className="flex flex-col lg:flex-row items-start justify-center gap-6">
-          {/* Left Sidebar - Mobile: Hidden */}
-          <aside className="hidden lg:flex flex-col gap-4 w-48">
-            <Scoreboard score={gameState.score} isGameOver={gameState.isGameOver} topScore={topScore} />
-            <Leaderboard highScores={highScores} currentScore={gameState.isGameOver ? gameState.score : undefined} onClear={clearScores} />
-            <KeyboardHints />
+          {/* Left Sidebar - Desktop only */}
+          <aside className="hidden lg:flex flex-col gap-4 w-56">
+            <BlockBlastScoreboard 
+              score={gameState.score} 
+              topScore={topScore} 
+              isGameOver={gameState.isGameOver} 
+            />
+            <Leaderboard 
+              highScores={highScores} 
+              currentScore={gameState.isGameOver ? gameState.score : undefined} 
+              onClear={clearScores} 
+            />
           </aside>
 
-          {/* Game Board */}
-          <div className="relative flex flex-col items-center">
+          {/* Game Board Area */}
+          <div className="flex flex-col items-center gap-4 w-full max-w-md mx-auto lg:mx-0">
             {/* Mobile Score */}
-            <div className="lg:hidden mb-4 w-full max-w-xs">
-              <Scoreboard score={gameState.score} isGameOver={gameState.isGameOver} topScore={topScore} />
+            <div className="lg:hidden w-full">
+              <BlockBlastScoreboard 
+                score={gameState.score} 
+                topScore={topScore} 
+                isGameOver={gameState.isGameOver} 
+              />
             </div>
 
-            <GameGrid
-              grid={gameState.grid}
-              currentPiece={gameState.currentPiece}
-              currentPosition={gameState.currentPosition}
-              shakeIntensity={shakeIntensity}
-            />
-            
-            <ComboDisplay count={comboDisplay.count} show={comboDisplay.show} />
+            {/* Start/Restart Button */}
+            {(!hasStarted || gameState.isGameOver) && (
+              <Button
+                onClick={startGame}
+                size="lg"
+                className="bg-gradient-to-r from-game-accent to-emerald-400 hover:from-emerald-400 hover:to-game-accent text-black font-bold text-lg px-8 py-6 rounded-xl shadow-lg shadow-game-accent/30"
+              >
+                {hasStarted ? (
+                  <>
+                    <RotateCcw className="w-5 h-5 mr-2" />
+                    Play Again
+                  </>
+                ) : (
+                  <>
+                    <Play className="w-5 h-5 mr-2" />
+                    Start Game
+                  </>
+                )}
+              </Button>
+            )}
 
-            {/* Pause Overlay */}
-            {gameState.isPaused && !gameState.isGameOver && gameState.currentPiece && (
-              <div className="absolute inset-0 bg-slate-900/80 flex items-center justify-center rounded-lg">
-                <div className="text-center">
-                  <p className="text-2xl font-bold text-yellow-400 mb-2">⏸️ PAUSED</p>
-                  <p className="text-slate-400 text-sm">Press P to resume</p>
-                </div>
+            {/* Game Grid */}
+            {hasStarted && (
+              <div className="relative">
+                <BlockBlastGrid
+                  grid={gameState.grid}
+                  selectedPiece={gameState.selectedPiece}
+                  dropPreview={gameState.dropPreview}
+                  shakeIntensity={shakeIntensity}
+                  canPlacePiece={canPlacePiece}
+                  onCellHover={handleCellHover}
+                  onCellClick={handleCellClick}
+                  onGridLeave={handleGridLeave}
+                />
+                
+                {/* Score popup overlay */}
+                <ScorePopup 
+                  score={scorePopup.score} 
+                  show={scorePopup.show} 
+                  text={comboDisplay.text} 
+                />
               </div>
             )}
 
-            {/* Touch Controls */}
-            <TouchControls
-              onMoveLeft={moveLeft}
-              onMoveRight={moveRight}
-              onMoveDown={moveDown}
-              onRotate={rotateClockwise}
-              onHardDrop={hardDrop}
-              disabled={gameState.isPaused || gameState.isGameOver}
-            />
+            {/* Piece Tray */}
+            {hasStarted && !gameState.isGameOver && (
+              <PieceTray
+                pieces={gameState.availablePieces}
+                selectedPiece={gameState.selectedPiece}
+                onSelectPiece={selectPiece}
+                disabled={gameState.isGameOver}
+              />
+            )}
           </div>
 
           {/* Right Sidebar */}
-          <aside className="flex flex-col gap-4 w-full lg:w-48">
-            <GameControls
-              isPaused={gameState.isPaused}
-              isGameOver={gameState.isGameOver}
-              onStart={startGame}
-              onPause={pauseGame}
-              onResume={resumeGame}
-            />
-            <NextPiecePreview nextPieces={gameState.nextPieces} />
+          <aside className="hidden lg:flex flex-col gap-4 w-56">
             <PeriodicTable />
           </aside>
+        </div>
+
+        {/* Mobile Leaderboard */}
+        <div className="lg:hidden mt-6 max-w-md mx-auto">
+          <Leaderboard 
+            highScores={highScores} 
+            currentScore={gameState.isGameOver ? gameState.score : undefined} 
+            onClear={clearScores} 
+          />
         </div>
       </main>
 
       {/* Footer */}
-      <footer className="text-center py-4 text-slate-600 text-xs">
-        <p>⚠️ No actual chemicals were harmed in this simulation ⚠️</p>
+      <footer className="text-center py-4 text-game-text-muted text-xs">
+        <p>🧪 Chemistry meets puzzle gaming 🧪</p>
       </footer>
     </div>
   );

@@ -9,18 +9,20 @@ interface ElementBlockProps {
   isPreview?: boolean;
 }
 
-export function ElementBlock({ element, size = 28, isPreview = false }: ElementBlockProps) {
+export function ElementBlock({ element, size = 36, isPreview = false }: ElementBlockProps) {
   const info = ELEMENT_INFO[element];
 
-  const getElementStyles = () => {
-    const baseStyles: React.CSSProperties = {
+  const getElementStyles = (): React.CSSProperties => {
+    return {
       width: size,
       height: size,
       backgroundColor: info.color,
-      boxShadow: `0 0 ${isPreview ? 4 : 8}px ${info.glowColor}, inset 0 1px 2px rgba(255,255,255,0.3)`,
+      boxShadow: `
+        0 0 ${isPreview ? 6 : 12}px ${info.glowColor},
+        inset 0 2px 4px rgba(255,255,255,0.3),
+        inset 0 -2px 4px rgba(0,0,0,0.2)
+      `,
     };
-
-    return baseStyles;
   };
 
   const getAnimationClass = () => {
@@ -28,7 +30,7 @@ export function ElementBlock({ element, size = 28, isPreview = false }: ElementB
       case 'fire':
         return 'animate-pulse';
       case 'acid':
-        return 'animate-bounce';
+        return '';
       case 'life':
         return 'animate-pulse';
       case 'helium':
@@ -43,14 +45,14 @@ export function ElementBlock({ element, size = 28, isPreview = false }: ElementB
       initial={isPreview ? {} : { scale: 0.8, opacity: 0 }}
       animate={{ scale: 1, opacity: 1 }}
       className={cn(
-        'rounded-sm border border-white/20 flex items-center justify-center text-xs select-none',
+        'rounded-lg border-2 border-white/30 flex items-center justify-center select-none',
         getAnimationClass()
       )}
       style={getElementStyles()}
     >
       <span 
-        className="drop-shadow-lg"
-        style={{ fontSize: size * 0.6 }}
+        className="drop-shadow-lg font-bold"
+        style={{ fontSize: size * 0.5 }}
       >
         {info.symbol}
       </span>
