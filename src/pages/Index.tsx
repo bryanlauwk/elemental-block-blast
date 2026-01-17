@@ -17,6 +17,7 @@ const Index = () => {
     shakeIntensity,
     comboDisplay,
     scorePopup,
+    reactionPreviews,
     startGame,
     selectPiece,
     setDropPreview,
@@ -139,6 +140,7 @@ const Index = () => {
                   onCellHover={handleCellHover}
                   onCellClick={handleCellClick}
                   onGridLeave={handleGridLeave}
+                  reactionPreviews={reactionPreviews}
                 />
                 
                 {/* Score popup overlay */}

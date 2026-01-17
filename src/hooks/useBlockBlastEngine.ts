@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useRef } from 'react';
+import { useState, useCallback } from 'react';
 import {
   Cell,
   BlockBlastState,
@@ -10,7 +10,6 @@ import {
   ELEMENT_WEIGHTS,
   GRID_WIDTH,
   GRID_HEIGHT,
-  LIFE_SPREAD_INTERVAL,
 } from '@/game/types';
 import { playSound } from '@/game/sounds';
 
@@ -47,9 +46,11 @@ const getRandomShape = (): Position[] => {
   return BLOCK_SHAPES[0];
 };
 
+// Create piece with UNIFORM element type (all blocks same element)
 const createRandomPiece = (): DraggablePiece => {
   const shape = getRandomShape();
-  const elements = shape.map(() => getRandomElement());
+  const element = getRandomElement(); // Single element for entire piece
+  const elements = shape.map(() => element); // All same element
   
   return {
     id: `piece-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
@@ -58,16 +59,24 @@ const createRandomPiece = (): DraggablePiece => {
   };
 };
 
+export interface ReactionPreview {
+  pos: Position;
+  type: 'burn' | 'extinguish' | 'dissolve';
+  affectedPositions: Position[];
+}
+
 export interface BlockBlastEngine {
   gameState: BlockBlastState;
   shakeIntensity: number;
   comboDisplay: { count: number; show: boolean; text: string };
   scorePopup: { score: number; show: boolean };
+  reactionPreviews: ReactionPreview[];
   startGame: () => void;
   selectPiece: (piece: DraggablePiece | null) => void;
   setDropPreview: (pos: Position | null) => void;
   canPlacePiece: (piece: DraggablePiece, pos: Position) => boolean;
   placePiece: (piece: DraggablePiece, pos: Position) => void;
+  getReactionPreview: (piece: DraggablePiece, pos: Position) => ReactionPreview[];
 }
 
 export function useBlockBlastEngine(): BlockBlastEngine {
@@ -85,8 +94,7 @@ export function useBlockBlastEngine(): BlockBlastEngine {
   const [shakeIntensity, setShakeIntensity] = useState(0);
   const [comboDisplay, setComboDisplay] = useState({ count: 0, show: false, text: '' });
   const [scorePopup, setScorePopup] = useState({ score: 0, show: false });
-  
-  const lifeTickRef = useRef<NodeJS.Timeout | null>(null);
+  const [reactionPreviews, setReactionPreviews] = useState<ReactionPreview[]>([]);
 
   // Check if piece can be placed at position
   const canPlacePiece = useCallback((piece: DraggablePiece, pos: Position): boolean => {
@@ -125,91 +133,7 @@ export function useBlockBlastEngine(): BlockBlastEngine {
     return false;
   }, []);
 
-  // Process elemental reactions
-  const processReactions = useCallback((grid: Cell[][]): { grid: Cell[][]; reacted: boolean; reactionCount: number } => {
-    const newGrid = grid.map(row => row.map(cell => ({ ...cell })));
-    let reacted = false;
-    let reactionCount = 0;
-    const toRemove: Position[] = [];
-    const toAdd: { pos: Position; element: ElementType }[] = [];
-
-    for (let y = 0; y < GRID_HEIGHT; y++) {
-      for (let x = 0; x < GRID_WIDTH; x++) {
-        const cell = newGrid[y][x];
-        if (!cell.element) continue;
-
-        const neighbors: { pos: Position; cell: Cell }[] = [
-          { pos: { x: x - 1, y }, cell: x > 0 ? newGrid[y][x - 1] : { element: null, id: '' } },
-          { pos: { x: x + 1, y }, cell: x < GRID_WIDTH - 1 ? newGrid[y][x + 1] : { element: null, id: '' } },
-          { pos: { x, y: y - 1 }, cell: y > 0 ? newGrid[y - 1][x] : { element: null, id: '' } },
-          { pos: { x, y: y + 1 }, cell: y < GRID_HEIGHT - 1 ? newGrid[y + 1][x] : { element: null, id: '' } },
-        ];
-
-        // Fire burns wood and life
-        if (cell.element === 'fire') {
-          neighbors.forEach(({ pos, cell: neighbor }) => {
-            if (neighbor.element === 'wood') {
-              toRemove.push(pos);
-              toAdd.push({ pos, element: 'ash' });
-              reacted = true;
-              reactionCount++;
-              playSound('sizzle');
-            }
-            if (neighbor.element === 'life') {
-              toRemove.push(pos);
-              reacted = true;
-              reactionCount++;
-              playSound('sizzle');
-            }
-          });
-        }
-
-        // Water extinguishes fire
-        if (cell.element === 'water') {
-          neighbors.forEach(({ pos, cell: neighbor }) => {
-            if (neighbor.element === 'fire') {
-              toRemove.push(pos);
-              reacted = true;
-              reactionCount++;
-              playSound('splash');
-            }
-          });
-        }
-
-        // Acid dissolves adjacent blocks (except stone and helium)
-        if (cell.element === 'acid') {
-          neighbors.forEach(({ pos, cell: neighbor }) => {
-            if (neighbor.element && neighbor.element !== 'stone' && neighbor.element !== 'helium' && neighbor.element !== 'acid') {
-              toRemove.push(pos);
-              reacted = true;
-              reactionCount++;
-              playSound('dissolve');
-            }
-          });
-        }
-      }
-    }
-
-    // Apply removals
-    toRemove.forEach(({ x, y }) => {
-      if (y >= 0 && y < GRID_HEIGHT && x >= 0 && x < GRID_WIDTH) {
-        newGrid[y][x] = { element: null, id: `${x}-${y}-${Date.now()}` };
-      }
-    });
-
-    // Apply additions (ash from burnt wood)
-    toAdd.forEach(({ pos, element }) => {
-      if (pos.y >= 0 && pos.y < GRID_HEIGHT && pos.x >= 0 && pos.x < GRID_WIDTH) {
-        if (newGrid[pos.y][pos.x].element === null) {
-          newGrid[pos.y][pos.x] = { element, id: `${pos.x}-${pos.y}-${Date.now()}` };
-        }
-      }
-    });
-
-    return { grid: newGrid, reacted, reactionCount };
-  }, []);
-
-  // Clear full rows and columns (Block Blast style)
+  // Clear full rows and columns (Block Blast style) - ALWAYS HAPPENS FIRST
   const clearLines = useCallback((grid: Cell[][]): { grid: Cell[][]; linesCleared: number } => {
     const newGrid = grid.map(row => row.map(cell => ({ ...cell })));
     let linesCleared = 0;
@@ -258,7 +182,93 @@ export function useBlockBlastEngine(): BlockBlastEngine {
     return { grid: newGrid, linesCleared };
   }, []);
 
-  // Resolve grid - chain reactions
+  // Process elemental reactions - SIMPLIFIED: mutual destruction, one-shot effects
+  const processReactions = useCallback((grid: Cell[][]): { grid: Cell[][]; reacted: boolean; reactionCount: number } => {
+    const newGrid = grid.map(row => row.map(cell => ({ ...cell })));
+    let reacted = false;
+    let reactionCount = 0;
+    const toRemove = new Set<string>(); // Use set to avoid duplicates
+    const toAdd: { pos: Position; element: ElementType }[] = [];
+
+    const posKey = (x: number, y: number) => `${x},${y}`;
+
+    for (let y = 0; y < GRID_HEIGHT; y++) {
+      for (let x = 0; x < GRID_WIDTH; x++) {
+        const cell = newGrid[y][x];
+        if (!cell.element) continue;
+
+        const neighbors: { pos: Position; cell: Cell }[] = [
+          { pos: { x: x - 1, y }, cell: x > 0 ? newGrid[y][x - 1] : { element: null, id: '' } },
+          { pos: { x: x + 1, y }, cell: x < GRID_WIDTH - 1 ? newGrid[y][x + 1] : { element: null, id: '' } },
+          { pos: { x, y: y - 1 }, cell: y > 0 ? newGrid[y - 1][x] : { element: null, id: '' } },
+          { pos: { x, y: y + 1 }, cell: y < GRID_HEIGHT - 1 ? newGrid[y + 1][x] : { element: null, id: '' } },
+        ];
+
+        // Fire + Wood → Fire remains, Wood becomes Ash
+        if (cell.element === 'fire') {
+          neighbors.forEach(({ pos, cell: neighbor }) => {
+            if (neighbor.element === 'wood') {
+              toRemove.add(posKey(pos.x, pos.y));
+              toAdd.push({ pos, element: 'ash' });
+              reacted = true;
+              reactionCount++;
+              playSound('sizzle');
+            }
+          });
+        }
+
+        // Fire + Water → BOTH disappear (mutual destruction)
+        if (cell.element === 'fire') {
+          neighbors.forEach(({ pos, cell: neighbor }) => {
+            if (neighbor.element === 'water') {
+              toRemove.add(posKey(x, y)); // Remove fire
+              toRemove.add(posKey(pos.x, pos.y)); // Remove water
+              reacted = true;
+              reactionCount++;
+              playSound('splash');
+            }
+          });
+        }
+
+        // Acid → Destroys ONE adjacent non-immune block, then acid disappears (one-shot)
+        if (cell.element === 'acid') {
+          for (const { pos, cell: neighbor } of neighbors) {
+            if (neighbor.element && neighbor.element !== 'stone' && neighbor.element !== 'helium' && neighbor.element !== 'acid') {
+              toRemove.add(posKey(pos.x, pos.y)); // Remove target
+              toRemove.add(posKey(x, y)); // Acid consumes itself
+              reacted = true;
+              reactionCount++;
+              playSound('dissolve');
+              break; // Only ONE block per acid
+            }
+          }
+        }
+      }
+    }
+
+    // Apply removals
+    toRemove.forEach((key) => {
+      const [xStr, yStr] = key.split(',');
+      const rx = parseInt(xStr);
+      const ry = parseInt(yStr);
+      if (ry >= 0 && ry < GRID_HEIGHT && rx >= 0 && rx < GRID_WIDTH) {
+        newGrid[ry][rx] = { element: null, id: `${rx}-${ry}-${Date.now()}` };
+      }
+    });
+
+    // Apply additions (ash from burnt wood)
+    toAdd.forEach(({ pos, element }) => {
+      if (pos.y >= 0 && pos.y < GRID_HEIGHT && pos.x >= 0 && pos.x < GRID_WIDTH) {
+        if (newGrid[pos.y][pos.x].element === null) {
+          newGrid[pos.y][pos.x] = { element, id: `${pos.x}-${pos.y}-${Date.now()}` };
+        }
+      }
+    });
+
+    return { grid: newGrid, reacted, reactionCount };
+  }, []);
+
+  // NEW: Resolve grid - LINE CLEARS FIRST, then reactions (strategic order)
   const resolveGrid = useCallback((grid: Cell[][]): { grid: Cell[][]; totalScore: number; maxCombo: number; linesCleared: number } => {
     let currentGrid = grid;
     let totalScore = 0;
@@ -269,7 +279,7 @@ export function useBlockBlastEngine(): BlockBlastEngine {
     while (hasChanges) {
       hasChanges = false;
 
-      // Clear lines first
+      // STEP 1: Clear full lines FIRST (core Block Blast mechanic)
       const { grid: clearedGrid, linesCleared } = clearLines(currentGrid);
       if (linesCleared > 0) {
         currentGrid = clearedGrid;
@@ -281,52 +291,20 @@ export function useBlockBlastEngine(): BlockBlastEngine {
         totalScore += lineBonus * (combo > 1 ? combo : 1);
       }
 
-      // Process reactions
+      // STEP 2: Process reactions AFTER line clears (bonus mechanic)
       const { grid: reactedGrid, reacted, reactionCount } = processReactions(currentGrid);
       if (reacted) {
         currentGrid = reactedGrid;
         hasChanges = true;
+        // Reactions are BONUS points (50 per reaction), with chain multiplier (1.5x)
+        const reactionBonus = reactionCount * 50 * Math.pow(1.5, combo);
+        totalScore += Math.floor(reactionBonus);
         combo++;
-        totalScore += reactionCount * 150 * combo;
       }
     }
 
     return { grid: currentGrid, totalScore, maxCombo: combo, linesCleared: totalLinesCleared };
   }, [clearLines, processReactions]);
-
-  // Spread life blocks
-  const spreadLife = useCallback((grid: Cell[][]): Cell[][] => {
-    const newGrid = grid.map(row => row.map(cell => ({ ...cell })));
-    const lifePositions: Position[] = [];
-
-    for (let y = 0; y < GRID_HEIGHT; y++) {
-      for (let x = 0; x < GRID_WIDTH; x++) {
-        if (newGrid[y][x].element === 'life') {
-          lifePositions.push({ x, y });
-        }
-      }
-    }
-
-    lifePositions.forEach(({ x, y }) => {
-      const emptyNeighbors: Position[] = [];
-      
-      if (x > 0 && newGrid[y][x - 1].element === null) emptyNeighbors.push({ x: x - 1, y });
-      if (x < GRID_WIDTH - 1 && newGrid[y][x + 1].element === null) emptyNeighbors.push({ x: x + 1, y });
-      if (y > 0 && newGrid[y - 1][x].element === null) emptyNeighbors.push({ x, y: y - 1 });
-      if (y < GRID_HEIGHT - 1 && newGrid[y + 1][x].element === null) emptyNeighbors.push({ x, y: y + 1 });
-
-      if (emptyNeighbors.length > 0) {
-        const randomNeighbor = emptyNeighbors[Math.floor(Math.random() * emptyNeighbors.length)];
-        newGrid[randomNeighbor.y][randomNeighbor.x] = {
-          element: 'life',
-          id: `${randomNeighbor.x}-${randomNeighbor.y}-${Date.now()}`,
-        };
-        playSound('grow');
-      }
-    });
-
-    return newGrid;
-  }, []);
 
   // Get combo text
   const getComboText = (combo: number, linesCleared: number): string => {
@@ -337,6 +315,69 @@ export function useBlockBlastEngine(): BlockBlastEngine {
     if (linesCleared >= 2) return 'GREAT!';
     return 'NICE!';
   };
+
+  // NEW: Get reaction preview when hovering
+  const getReactionPreview = useCallback((piece: DraggablePiece, pos: Position): ReactionPreview[] => {
+    const previews: ReactionPreview[] = [];
+    
+    // Simulate placing the piece
+    const testGrid = gameState.grid.map(row => row.map(cell => ({ ...cell })));
+    piece.shape.forEach((p, i) => {
+      const newX = pos.x + p.x;
+      const newY = pos.y + p.y;
+      if (newY >= 0 && newY < GRID_HEIGHT && newX >= 0 && newX < GRID_WIDTH) {
+        testGrid[newY][newX] = { element: piece.elements[i], id: 'preview' };
+      }
+    });
+
+    // Check for potential reactions
+    piece.shape.forEach((p, i) => {
+      const x = pos.x + p.x;
+      const y = pos.y + p.y;
+      const element = piece.elements[i];
+
+      if (x < 0 || x >= GRID_WIDTH || y < 0 || y >= GRID_HEIGHT) return;
+
+      const neighbors = [
+        { x: x - 1, y },
+        { x: x + 1, y },
+        { x, y: y - 1 },
+        { x, y: y + 1 },
+      ].filter(n => n.x >= 0 && n.x < GRID_WIDTH && n.y >= 0 && n.y < GRID_HEIGHT);
+
+      if (element === 'fire') {
+        const burnTargets = neighbors.filter(n => gameState.grid[n.y][n.x].element === 'wood');
+        const extinguishTargets = neighbors.filter(n => gameState.grid[n.y][n.x].element === 'water');
+        
+        if (burnTargets.length > 0) {
+          previews.push({ pos: { x, y }, type: 'burn', affectedPositions: burnTargets });
+        }
+        if (extinguishTargets.length > 0) {
+          previews.push({ pos: { x, y }, type: 'extinguish', affectedPositions: extinguishTargets });
+        }
+      }
+
+      if (element === 'water') {
+        const extinguishTargets = neighbors.filter(n => gameState.grid[n.y][n.x].element === 'fire');
+        if (extinguishTargets.length > 0) {
+          previews.push({ pos: { x, y }, type: 'extinguish', affectedPositions: extinguishTargets });
+        }
+      }
+
+      if (element === 'acid') {
+        const dissolveTargets = neighbors.filter(n => {
+          const el = gameState.grid[n.y][n.x].element;
+          return el && el !== 'stone' && el !== 'helium' && el !== 'acid';
+        }).slice(0, 1); // Only one target
+        
+        if (dissolveTargets.length > 0) {
+          previews.push({ pos: { x, y }, type: 'dissolve', affectedPositions: dissolveTargets });
+        }
+      }
+    });
+
+    return previews;
+  }, [gameState.grid]);
 
   // Start game
   const startGame = useCallback(() => {
@@ -352,17 +393,27 @@ export function useBlockBlastEngine(): BlockBlastEngine {
       isGameOver: false,
       lastLifeTick: Date.now(),
     });
+    setReactionPreviews([]);
   }, []);
 
   // Select piece
   const selectPiece = useCallback((piece: DraggablePiece | null) => {
     setGameState(prev => ({ ...prev, selectedPiece: piece, dropPreview: null }));
+    setReactionPreviews([]);
   }, []);
 
-  // Set drop preview
+  // Set drop preview and calculate reaction previews
   const setDropPreview = useCallback((pos: Position | null) => {
-    setGameState(prev => ({ ...prev, dropPreview: pos }));
-  }, []);
+    setGameState(prev => {
+      if (pos && prev.selectedPiece && canPlacePiece(prev.selectedPiece, pos)) {
+        const previews = getReactionPreview(prev.selectedPiece, pos);
+        setReactionPreviews(previews);
+      } else {
+        setReactionPreviews([]);
+      }
+      return { ...prev, dropPreview: pos };
+    });
+  }, [canPlacePiece, getReactionPreview]);
 
   // Place piece on grid
   const placePiece = useCallback((piece: DraggablePiece, pos: Position) => {
@@ -386,7 +437,7 @@ export function useBlockBlastEngine(): BlockBlastEngine {
       
       playSound('drop');
       
-      // Resolve grid (reactions + line clears)
+      // Resolve grid (line clears FIRST, then reactions)
       const { grid: resolvedGrid, totalScore, maxCombo, linesCleared } = resolveGrid(newGrid);
       
       // Show combo display if significant
@@ -433,43 +484,21 @@ export function useBlockBlastEngine(): BlockBlastEngine {
         isGameOver,
       };
     });
+    
+    setReactionPreviews([]);
   }, [resolveGrid, canAnyPieceFit]);
-
-  // Life tick effect
-  useEffect(() => {
-    if (gameState.isGameOver) {
-      if (lifeTickRef.current) {
-        clearInterval(lifeTickRef.current);
-        lifeTickRef.current = null;
-      }
-      return;
-    }
-
-    lifeTickRef.current = setInterval(() => {
-      setGameState(prev => {
-        if (prev.isGameOver) return prev;
-        
-        const newGrid = spreadLife(prev.grid);
-        return { ...prev, grid: newGrid, lastLifeTick: Date.now() };
-      });
-    }, LIFE_SPREAD_INTERVAL);
-
-    return () => {
-      if (lifeTickRef.current) {
-        clearInterval(lifeTickRef.current);
-      }
-    };
-  }, [gameState.isGameOver, spreadLife]);
 
   return {
     gameState,
     shakeIntensity,
     comboDisplay,
     scorePopup,
+    reactionPreviews,
     startGame,
     selectPiece,
     setDropPreview,
     canPlacePiece,
     placePiece,
+    getReactionPreview,
   };
 }

@@ -97,15 +97,16 @@ export const SHAPE_WEIGHTS: { shapeIndex: number; weight: number }[] = [
   { shapeIndex: 21, weight: 2 },  // 3x3 square
 ];
 
-// Element weights for random generation
+// Element weights for random generation - balanced for strategic play
+// Stone and Wood are foundations, Fire/Water create combos, Acid/Helium are rare
 export const ELEMENT_WEIGHTS: { element: ElementType; weight: number }[] = [
-  { element: 'fire', weight: 15 },
-  { element: 'water', weight: 15 },
-  { element: 'wood', weight: 20 },
-  { element: 'acid', weight: 10 },
-  { element: 'life', weight: 8 },
-  { element: 'helium', weight: 7 },
-  { element: 'stone', weight: 25 },
+  { element: 'stone', weight: 35 },   // Reliable foundation
+  { element: 'wood', weight: 25 },    // Creates combo opportunities
+  { element: 'fire', weight: 15 },    // Offensive reaction starter
+  { element: 'water', weight: 15 },   // Defensive counter
+  { element: 'acid', weight: 5 },     // Rare but powerful
+  { element: 'helium', weight: 5 },   // Rare "safe" block
+  { element: 'life', weight: 0 },     // Disabled - too chaotic for Block Blast
 ];
 
 export const GRID_WIDTH = 8;

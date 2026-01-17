@@ -17,9 +17,9 @@ export const ELEMENT_INFO: Record<ElementType, ElementInfo> = {
     glowColor: 'hsl(30, 100%, 50%)',
     description: 'The destroyer. Burns organic matter.',
     rules: [
-      'Destroys WOOD blocks on contact',
-      'Destroys LIFE blocks on contact',
-      'Extinguished by WATER',
+      'Burns adjacent WOOD → creates ASH',
+      'Both Fire and Water disappear on contact',
+      'Place strategically for bonus points',
     ],
   },
   water: {
@@ -27,11 +27,11 @@ export const ELEMENT_INFO: Record<ElementType, ElementInfo> = {
     symbol: '💧',
     color: 'hsl(200, 80%, 55%)',
     glowColor: 'hsl(200, 100%, 70%)',
-    description: 'The neutralizer. Calms the chaos.',
+    description: 'The neutralizer. Counters fire.',
     rules: [
-      'Extinguishes FIRE on contact',
-      'Turns LAVA to STONE (future)',
-      'Flows and settles naturally',
+      'Extinguishes adjacent FIRE',
+      'Both Water and Fire disappear',
+      'Defensive counter element',
     ],
   },
   wood: {
@@ -39,11 +39,11 @@ export const ELEMENT_INFO: Record<ElementType, ElementInfo> = {
     symbol: '🪵',
     color: 'hsl(30, 50%, 35%)',
     glowColor: 'hsl(30, 60%, 45%)',
-    description: 'Organic fuel. Awaits its fate.',
+    description: 'Fuel for combos. Burns into ash.',
     rules: [
-      'Static until burned by FIRE',
-      'Burns into falling ASH',
-      'Can be dissolved by ACID',
+      'Burns when FIRE touches it',
+      'Transforms into ASH when burned',
+      'Common and reliable block',
     ],
   },
   acid: {
@@ -51,11 +51,11 @@ export const ELEMENT_INFO: Record<ElementType, ElementInfo> = {
     symbol: '🧪',
     color: 'hsl(120, 80%, 40%)',
     glowColor: 'hsl(120, 100%, 50%)',
-    description: 'The corrosive. Eats through matter.',
+    description: 'One-shot dissolver. Rare but powerful.',
     rules: [
-      'Destroys block directly below',
-      'Then moves down to fill gap',
-      'Maximum depth: 3 blocks',
+      'Destroys ONE adjacent block',
+      'Then acid disappears too',
+      'Cannot destroy Stone or Helium',
     ],
   },
   life: {
@@ -63,11 +63,11 @@ export const ELEMENT_INFO: Record<ElementType, ElementInfo> = {
     symbol: '🦠',
     color: 'hsl(280, 70%, 50%)',
     glowColor: 'hsl(280, 100%, 60%)',
-    description: 'The virus. Spreads relentlessly.',
+    description: 'Disabled in Block Blast mode.',
     rules: [
-      'Spawns clone every 15 seconds',
-      'Spreads to adjacent empty cell',
-      'Only FIRE or ACID can kill it',
+      'Does not appear naturally',
+      'Was too chaotic for strategic play',
+      'May return in a future mode',
     ],
   },
   helium: {
@@ -75,11 +75,11 @@ export const ELEMENT_INFO: Record<ElementType, ElementInfo> = {
     symbol: '🎈',
     color: 'hsl(330, 80%, 70%)',
     glowColor: 'hsl(330, 100%, 80%)',
-    description: 'The floater. Defies gravity.',
+    description: 'The safe block. Immune to reactions.',
     rules: [
-      'Floats UP instead of falling',
-      'Only cleared by full row',
       'Cannot be destroyed by reactions',
+      'Only removed by line clear',
+      'Rare but reliable for combos',
     ],
   },
   stone: {
@@ -87,7 +87,7 @@ export const ELEMENT_INFO: Record<ElementType, ElementInfo> = {
     symbol: '🪨',
     color: 'hsl(0, 0%, 45%)',
     glowColor: 'hsl(0, 0%, 55%)',
-    description: 'The immovable. Endures all.',
+    description: 'The foundation. No reactions.',
     rules: [
       'Indestructible by all elements',
       'Only removed by line clear',
@@ -99,10 +99,10 @@ export const ELEMENT_INFO: Record<ElementType, ElementInfo> = {
     symbol: '💨',
     color: 'hsl(0, 0%, 30%)',
     glowColor: 'hsl(0, 0%, 40%)',
-    description: 'The remnant. Falls and settles.',
+    description: 'The remnant. Created from burned wood.',
     rules: [
       'Created when WOOD burns',
-      'Falls with normal gravity',
+      'Behaves like a normal block',
       'Can be cleared by line clear',
     ],
   },
