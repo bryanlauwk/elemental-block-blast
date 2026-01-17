@@ -11,6 +11,8 @@ import { LeaderboardModal } from '@/components/game/LeaderboardModal';
 import ReactionFeed from '@/components/game/ReactionFeed';
 import ReactionTutorial from '@/components/game/ReactionTutorial';
 import ReactionParticles from '@/components/game/ReactionParticles';
+import ElementMascots from '@/components/game/ElementMascots';
+import BackgroundDoodles from '@/components/game/BackgroundDoodles';
 import { Button } from '@/components/ui/button';
 import { Trophy, Play, RotateCcw, HelpCircle, Zap } from 'lucide-react';
 import { Position } from '@/game/types';
@@ -72,7 +74,15 @@ const Index = () => {
   const hasStarted = gameState.availablePieces.length > 0;
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-game-bg-start to-game-bg-end text-white flex flex-col">
+    <div className="min-h-screen bg-gradient-to-b from-game-bg-start to-game-bg-end text-white flex flex-col relative">
+      {/* Background decorations */}
+      <BackgroundDoodles />
+      
+      {/* Element mascots - visible on start screen */}
+      <AnimatePresence>
+        {!hasStarted && <ElementMascots isPlaying={hasStarted} />}
+      </AnimatePresence>
+
       {/* Tutorial overlay - shows on first game */}
       {!tutorialComplete && (
         <ReactionTutorial onComplete={() => setTutorialComplete(true)} />
