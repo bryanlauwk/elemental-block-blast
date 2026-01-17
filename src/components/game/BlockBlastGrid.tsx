@@ -27,27 +27,21 @@ export function BlockBlastGrid({
   onGridLeave,
   reactionPreviews = [],
 }: BlockBlastGridProps) {
-  // Check if a position is part of preview
   const isPreviewPosition = (x: number, y: number): boolean => {
     if (!selectedPiece || !dropPreview) return false;
-    
     return selectedPiece.shape.some(
       (p) => dropPreview.x + p.x === x && dropPreview.y + p.y === y
     );
   };
 
-  // Get preview element at position
   const getPreviewElement = (x: number, y: number): string | null => {
     if (!selectedPiece || !dropPreview) return null;
-    
     const index = selectedPiece.shape.findIndex(
       (p) => dropPreview.x + p.x === x && dropPreview.y + p.y === y
     );
-    
     return index !== -1 ? selectedPiece.elements[index] : null;
   };
 
-  // Check if position will be affected by a reaction
   const getReactionType = (x: number, y: number): 'burn' | 'extinguish' | 'dissolve' | null => {
     for (const preview of reactionPreviews) {
       const affected = preview.affectedPositions.find(p => p.x === x && p.y === y);
@@ -56,11 +50,11 @@ export function BlockBlastGrid({
     return null;
   };
 
-  // Check if preview position is valid
   const isValidPreview = selectedPiece && dropPreview && canPlacePiece(selectedPiece, dropPreview);
-  
-  // Calculate estimated bonus from reactions
   const reactionBonus = reactionPreviews.reduce((sum, p) => sum + p.affectedPositions.length * 50, 0);
+
+  // Calculate cell size based on screen
+  const cellSize = 'w-9 h-9 sm:w-10 sm:h-10 md:w-11 md:h-11';
 
   return (
     <motion.div
@@ -76,20 +70,25 @@ export function BlockBlastGrid({
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="absolute -top-8 left-1/2 -translate-x-1/2 text-sm font-bold text-amber-400 z-20"
+          className="absolute -top-10 left-1/2 -translate-x-1/2 text-sm font-bold text-game-accent z-20 bg-game-grid-dark/80 px-3 py-1 rounded-full"
         >
-          +{reactionBonus} reaction bonus!
+          +{reactionBonus} bonus!
         </motion.div>
       )}
       
-      {/* Grid container with Block Blast styling */}
-      <div className="relative p-3 rounded-2xl bg-gradient-to-b from-game-grid-dark to-game-grid-darker shadow-2xl border border-game-grid-border">
-        {/* Inner glow */}
-        <div className="absolute inset-0 rounded-2xl bg-gradient-to-b from-white/5 to-transparent pointer-events-none" />
+      {/* Grid container - clean, minimal styling */}
+      <div className="relative p-2 sm:p-3 rounded-2xl bg-game-grid-dark shadow-2xl border border-game-grid-border/50">
+        {/* Subtle outer glow */}
+        <div 
+          className="absolute inset-0 rounded-2xl pointer-events-none"
+          style={{
+            boxShadow: '0 0 60px rgba(139, 92, 246, 0.15), inset 0 1px 0 rgba(255,255,255,0.05)',
+          }}
+        />
         
         {/* Grid cells */}
         <div 
-          className="grid gap-1 relative z-10"
+          className="grid gap-[3px] sm:gap-1 relative z-10"
           style={{
             gridTemplateColumns: `repeat(${GRID_WIDTH}, 1fr)`,
             gridTemplateRows: `repeat(${GRID_HEIGHT}, 1fr)`,
@@ -105,55 +104,50 @@ export function BlockBlastGrid({
                 <motion.div
                   key={cell.id}
                   className={cn(
-                    'aspect-square rounded-lg transition-all duration-150 cursor-pointer relative overflow-hidden',
-                    'w-9 h-9 sm:w-10 sm:h-10 md:w-11 md:h-11',
-                    !cell.element && !previewElement && 'bg-game-cell hover:bg-game-cell-hover',
-                    isPreview && isValidPreview && 'ring-2 ring-green-400 ring-opacity-70',
-                    isPreview && !isValidPreview && 'ring-2 ring-red-400 ring-opacity-70',
-                    selectedPiece && 'hover:bg-game-cell-hover',
-                    // Reaction preview highlights
-                    reactionType === 'burn' && 'ring-2 ring-orange-500 ring-opacity-80 bg-orange-500/20',
-                    reactionType === 'extinguish' && 'ring-2 ring-blue-400 ring-opacity-80 bg-blue-400/20',
-                    reactionType === 'dissolve' && 'ring-2 ring-green-500 ring-opacity-80 bg-green-500/20',
+                    'aspect-square rounded-lg transition-colors duration-100 cursor-pointer relative',
+                    cellSize,
+                    !cell.element && !previewElement && 'bg-game-cell',
+                    !cell.element && selectedPiece && 'hover:bg-game-cell-hover',
+                    isPreview && isValidPreview && 'ring-2 ring-game-accent/70',
+                    isPreview && !isValidPreview && 'ring-2 ring-red-400/60',
+                    reactionType === 'burn' && 'ring-2 ring-orange-400/80 bg-orange-500/10',
+                    reactionType === 'extinguish' && 'ring-2 ring-blue-400/80 bg-blue-400/10',
+                    reactionType === 'dissolve' && 'ring-2 ring-emerald-400/80 bg-emerald-400/10',
                   )}
                   onMouseEnter={() => onCellHover({ x, y })}
                   onClick={() => onCellClick({ x, y })}
-                  whileHover={selectedPiece ? { scale: 1.05 } : {}}
                   whileTap={selectedPiece ? { scale: 0.95 } : {}}
                 >
-                  {/* Cell background gradient */}
-                  <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent pointer-events-none rounded-lg" />
-                  
-                  {/* Reaction type indicator */}
+                  {/* Reaction indicator dot */}
                   {reactionType && (
                     <motion.div
                       initial={{ scale: 0 }}
                       animate={{ scale: 1 }}
                       className={cn(
-                        'absolute top-0 right-0 w-3 h-3 rounded-full z-20',
-                        reactionType === 'burn' && 'bg-orange-500',
+                        'absolute top-0.5 right-0.5 w-2 h-2 rounded-full z-20',
+                        reactionType === 'burn' && 'bg-orange-400',
                         reactionType === 'extinguish' && 'bg-blue-400',
-                        reactionType === 'dissolve' && 'bg-green-500',
+                        reactionType === 'dissolve' && 'bg-emerald-400',
                       )}
                     />
                   )}
                   
                   {cell.element && (
                     <div className={cn(
-                      'w-full h-full flex items-center justify-center',
+                      'w-full h-full flex items-center justify-center p-0.5',
                       reactionType && 'animate-pulse'
                     )}>
-                      <ElementBlock element={cell.element} size={36} />
+                      <ElementBlock element={cell.element} size={32} />
                     </div>
                   )}
                   
                   {previewElement && !cell.element && isValidPreview && (
                     <motion.div 
-                      className="w-full h-full flex items-center justify-center opacity-60"
-                      initial={{ scale: 0.8 }}
+                      className="w-full h-full flex items-center justify-center p-0.5 opacity-50"
+                      initial={{ scale: 0.9 }}
                       animate={{ scale: 1 }}
                     >
-                      <ElementBlock element={previewElement as any} size={36} isPreview />
+                      <ElementBlock element={previewElement as any} size={32} isPreview />
                     </motion.div>
                   )}
                 </motion.div>
@@ -162,31 +156,6 @@ export function BlockBlastGrid({
           )}
         </div>
       </div>
-      
-      {/* Reaction legend when previewing */}
-      {reactionPreviews.length > 0 && isValidPreview && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="absolute -bottom-10 left-1/2 -translate-x-1/2 flex gap-3 text-xs"
-        >
-          {reactionPreviews.some(p => p.type === 'burn') && (
-            <span className="flex items-center gap-1">
-              <span className="w-2 h-2 rounded-full bg-orange-500" /> Burns wood
-            </span>
-          )}
-          {reactionPreviews.some(p => p.type === 'extinguish') && (
-            <span className="flex items-center gap-1">
-              <span className="w-2 h-2 rounded-full bg-blue-400" /> Extinguishes
-            </span>
-          )}
-          {reactionPreviews.some(p => p.type === 'dissolve') && (
-            <span className="flex items-center gap-1">
-              <span className="w-2 h-2 rounded-full bg-green-500" /> Dissolves
-            </span>
-          )}
-        </motion.div>
-      )}
     </motion.div>
   );
 }
