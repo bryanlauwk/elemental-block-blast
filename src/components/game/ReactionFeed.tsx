@@ -96,7 +96,7 @@ const ReactionFeed: React.FC<ReactionFeedProps> = ({ reactions, preview, classNa
       </AnimatePresence>
 
       {/* Reaction History */}
-      <div className="flex flex-col gap-2 min-h-[100px]">
+      <div className="flex flex-col gap-2 min-h-[60px] max-h-[180px] overflow-y-auto scrollbar-thin scrollbar-thumb-white/20 scrollbar-track-transparent">
         <AnimatePresence mode="popLayout">
           {recentReactions.length === 0 && !preview && (
             <motion.div
