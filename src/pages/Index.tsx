@@ -319,7 +319,7 @@ const Index = () => {
               <motion.div
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
-                className="hidden lg:block w-48 bg-game-grid-dark/50 border border-game-grid-border/30 rounded-xl p-4"
+                className="hidden lg:block w-48 sticky top-24 self-start max-h-[calc(100vh-8rem)] overflow-y-auto bg-game-grid-dark/50 border border-game-grid-border/30 rounded-xl p-4"
               >
                 <ReactionFeed 
                   reactions={reactionEvents}
