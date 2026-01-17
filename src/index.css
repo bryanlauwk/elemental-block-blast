@@ -47,21 +47,21 @@ All colors MUST be HSL.
     --sidebar-border: 220 13% 91%;
     --sidebar-ring: 217.2 91.2% 59.8%;
 
-    /* Block Blast Game Theme - Warmer, more vibrant */
-    --game-bg-start: 260 50% 28%;
-    --game-bg-end: 275 55% 18%;
-    --game-grid-dark: 260 45% 10%;
-    --game-grid-darker: 260 50% 6%;
-    --game-grid-border: 260 30% 20%;
-    --game-cell: 260 35% 14%;
-    --game-cell-hover: 260 35% 20%;
-    --game-tray: 260 35% 12%;
-    --game-tray-dark: 260 45% 8%;
+    /* Block Blast Game Theme - Blue arena style */
+    --game-bg-start: 220 65% 25%;
+    --game-bg-end: 230 70% 12%;
+    --game-grid-dark: 220 55% 8%;
+    --game-grid-darker: 225 60% 5%;
+    --game-grid-border: 210 50% 30%;
+    --game-cell: 220 45% 12%;
+    --game-cell-hover: 220 45% 18%;
+    --game-tray: 220 45% 10%;
+    --game-tray-dark: 225 55% 6%;
     --game-accent: 160 70% 45%;
     --game-score-start: 45 95% 55%;
     --game-score-mid: 25 95% 50%;
     --game-score-end: 350 85% 55%;
-    --game-text-muted: 260 15% 55%;
+    --game-text-muted: 220 20% 55%;
   }
 
   .dark {
@@ -102,20 +102,20 @@ All colors MUST be HSL.
     --sidebar-ring: 217.2 91.2% 59.8%;
 
     /* Block Blast Game Theme - Dark mode same as light for game */
-    --game-bg-start: 260 50% 28%;
-    --game-bg-end: 275 55% 18%;
-    --game-grid-dark: 260 45% 10%;
-    --game-grid-darker: 260 50% 6%;
-    --game-grid-border: 260 30% 20%;
-    --game-cell: 260 35% 14%;
-    --game-cell-hover: 260 35% 20%;
-    --game-tray: 260 35% 12%;
-    --game-tray-dark: 260 45% 8%;
+    --game-bg-start: 220 65% 25%;
+    --game-bg-end: 230 70% 12%;
+    --game-grid-dark: 220 55% 8%;
+    --game-grid-darker: 225 60% 5%;
+    --game-grid-border: 210 50% 30%;
+    --game-cell: 220 45% 12%;
+    --game-cell-hover: 220 45% 18%;
+    --game-tray: 220 45% 10%;
+    --game-tray-dark: 225 55% 6%;
     --game-accent: 160 70% 45%;
     --game-score-start: 45 95% 55%;
     --game-score-mid: 25 95% 50%;
     --game-score-end: 350 85% 55%;
-    --game-text-muted: 260 15% 55%;
+    --game-text-muted: 220 20% 55%;
   }
 }
 

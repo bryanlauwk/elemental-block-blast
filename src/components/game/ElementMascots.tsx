@@ -21,17 +21,17 @@ const mascots: MascotConfig[] = [
   { 
     id: 'fire', 
     src: fireMascot, 
-    position: { x: '-5%', y: '15%' }, 
-    size: 100, 
+    position: { x: '2%', y: '25%' }, 
+    size: 70, 
     floatDelay: 0, 
     floatDuration: 3.5,
-    rotation: -8
+    rotation: -5
   },
   { 
     id: 'water', 
     src: waterMascot, 
-    position: { x: '85%', y: '10%' }, 
-    size: 90, 
+    position: { x: '88%', y: '20%' }, 
+    size: 65, 
     floatDelay: 0.5, 
     floatDuration: 4,
     rotation: 5
@@ -39,38 +39,38 @@ const mascots: MascotConfig[] = [
   { 
     id: 'wood', 
     src: woodMascot, 
-    position: { x: '-8%', y: '65%' }, 
-    size: 95, 
+    position: { x: '5%', y: '55%' }, 
+    size: 60, 
     floatDelay: 1, 
     floatDuration: 3.8,
-    rotation: 6
+    rotation: 4
   },
   { 
     id: 'stone', 
     src: stoneMascot, 
-    position: { x: '88%', y: '60%' }, 
-    size: 85, 
+    position: { x: '90%', y: '50%' }, 
+    size: 55, 
     floatDelay: 1.5, 
     floatDuration: 4.2,
-    rotation: -4
+    rotation: -3
   },
   { 
     id: 'acid', 
     src: acidMascot, 
-    position: { x: '15%', y: '80%' }, 
-    size: 80, 
+    position: { x: '8%', y: '78%' }, 
+    size: 50, 
     floatDelay: 0.8, 
     floatDuration: 3.2,
-    rotation: 8
+    rotation: 6
   },
   { 
     id: 'helium', 
     src: heliumMascot, 
-    position: { x: '75%', y: '85%' }, 
-    size: 75, 
+    position: { x: '85%', y: '75%' }, 
+    size: 50, 
     floatDelay: 1.2, 
     floatDuration: 4.5,
-    rotation: -6
+    rotation: -4
   },
 ];
 
