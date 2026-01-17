@@ -21,8 +21,8 @@ const mascots: MascotConfig[] = [
   { 
     id: 'fire', 
     src: fireMascot, 
-    position: { x: '2%', y: '25%' }, 
-    size: 70, 
+    position: { x: '8%', y: '35%' }, 
+    size: 55, 
     floatDelay: 0, 
     floatDuration: 3.5,
     rotation: -5
@@ -30,8 +30,8 @@ const mascots: MascotConfig[] = [
   { 
     id: 'water', 
     src: waterMascot, 
-    position: { x: '88%', y: '20%' }, 
-    size: 65, 
+    position: { x: '82%', y: '32%' }, 
+    size: 50, 
     floatDelay: 0.5, 
     floatDuration: 4,
     rotation: 5
@@ -39,8 +39,8 @@ const mascots: MascotConfig[] = [
   { 
     id: 'wood', 
     src: woodMascot, 
-    position: { x: '5%', y: '55%' }, 
-    size: 60, 
+    position: { x: '5%', y: '58%' }, 
+    size: 48, 
     floatDelay: 1, 
     floatDuration: 3.8,
     rotation: 4
@@ -48,8 +48,8 @@ const mascots: MascotConfig[] = [
   { 
     id: 'stone', 
     src: stoneMascot, 
-    position: { x: '90%', y: '50%' }, 
-    size: 55, 
+    position: { x: '85%', y: '55%' }, 
+    size: 45, 
     floatDelay: 1.5, 
     floatDuration: 4.2,
     rotation: -3
@@ -57,8 +57,8 @@ const mascots: MascotConfig[] = [
   { 
     id: 'acid', 
     src: acidMascot, 
-    position: { x: '8%', y: '78%' }, 
-    size: 50, 
+    position: { x: '12%', y: '75%' }, 
+    size: 42, 
     floatDelay: 0.8, 
     floatDuration: 3.2,
     rotation: 6
@@ -66,8 +66,8 @@ const mascots: MascotConfig[] = [
   { 
     id: 'helium', 
     src: heliumMascot, 
-    position: { x: '85%', y: '75%' }, 
-    size: 50, 
+    position: { x: '78%', y: '72%' }, 
+    size: 42, 
     floatDelay: 1.2, 
     floatDuration: 4.5,
     rotation: -4
@@ -126,9 +126,11 @@ export const ElementMascots = ({ isPlaying = false }: ElementMascotsProps) => {
           <motion.img
             src={mascot.src}
             alt={`${mascot.id} mascot`}
-            className="w-full h-full object-contain drop-shadow-lg"
+            className="w-full h-full object-contain"
             style={{
-              filter: 'drop-shadow(0 4px 12px rgba(0,0,0,0.3))',
+              filter: 'drop-shadow(0 4px 12px rgba(0,0,0,0.4))',
+              mixBlendMode: 'multiply',
+              background: 'transparent',
             }}
             animate={{
               scale: [1, 1.03, 1],
