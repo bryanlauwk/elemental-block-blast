@@ -8,6 +8,7 @@ import { BlockBlastScoreboard } from '@/components/game/BlockBlastScoreboard';
 import { ScorePopup } from '@/components/game/ScorePopup';
 import { ElementLegend } from '@/components/game/ElementLegend';
 import { LeaderboardModal } from '@/components/game/LeaderboardModal';
+import { KeyboardHints } from '@/components/game/KeyboardHints';
 import ReactionFeed from '@/components/game/ReactionFeed';
 import ReactionTutorial from '@/components/game/ReactionTutorial';
 import ReactionParticles from '@/components/game/ReactionParticles';
@@ -19,6 +20,7 @@ import { Button } from '@/components/ui/button';
 import { Trophy, Play, RotateCcw, HelpCircle, Zap } from 'lucide-react';
 import { Position } from '@/game/types';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { playSound } from '@/game/sounds';
 
 const Index = () => {
   const {
@@ -42,18 +44,27 @@ const Index = () => {
   const [showLeaderboard, setShowLeaderboard] = useState(false);
   const [tutorialComplete, setTutorialComplete] = useState(false);
   const [showReactionFeed, setShowReactionFeed] = useState(false);
+  const [isNewHighScore, setIsNewHighScore] = useState(false);
   const isMobile = useIsMobile();
 
-  // Save score when game ends
+  // Save score when game ends and check for high score
   useEffect(() => {
     if (gameState.isGameOver && gameState.score > 0 && !hasGameEnded.current) {
       hasGameEnded.current = true;
+      const isHigh = gameState.score > topScore;
+      setIsNewHighScore(isHigh);
+      if (isHigh) {
+        playSound('highScore');
+      } else {
+        playSound('gameOver');
+      }
       saveScore(gameState.score);
     }
     if (!gameState.isGameOver) {
       hasGameEnded.current = false;
+      setIsNewHighScore(false);
     }
-  }, [gameState.isGameOver, gameState.score, saveScore]);
+  }, [gameState.isGameOver, gameState.score, saveScore, topScore]);
 
   const handleCellHover = useCallback((pos: Position) => {
     if (gameState.selectedPiece && canPlacePiece(gameState.selectedPiece, pos)) {
@@ -92,11 +103,11 @@ const Index = () => {
 
       {/* Floating buttons - top right */}
       <div className="fixed top-4 right-4 z-30 flex gap-2">
-        {/* Reaction feed toggle (mobile) */}
-        {isMobile && hasStarted && (
+        {/* Reaction feed toggle (mobile & tablet) */}
+        {hasStarted && (
           <button
             onClick={() => setShowReactionFeed(!showReactionFeed)}
-            className={`p-2.5 rounded-full border transition-colors ${
+            className={`p-2.5 rounded-full border transition-colors lg:hidden ${
               showReactionFeed 
                 ? 'bg-game-accent/20 border-game-accent/50' 
                 : 'bg-game-grid-dark/80 border-game-grid-border/50 hover:bg-game-grid-dark'
@@ -245,8 +256,28 @@ const Index = () => {
                         transition={{ delay: 0.1 }}
                         className="text-center"
                       >
-                        <p className="text-3xl font-black text-white mb-2">Game Over</p>
-                        <p className="text-4xl font-black bg-gradient-to-r from-game-score-start via-game-score-mid to-game-score-end bg-clip-text text-transparent mb-4">
+                        {/* High Score Celebration */}
+                        {isNewHighScore && (
+                          <motion.div
+                            initial={{ scale: 0, rotate: -10 }}
+                            animate={{ scale: 1, rotate: 0 }}
+                            transition={{ type: 'spring', stiffness: 300, damping: 15 }}
+                            className="mb-3"
+                          >
+                            <span className="inline-block px-4 py-1.5 bg-gradient-to-r from-yellow-400 via-amber-500 to-yellow-400 text-black font-black text-sm rounded-full shadow-lg animate-pulse">
+                              🏆 NEW HIGH SCORE! 🏆
+                            </span>
+                          </motion.div>
+                        )}
+                        
+                        <p className="text-3xl font-black text-white mb-2">
+                          {isNewHighScore ? 'Amazing!' : 'Game Over'}
+                        </p>
+                        <p className={`text-4xl font-black bg-clip-text text-transparent mb-4 ${
+                          isNewHighScore 
+                            ? 'bg-gradient-to-r from-yellow-400 via-amber-500 to-yellow-400' 
+                            : 'bg-gradient-to-r from-game-score-start via-game-score-mid to-game-score-end'
+                        }`}>
                           {gameState.score.toLocaleString()}
                         </p>
                         <Button
@@ -281,21 +312,35 @@ const Index = () => {
             )}
           </div>
 
-          {/* Reaction Feed Panel - Desktop only (always visible) or Mobile (toggleable) */}
+          {/* Reaction Feed Panel - Desktop always visible, Tablet/Mobile toggleable */}
           {hasStarted && (
             <AnimatePresence>
-              {(!isMobile || showReactionFeed) && (
+              {/* Desktop: Always visible */}
+              <motion.div
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                className="hidden lg:block w-48 bg-game-grid-dark/50 border border-game-grid-border/30 rounded-xl p-4"
+              >
+                <ReactionFeed 
+                  reactions={reactionEvents}
+                  preview={reactionPreviewSummary}
+                />
+              </motion.div>
+              
+              {/* Tablet/Mobile: Toggleable overlay */}
+              {showReactionFeed && (
                 <motion.div
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: 20 }}
-                  className={`
-                    ${isMobile 
-                      ? 'fixed top-20 right-4 z-40 w-52 bg-game-grid-dark/95 border border-game-grid-border/50 rounded-xl p-4 shadow-2xl backdrop-blur-sm' 
-                      : 'hidden lg:block w-48 bg-game-grid-dark/50 border border-game-grid-border/30 rounded-xl p-4'
-                    }
-                  `}
+                  initial={{ opacity: 0, x: 20, scale: 0.95 }}
+                  animate={{ opacity: 1, x: 0, scale: 1 }}
+                  exit={{ opacity: 0, x: 20, scale: 0.95 }}
+                  className="lg:hidden fixed top-20 right-4 z-40 w-52 md:w-56 bg-game-grid-dark/95 backdrop-blur-md border border-game-grid-border/50 rounded-xl p-4 shadow-2xl"
                 >
+                  <button
+                    onClick={() => setShowReactionFeed(false)}
+                    className="absolute top-2 right-2 text-white/40 hover:text-white/80 transition-colors"
+                  >
+                    ✕
+                  </button>
                   <ReactionFeed 
                     reactions={reactionEvents}
                     preview={reactionPreviewSummary}
@@ -306,6 +351,9 @@ const Index = () => {
           )}
         </div>
       </main>
+      
+      {/* Keyboard Hints - Desktop only */}
+      {hasStarted && <KeyboardHints />}
     </div>
   );
 };

@@ -11,7 +11,9 @@ export type SoundType =
   | 'lineClear' 
   | 'combo' 
   | 'gameOver'
-  | 'drop';
+  | 'drop'
+  | 'select'
+  | 'highScore';
 
 // Singleton AudioContext
 let audioContext: AudioContext | null = null;
@@ -246,6 +248,36 @@ function playGameOver(): void {
   }, 600);
 }
 
+function playSelect(): void {
+  const ctx = getAudioContext();
+  // Quick blip for piece selection
+  createTone(ctx, 600, 'sine', 0.08, 0.2, 0.005, 0.03);
+  createTone(ctx, 900, 'sine', 0.06, 0.1, 0.01, 0.02);
+}
+
+function playHighScore(): void {
+  const ctx = getAudioContext();
+  // Celebratory fanfare
+  const notes = [523, 659, 784, 1047, 1319]; // C5, E5, G5, C6, E6
+  
+  notes.forEach((freq, i) => {
+    setTimeout(() => {
+      createTone(ctx, freq, 'sine', 0.3, 0.35, 0.01, 0.1);
+      createTone(ctx, freq * 1.5, 'triangle', 0.2, 0.15, 0.02, 0.08);
+    }, i * 80);
+  });
+  
+  // Add sparkle effect
+  setTimeout(() => {
+    for (let i = 0; i < 6; i++) {
+      setTimeout(() => {
+        const freq = 1500 + Math.random() * 1000;
+        createTone(ctx, freq, 'sine', 0.1, 0.1, 0.01, 0.05);
+      }, i * 50);
+    }
+  }, 400);
+}
+
 // Sound enabled state
 let soundEnabled = true;
 
@@ -294,6 +326,12 @@ export function playSound(type: SoundType): void {
         break;
       case 'gameOver':
         playGameOver();
+        break;
+      case 'select':
+        playSelect();
+        break;
+      case 'highScore':
+        playHighScore();
         break;
     }
   } catch (error) {
