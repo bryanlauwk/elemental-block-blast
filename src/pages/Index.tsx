@@ -1,5 +1,7 @@
+import { useEffect, useRef } from 'react';
 import { useGameEngine } from '@/hooks/useGameEngine';
 import { useKeyboardControls } from '@/hooks/useKeyboardControls';
+import { useHighScores } from '@/hooks/useHighScores';
 import { GameGrid } from '@/components/game/GameGrid';
 import { NextPiecePreview } from '@/components/game/NextPiecePreview';
 import { PeriodicTable } from '@/components/game/PeriodicTable';
@@ -8,6 +10,7 @@ import { ComboDisplay } from '@/components/game/ComboDisplay';
 import { TouchControls } from '@/components/game/TouchControls';
 import { GameControls } from '@/components/game/GameControls';
 import { KeyboardHints } from '@/components/game/KeyboardHints';
+import { Leaderboard } from '@/components/game/Leaderboard';
 import { Beaker, FlaskConical } from 'lucide-react';
 
 const Index = () => {
@@ -25,6 +28,20 @@ const Index = () => {
     rotateClockwise,
     rotateCounterClockwise,
   } = useGameEngine();
+
+  const { highScores, topScore, saveScore, clearScores } = useHighScores();
+  const hasGameEnded = useRef(false);
+
+  // Save score when game ends
+  useEffect(() => {
+    if (gameState.isGameOver && gameState.score > 0 && !hasGameEnded.current) {
+      hasGameEnded.current = true;
+      saveScore(gameState.score);
+    }
+    if (!gameState.isGameOver) {
+      hasGameEnded.current = false;
+    }
+  }, [gameState.isGameOver, gameState.score, saveScore]);
 
   useKeyboardControls({
     onMoveLeft: moveLeft,
@@ -59,7 +76,8 @@ const Index = () => {
         <div className="flex flex-col lg:flex-row items-start justify-center gap-6">
           {/* Left Sidebar - Mobile: Hidden */}
           <aside className="hidden lg:flex flex-col gap-4 w-48">
-            <Scoreboard score={gameState.score} isGameOver={gameState.isGameOver} />
+            <Scoreboard score={gameState.score} isGameOver={gameState.isGameOver} topScore={topScore} />
+            <Leaderboard highScores={highScores} currentScore={gameState.isGameOver ? gameState.score : undefined} onClear={clearScores} />
             <KeyboardHints />
           </aside>
 
@@ -67,7 +85,7 @@ const Index = () => {
           <div className="relative flex flex-col items-center">
             {/* Mobile Score */}
             <div className="lg:hidden mb-4 w-full max-w-xs">
-              <Scoreboard score={gameState.score} isGameOver={gameState.isGameOver} />
+              <Scoreboard score={gameState.score} isGameOver={gameState.isGameOver} topScore={topScore} />
             </div>
 
             <GameGrid
