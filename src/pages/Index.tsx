@@ -13,6 +13,8 @@ import ReactionTutorial from '@/components/game/ReactionTutorial';
 import ReactionParticles from '@/components/game/ReactionParticles';
 import ElementMascots from '@/components/game/ElementMascots';
 import BackgroundDoodles from '@/components/game/BackgroundDoodles';
+import GameTitle from '@/components/game/GameTitle';
+import HeroBlockDisplay from '@/components/game/HeroBlockDisplay';
 import { Button } from '@/components/ui/button';
 import { Trophy, Play, RotateCcw, HelpCircle, Zap } from 'lucide-react';
 import { Position } from '@/game/types';
@@ -141,16 +143,20 @@ const Index = () => {
         <div className="flex gap-6 items-start max-w-4xl w-full justify-center">
           {/* Main game column */}
           <div className="flex flex-col items-center gap-6">
-            {/* Title - minimal */}
-            <motion.h1 
-              className="text-2xl sm:text-3xl font-black tracking-tight text-center"
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-            >
-              <span className="bg-gradient-to-r from-game-score-start via-game-score-mid to-game-score-end bg-clip-text text-transparent">
-                Elemental Blast
-              </span>
-            </motion.h1>
+            {/* Title - Bold 3D style for start screen, minimal when playing */}
+            {!hasStarted ? (
+              <GameTitle />
+            ) : (
+              <motion.h1 
+                className="text-xl sm:text-2xl font-black tracking-tight text-center"
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+              >
+                <span className="bg-gradient-to-r from-game-score-start via-game-score-mid to-game-score-end bg-clip-text text-transparent">
+                  Elemental Blast
+                </span>
+              </motion.h1>
+            )}
 
             {/* Score - prominent, floating */}
             {hasStarted && (
@@ -164,21 +170,33 @@ const Index = () => {
             {/* Start screen */}
             {!hasStarted && (
               <motion.div
-                className="flex flex-col items-center gap-6"
+                className="flex flex-col items-center gap-8"
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
               >
-                <p className="text-game-text-muted text-sm text-center max-w-xs">
+                {/* Hero blocks display */}
+                <HeroBlockDisplay />
+                
+                <p className="text-white/60 text-sm text-center max-w-xs">
                   Match elements • Clear lines • Chain reactions
                 </p>
-                <Button
-                  onClick={startGame}
-                  size="lg"
-                  className="bg-gradient-to-r from-game-accent to-emerald-400 hover:from-emerald-400 hover:to-game-accent text-black font-bold text-lg px-10 py-7 rounded-2xl shadow-lg shadow-game-accent/30 transition-all hover:scale-105"
+                
+                <motion.div
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.98 }}
                 >
-                  <Play className="w-6 h-6 mr-2" />
-                  Play
-                </Button>
+                  <Button
+                    onClick={startGame}
+                    size="lg"
+                    className="relative bg-gradient-to-b from-game-accent to-emerald-500 hover:from-emerald-400 hover:to-game-accent text-white font-bold text-xl px-12 py-8 rounded-2xl shadow-[0_8px_32px_rgba(34,197,94,0.4)] transition-all"
+                    style={{
+                      boxShadow: '0 8px 32px rgba(34,197,94,0.4), inset 0 2px 4px rgba(255,255,255,0.2)',
+                    }}
+                  >
+                    <Play className="w-7 h-7 mr-2 fill-current" />
+                    PLAY
+                  </Button>
+                </motion.div>
               </motion.div>
             )}
 
