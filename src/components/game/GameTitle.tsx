@@ -1,4 +1,4 @@
-import { Crown } from 'lucide-react';
+import { Crown, Flame, Droplets, TreeDeciduous, Mountain, Wind } from 'lucide-react';
 
 // Rainbow colors for ELEMENTAL - Red, Orange, Yellow, Green, Cyan, Blue, Purple, Violet, Pink
 const letterColors = [
@@ -11,6 +11,15 @@ const letterColors = [
   { bg: '#8B5CF6', shadow: '#4C1D95' }, // T - Purple
   { bg: '#A855F7', shadow: '#581C87' }, // A - Violet
   { bg: '#EC4899', shadow: '#831843' }, // L - Pink
+];
+
+// Element icons configuration
+const elementIcons = [
+  { icon: Flame, bg: 'from-orange-500 to-red-600', shadow: '#C0392B' },
+  { icon: Droplets, bg: 'from-cyan-400 to-blue-600', shadow: '#1565C0' },
+  { icon: TreeDeciduous, bg: 'from-amber-600 to-amber-800', shadow: '#5D4037' },
+  { icon: Mountain, bg: 'from-amber-700 to-stone-600', shadow: '#4E342E' },
+  { icon: Wind, bg: 'from-green-400 to-green-600', shadow: '#2E7D32' },
 ];
 
 interface BlockLetterProps {
@@ -51,23 +60,55 @@ const BlockLetter = ({ letter, color, index }: BlockLetterProps) => {
   );
 };
 
-// BLAST uses ice blue gradient with strong shadow
+// BLAST uses solid ice blue with strong 3D shadow for reliable visibility
 const BlastLetter = ({ letter, index }: { letter: string; index: number }) => {
   return (
     <span
-      className="text-6xl sm:text-7xl md:text-8xl font-black relative inline-block"
+      className="text-5xl sm:text-6xl md:text-7xl font-black relative inline-block"
       style={{
         fontFamily: "'Fredoka One', cursive",
-        background: 'linear-gradient(180deg, #E0F7FA 0%, #4FC3F7 25%, #29B6F6 50%, #0288D1 75%, #01579B 100%)',
-        WebkitBackgroundClip: 'text',
-        backgroundClip: 'text',
-        WebkitTextFillColor: 'transparent',
-        filter: 'drop-shadow(0 5px 0 #01579B) drop-shadow(0 8px 15px rgba(2, 136, 209, 0.7))',
+        color: '#4FC3F7',
+        textShadow: `
+          2px 2px 0 #01579B,
+          3px 3px 0 #01579B,
+          4px 4px 0 #01579B,
+          5px 5px 0 #0277BD,
+          6px 6px 12px rgba(2, 136, 209, 0.8)
+        `,
+        WebkitTextStroke: '1px #0288D1',
         letterSpacing: '0.03em',
       }}
     >
+      {/* Highlight overlay */}
+      <span
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          background: 'linear-gradient(180deg, rgba(255,255,255,0.4) 0%, transparent 50%)',
+          WebkitBackgroundClip: 'text',
+          backgroundClip: 'text',
+        }}
+      />
       {letter}
     </span>
+  );
+};
+
+// Element Icons Row
+const ElementIcons = () => {
+  return (
+    <div className="flex gap-2 sm:gap-3 mt-3 sm:mt-4">
+      {elementIcons.map((el, i) => (
+        <div
+          key={i}
+          className={`w-10 h-10 sm:w-12 sm:h-12 rounded-lg bg-gradient-to-b ${el.bg} flex items-center justify-center transform hover:scale-110 transition-transform`}
+          style={{
+            boxShadow: `0 4px 0 ${el.shadow}, 0 6px 12px rgba(0,0,0,0.3), inset 0 2px 4px rgba(255,255,255,0.4)`,
+          }}
+        >
+          <el.icon className="w-5 h-5 sm:w-7 sm:h-7 text-white drop-shadow-md" />
+        </div>
+      ))}
+    </div>
   );
 };
 
@@ -102,12 +143,15 @@ export const GameTitle = () => {
         ))}
       </div>
 
-      {/* Second word - BLAST with ice blue gradient */}
+      {/* Second word - BLAST with ice blue 3D text */}
       <div className="flex items-center justify-center -mt-1 sm:-mt-2">
         {word2.split('').map((letter, i) => (
           <BlastLetter key={`w2-${i}`} letter={letter} index={i} />
         ))}
       </div>
+
+      {/* Element Icons Row */}
+      <ElementIcons />
     </div>
   );
 };
