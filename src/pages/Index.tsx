@@ -317,36 +317,115 @@ const Index = () => {
                 {/* Hero blocks display */}
                 <HeroBlockDisplay />
                 
-                <p className="text-white/60 text-sm text-center max-w-xs">
-                  Match elements • Clear lines • Chain reactions
-                </p>
-                
-                <div className="flex flex-col gap-3 items-center">
-                  <motion.div
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.98 }}
+                {/* Animated tagline */}
+                <motion.p 
+                  className="text-white/80 text-base text-center max-w-xs font-medium"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.5 }}
+                >
+                  <motion.span
+                    animate={{ color: ['rgba(255,255,255,0.8)', 'rgba(251,146,60,1)', 'rgba(255,255,255,0.8)'] }}
+                    transition={{ duration: 3, repeat: Infinity }}
                   >
+                    Match elements
+                  </motion.span>
+                  {' • '}
+                  <motion.span
+                    animate={{ color: ['rgba(255,255,255,0.8)', 'rgba(59,130,246,1)', 'rgba(255,255,255,0.8)'] }}
+                    transition={{ duration: 3, repeat: Infinity, delay: 1 }}
+                  >
+                    Clear lines
+                  </motion.span>
+                  {' • '}
+                  <motion.span
+                    animate={{ color: ['rgba(255,255,255,0.8)', 'rgba(34,197,94,1)', 'rgba(255,255,255,0.8)'] }}
+                    transition={{ duration: 3, repeat: Infinity, delay: 2 }}
+                  >
+                    Chain reactions
+                  </motion.span>
+                </motion.p>
+                
+                <div className="flex flex-col gap-4 items-center">
+                  {/* Rainbow pulsing play button */}
+                  <motion.div
+                    className="relative"
+                    whileHover={{ scale: 1.08 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    {/* Rainbow border glow */}
+                    <motion.div
+                      className="absolute inset-0 rounded-2xl -z-10"
+                      style={{
+                        background: 'linear-gradient(90deg, #FF6B6B, #FFE66D, #4ECDC4, #AA96DA, #FF6B6B)',
+                        backgroundSize: '300% 100%',
+                        padding: 3,
+                        filter: 'blur(8px)',
+                      }}
+                      animate={{
+                        backgroundPosition: ['0% 50%', '100% 50%', '0% 50%'],
+                        opacity: [0.6, 1, 0.6],
+                      }}
+                      transition={{
+                        duration: 3,
+                        repeat: Infinity,
+                        ease: 'linear',
+                      }}
+                    />
                     <Button
                       onClick={startGame}
                       size="lg"
-                      className="relative bg-gradient-to-b from-game-accent to-emerald-500 hover:from-emerald-400 hover:to-game-accent text-white font-bold text-xl px-12 py-8 rounded-2xl shadow-[0_8px_32px_rgba(34,197,94,0.4)] transition-all"
+                      className="relative bg-gradient-to-b from-emerald-400 via-game-accent to-emerald-600 hover:from-emerald-300 hover:to-emerald-500 text-white font-black text-2xl px-14 py-10 rounded-2xl transition-all overflow-hidden"
                       style={{
-                        boxShadow: '0 8px 32px rgba(34,197,94,0.4), inset 0 2px 4px rgba(255,255,255,0.2)',
+                        boxShadow: '0 10px 40px rgba(34,197,94,0.5), 0 0 60px rgba(34,197,94,0.3), inset 0 2px 8px rgba(255,255,255,0.3)',
                       }}
                     >
-                      <Play className="w-7 h-7 mr-2 fill-current" />
-                      PLAY
+                      {/* Button shine effect */}
+                      <motion.div
+                        className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent"
+                        animate={{
+                          x: ['-200%', '200%'],
+                        }}
+                        transition={{
+                          duration: 2,
+                          repeat: Infinity,
+                          repeatDelay: 1,
+                        }}
+                      />
+                      <Play className="w-8 h-8 mr-3 fill-current relative z-10" />
+                      <span className="relative z-10">PLAY</span>
                     </Button>
                   </motion.div>
                   
+                  {/* Daily Challenge button with glow */}
                   <motion.div
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
+                    className="relative"
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.6 }}
                   >
+                    <motion.div
+                      className="absolute inset-0 rounded-lg -z-10"
+                      style={{
+                        background: 'linear-gradient(90deg, #FF9F43, #FFE66D, #FF9F43)',
+                        backgroundSize: '200% 100%',
+                        filter: 'blur(8px)',
+                        opacity: 0.4,
+                      }}
+                      animate={{
+                        backgroundPosition: ['0% 50%', '100% 50%', '0% 50%'],
+                      }}
+                      transition={{
+                        duration: 2,
+                        repeat: Infinity,
+                      }}
+                    />
                     <Button
                       onClick={() => setShowDailyChallenge(true)}
                       variant="outline"
-                      className="border-amber-500/50 text-amber-400 hover:bg-amber-500/10 hover:border-amber-400"
+                      className="border-2 border-amber-400/60 text-amber-300 hover:bg-amber-500/20 hover:border-amber-300 font-bold px-6 py-5"
                     >
                       <Calendar className="w-5 h-5 mr-2" />
                       Daily Challenge
