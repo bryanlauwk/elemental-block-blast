@@ -155,6 +155,7 @@ export function useBlockBlastEngine(): BlockBlastEngine {
   const [reactionPreviewSummary, setReactionPreviewSummary] = useState<ReactionPreviewSummary | null>(null);
   const [particleTrigger, setParticleTrigger] = useState<ParticleTrigger | null>(null);
   const [failedAttempts, setFailedAttempts] = useState(0); // Track for comeback mechanic
+  
   // Check if piece can be placed at position
   const canPlacePiece = useCallback((piece: DraggablePiece, pos: Position): boolean => {
     return piece.shape.every((p) => {
