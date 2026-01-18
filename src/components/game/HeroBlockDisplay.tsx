@@ -12,10 +12,10 @@ const BLOCK_COLORS = {
   purple: { bg: '#A55EEA', shadow: '#8854D0', highlight: '#D2B4DE' },
 };
 
-// Responsive block sizes
-const BLOCK_SIZE_MOBILE = 40;
-const BLOCK_SIZE_TABLET = 48;
-const BLOCK_SIZE_DESKTOP = 52;
+// Responsive block sizes - smaller for less visual competition
+const BLOCK_SIZE_MOBILE = 32;
+const BLOCK_SIZE_TABLET = 38;
+const BLOCK_SIZE_DESKTOP = 42;
 
 // Single 3D glossy plastic block
 interface BlockProps {
@@ -41,49 +41,46 @@ const Block = ({ color, size = BLOCK_SIZE_MOBILE, delay = 0 }: BlockProps) => {
         height: size,
         backgroundColor: color.bg,
         boxShadow: `
-          inset 4px 4px 10px ${color.highlight}80,
-          inset -3px -3px 8px rgba(0,0,0,0.3),
-          0 4px 0 ${color.shadow},
-          0 6px 12px rgba(0,0,0,0.3)
+          inset 3px 3px 8px ${color.highlight}70,
+          inset -2px -2px 6px rgba(0,0,0,0.25),
+          0 3px 0 ${color.shadow},
+          0 4px 10px rgba(0,0,0,0.25)
         `,
-        border: '1.5px solid rgba(255,255,255,0.4)',
-        borderRadius: '6px',
+        border: '1px solid rgba(255,255,255,0.35)',
+        borderRadius: '5px',
       }}
     >
       {/* Top shine spot */}
       <div 
-        className="absolute top-1.5 left-1.5 w-4 h-4 rounded-full"
+        className="absolute top-1 left-1 w-3 h-3 rounded-full"
         style={{
-          background: 'radial-gradient(circle, rgba(255,255,255,0.9) 0%, transparent 70%)',
+          background: 'radial-gradient(circle, rgba(255,255,255,0.85) 0%, transparent 70%)',
         }}
       />
       {/* Top gradient gloss */}
-      <div className="absolute top-0 left-0 right-0 h-1/2 bg-gradient-to-b from-white/40 to-transparent rounded-t" />
-      {/* Bottom shadow */}
-      <div className="absolute bottom-0 left-0 right-0 h-1/3 bg-gradient-to-t from-black/25 to-transparent rounded-b" />
+      <div className="absolute top-0 left-0 right-0 h-1/2 bg-gradient-to-b from-white/35 to-transparent rounded-t" />
     </motion.div>
   );
 };
 
-// Left tower - 3 blocks wide x 5 tall (rectangular solid)
+// Left tower - decorative, positioned lower
 const LeftTower = ({ blockSize }: { blockSize: number }) => {
   const colors = [
-    [BLOCK_COLORS.red, BLOCK_COLORS.orange, BLOCK_COLORS.yellow],
-    [BLOCK_COLORS.orange, BLOCK_COLORS.yellow, BLOCK_COLORS.green],
-    [BLOCK_COLORS.yellow, BLOCK_COLORS.green, BLOCK_COLORS.cyan],
-    [BLOCK_COLORS.green, BLOCK_COLORS.cyan, BLOCK_COLORS.blue],
-    [BLOCK_COLORS.cyan, BLOCK_COLORS.blue, BLOCK_COLORS.purple],
+    [BLOCK_COLORS.cyan, BLOCK_COLORS.blue],
+    [BLOCK_COLORS.blue, BLOCK_COLORS.purple],
+    [BLOCK_COLORS.purple, BLOCK_COLORS.red],
+    [BLOCK_COLORS.red, BLOCK_COLORS.orange],
   ];
 
   return (
     <motion.div
-      animate={{ y: [0, -6, 0] }}
+      animate={{ y: [0, -4, 0] }}
       transition={{ 
-        duration: 3,
+        duration: 4,
         repeat: Infinity,
         ease: 'easeInOut'
       }}
-      className="flex flex-col"
+      className="flex flex-col opacity-70"
       style={{ gap: '2px' }}
     >
       {colors.map((row, rowIdx) => (
@@ -93,7 +90,7 @@ const LeftTower = ({ blockSize }: { blockSize: number }) => {
               key={`${rowIdx}-${colIdx}`} 
               color={color} 
               size={blockSize}
-              delay={rowIdx * 0.05 + colIdx * 0.02}
+              delay={rowIdx * 0.06}
             />
           ))}
         </div>
@@ -102,26 +99,25 @@ const LeftTower = ({ blockSize }: { blockSize: number }) => {
   );
 };
 
-// Right tower - 3 blocks wide x 5 tall (rectangular solid), mirrored colors
+// Right tower - decorative, positioned lower
 const RightTower = ({ blockSize }: { blockSize: number }) => {
   const colors = [
-    [BLOCK_COLORS.purple, BLOCK_COLORS.blue, BLOCK_COLORS.cyan],
-    [BLOCK_COLORS.blue, BLOCK_COLORS.cyan, BLOCK_COLORS.green],
-    [BLOCK_COLORS.cyan, BLOCK_COLORS.green, BLOCK_COLORS.yellow],
-    [BLOCK_COLORS.green, BLOCK_COLORS.yellow, BLOCK_COLORS.orange],
-    [BLOCK_COLORS.yellow, BLOCK_COLORS.orange, BLOCK_COLORS.red],
+    [BLOCK_COLORS.green, BLOCK_COLORS.cyan],
+    [BLOCK_COLORS.yellow, BLOCK_COLORS.green],
+    [BLOCK_COLORS.orange, BLOCK_COLORS.yellow],
+    [BLOCK_COLORS.red, BLOCK_COLORS.orange],
   ];
 
   return (
     <motion.div
-      animate={{ y: [0, -6, 0] }}
+      animate={{ y: [0, -4, 0] }}
       transition={{ 
-        duration: 3,
+        duration: 4,
         repeat: Infinity,
         ease: 'easeInOut',
-        delay: 0.5 // Offset from left tower
+        delay: 0.5
       }}
-      className="flex flex-col"
+      className="flex flex-col opacity-70"
       style={{ gap: '2px' }}
     >
       {colors.map((row, rowIdx) => (
@@ -131,7 +127,7 @@ const RightTower = ({ blockSize }: { blockSize: number }) => {
               key={`${rowIdx}-${colIdx}`} 
               color={color} 
               size={blockSize}
-              delay={rowIdx * 0.05 + colIdx * 0.02 + 0.1}
+              delay={rowIdx * 0.06 + 0.1}
             />
           ))}
         </div>
@@ -146,11 +142,11 @@ interface HeroBlockDisplayProps {
 
 export const HeroBlockDisplay = ({ children }: HeroBlockDisplayProps) => {
   return (
-    <div className="flex flex-col items-center w-full mt-4 sm:mt-6">
+    <div className="flex flex-col items-center w-full">
       {/* Container for towers and CTA */}
-      <div className="relative flex items-end justify-center gap-6 sm:gap-10 md:gap-14 w-full">
+      <div className="relative flex items-end justify-center gap-8 sm:gap-12 md:gap-16 w-full">
         
-        {/* Left tower - responsive sizing */}
+        {/* Left tower - responsive sizing, decorative */}
         <div className="hidden md:block">
           <LeftTower blockSize={BLOCK_SIZE_DESKTOP} />
         </div>
@@ -161,19 +157,19 @@ export const HeroBlockDisplay = ({ children }: HeroBlockDisplayProps) => {
           <LeftTower blockSize={BLOCK_SIZE_MOBILE} />
         </div>
 
-        {/* Center - CTA buttons */}
+        {/* Center - CTA buttons with generous spacing */}
         {children && (
           <motion.div 
-            className="flex flex-col items-center gap-3 sm:gap-4 pb-4 sm:pb-6"
+            className="flex flex-col items-center gap-4 sm:gap-5"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
+            transition={{ delay: 0.4 }}
           >
             {children}
           </motion.div>
         )}
 
-        {/* Right tower - responsive sizing */}
+        {/* Right tower - responsive sizing, decorative */}
         <div className="hidden md:block">
           <RightTower blockSize={BLOCK_SIZE_DESKTOP} />
         </div>
