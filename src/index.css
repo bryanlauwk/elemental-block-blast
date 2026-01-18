@@ -138,3 +138,13 @@ All colors MUST be HSL.
     @apply bg-background text-foreground;
   }
 }
+
+/* Play button pulse glow animation */
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 6px 0 #047857, 0 10px 30px rgba(16,185,129,0.5), inset 0 2px 6px rgba(255,255,255,0.5);
+  }
+  50% {
+    box-shadow: 0 6px 0 #047857, 0 10px 40px rgba(16,185,129,0.7), 0 0 60px rgba(16,185,129,0.4), inset 0 2px 6px rgba(255,255,255,0.5);
+  }
+}

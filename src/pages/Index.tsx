@@ -172,50 +172,16 @@ const Index = () => {
   return (
     <div className="min-h-screen text-white flex flex-col relative overflow-hidden"
       style={{
-        background: 'radial-gradient(ellipse 120% 80% at 50% 50%, hsl(220 60% 15%) 0%, hsl(225 70% 8%) 40%, hsl(230 100% 2%) 100%)',
+        background: 'radial-gradient(ellipse 100% 70% at 50% 30%, hsl(225 70% 18%) 0%, hsl(230 80% 8%) 50%, hsl(235 100% 4%) 100%)',
       }}
     >
-      {/* Grid overlay - wall effect with neon cyan glow */}
+      {/* Simple radial glow in center */}
       <div 
         className="absolute inset-0 pointer-events-none"
         style={{
-          background: `
-            linear-gradient(90deg, rgba(34, 211, 238, 0.18) 1px, transparent 1px),
-            linear-gradient(rgba(34, 211, 238, 0.18) 1px, transparent 1px)
-          `,
-          backgroundSize: '60px 60px',
-          maskImage: 'linear-gradient(to bottom, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.3) 60%, transparent 80%)',
-          WebkitMaskImage: 'linear-gradient(to bottom, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.3) 60%, transparent 80%)',
-          filter: 'drop-shadow(0 0 4px rgba(34, 211, 238, 0.5))',
+          background: 'radial-gradient(circle at 50% 40%, rgba(99,102,241,0.15) 0%, transparent 50%)',
         }}
       />
-      
-      {/* Perspective floor grid - 3D effect */}
-      <div 
-        className="absolute bottom-0 left-0 right-0 pointer-events-none"
-        style={{
-          height: '40%',
-          perspective: '800px',
-          perspectiveOrigin: 'center bottom',
-        }}
-      >
-        <div
-          style={{
-            width: '100%',
-            height: '100%',
-            background: `
-              linear-gradient(90deg, rgba(34, 211, 238, 0.25) 1px, transparent 1px),
-              linear-gradient(rgba(34, 211, 238, 0.25) 1px, transparent 1px)
-            `,
-            backgroundSize: '60px 60px',
-            transform: 'rotateX(60deg)',
-            transformOrigin: 'center bottom',
-            maskImage: 'linear-gradient(to top, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.2) 50%, transparent 80%)',
-            WebkitMaskImage: 'linear-gradient(to top, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.2) 50%, transparent 80%)',
-            filter: 'drop-shadow(0 0 8px rgba(34, 211, 238, 0.6))',
-          }}
-        />
-      </div>
 
       {/* Background decorations */}
       <BackgroundDoodles />
@@ -373,31 +339,35 @@ const Index = () => {
               <div className="flex flex-col items-center gap-2 w-full">
                 {/* Hero blocks display with CTA buttons inside */}
                 <HeroBlockDisplay>
-                  {/* Play button - Large vibrant green arcade style */}
+                  {/* Play button - HUGE vibrant green arcade style */}
                   <Button
                     onClick={startGame}
                     size="lg"
-                    className="relative bg-gradient-to-b from-emerald-400 via-emerald-500 to-emerald-600 hover:from-emerald-300 hover:via-emerald-400 hover:to-emerald-500 text-white font-black text-lg sm:text-xl px-12 sm:px-14 py-3.5 sm:py-4 rounded-full transition-all overflow-hidden border-0 active:translate-y-1 active:shadow-none"
+                    className="relative bg-gradient-to-b from-emerald-400 via-emerald-500 to-emerald-600 hover:from-emerald-300 hover:via-emerald-400 hover:to-emerald-500 text-white font-black text-xl sm:text-2xl md:text-3xl px-14 sm:px-18 md:px-20 py-4 sm:py-5 md:py-6 rounded-full transition-all overflow-hidden border-0 active:translate-y-1 active:shadow-none"
                     style={{
-                      boxShadow: '0 5px 0 #047857, 0 8px 25px rgba(16,185,129,0.6), inset 0 2px 4px rgba(255,255,255,0.45)',
+                      boxShadow: '0 6px 0 #047857, 0 10px 30px rgba(16,185,129,0.5), inset 0 2px 6px rgba(255,255,255,0.5)',
+                      animation: 'pulse-glow 2s ease-in-out infinite',
                     }}
                   >
                     {/* Shine effect */}
-                    <div className="absolute top-0 left-0 right-0 h-1/2 bg-gradient-to-b from-white/40 to-transparent rounded-t-full" />
-                    <span className="relative z-10 tracking-wide drop-shadow-sm">PLAY</span>
+                    <div className="absolute top-0 left-0 right-0 h-1/2 bg-gradient-to-b from-white/45 to-transparent rounded-t-full" />
+                    <span className="relative z-10 tracking-wider drop-shadow-md">PLAY</span>
                   </Button>
                   
-                  {/* Daily Challenge button - Golden yellow compact */}
+                  {/* Daily Challenge button - Golden yellow subtle */}
                   <Button
                     onClick={() => setShowDailyChallenge(true)}
                     size="sm"
-                    className="relative bg-gradient-to-b from-yellow-400 via-amber-400 to-amber-500 hover:from-yellow-300 hover:via-amber-300 hover:to-amber-400 text-amber-900 font-bold text-xs sm:text-sm px-5 sm:px-6 py-2 rounded-full transition-all overflow-hidden border-0 active:translate-y-1 active:shadow-none"
+                    className="relative bg-gradient-to-b from-amber-400 via-amber-500 to-amber-600 hover:from-amber-300 hover:via-amber-400 hover:to-amber-500 text-amber-950 font-bold text-xs sm:text-sm px-6 sm:px-8 py-2.5 rounded-full transition-all overflow-hidden border-0 active:translate-y-1 active:shadow-none"
                     style={{
-                      boxShadow: '0 3px 0 #B45309, 0 5px 15px rgba(245,158,11,0.45), inset 0 2px 4px rgba(255,255,255,0.5)',
+                      boxShadow: '0 4px 0 #B45309, 0 6px 18px rgba(245,158,11,0.4), inset 0 2px 4px rgba(255,255,255,0.5)',
                     }}
                   >
-                    <div className="absolute top-0 left-0 right-0 h-1/2 bg-gradient-to-b from-white/45 to-transparent rounded-t-full" />
-                    <span className="relative z-10">Daily Challenge</span>
+                    <div className="absolute top-0 left-0 right-0 h-1/2 bg-gradient-to-b from-white/50 to-transparent rounded-t-full" />
+                    <span className="relative z-10 flex items-center gap-1.5">
+                      <Calendar className="w-3.5 h-3.5" />
+                      Daily Challenge
+                    </span>
                   </Button>
                 </HeroBlockDisplay>
               </div>
