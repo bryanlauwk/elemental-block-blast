@@ -278,19 +278,231 @@ function playHighScore(): void {
   }, 400);
 }
 
-// Sound enabled state
-let soundEnabled = true;
+// Sound settings state
+let sfxEnabled = true;
+let musicEnabled = true;
+let musicVolume = 0.3;
 
+// Load settings from localStorage
+function loadSoundSettings(): void {
+  try {
+    const settings = localStorage.getItem('elemental-blast-sound-settings');
+    if (settings) {
+      const parsed = JSON.parse(settings);
+      sfxEnabled = parsed.sfxEnabled ?? true;
+      musicEnabled = parsed.musicEnabled ?? true;
+      musicVolume = parsed.musicVolume ?? 0.3;
+    }
+  } catch (e) {
+    // Ignore errors, use defaults
+  }
+}
+
+// Save settings to localStorage
+function saveSoundSettings(): void {
+  try {
+    localStorage.setItem('elemental-blast-sound-settings', JSON.stringify({
+      sfxEnabled,
+      musicEnabled,
+      musicVolume,
+    }));
+  } catch (e) {
+    // Ignore errors
+  }
+}
+
+// Initialize settings
+loadSoundSettings();
+
+export function setSfxEnabled(enabled: boolean): void {
+  sfxEnabled = enabled;
+  saveSoundSettings();
+}
+
+export function isSfxEnabled(): boolean {
+  return sfxEnabled;
+}
+
+export function setMusicEnabled(enabled: boolean): void {
+  musicEnabled = enabled;
+  saveSoundSettings();
+  if (!enabled) {
+    stopMusic();
+  }
+}
+
+export function isMusicEnabled(): boolean {
+  return musicEnabled;
+}
+
+export function setMusicVolume(volume: number): void {
+  musicVolume = Math.max(0, Math.min(1, volume));
+  saveSoundSettings();
+  if (musicGainNode) {
+    musicGainNode.gain.value = musicVolume;
+  }
+}
+
+export function getMusicVolume(): number {
+  return musicVolume;
+}
+
+// Legacy compatibility
 export function setSoundEnabled(enabled: boolean): void {
-  soundEnabled = enabled;
+  setSfxEnabled(enabled);
 }
 
 export function isSoundEnabled(): boolean {
-  return soundEnabled;
+  return sfxEnabled;
+}
+
+// Background music system
+let musicOscillators: OscillatorNode[] = [];
+let musicGainNode: GainNode | null = null;
+let musicIntervalId: number | null = null;
+let musicPlaying = false;
+
+// Ambient music generator - creates a relaxing, procedural ambient soundtrack
+function createAmbientMusic(ctx: AudioContext): void {
+  // Master gain for music
+  musicGainNode = ctx.createGain();
+  musicGainNode.gain.value = musicVolume;
+  musicGainNode.connect(ctx.destination);
+
+  // Low drone
+  const droneOsc = ctx.createOscillator();
+  const droneGain = ctx.createGain();
+  droneOsc.type = 'sine';
+  droneOsc.frequency.value = 55; // Low A
+  droneGain.gain.value = 0.15;
+  droneOsc.connect(droneGain);
+  droneGain.connect(musicGainNode);
+  droneOsc.start();
+  musicOscillators.push(droneOsc);
+
+  // Second drone (fifth)
+  const droneOsc2 = ctx.createOscillator();
+  const droneGain2 = ctx.createGain();
+  droneOsc2.type = 'sine';
+  droneOsc2.frequency.value = 82.5; // E above
+  droneGain2.gain.value = 0.08;
+  droneOsc2.connect(droneGain2);
+  droneGain2.connect(musicGainNode);
+  droneOsc2.start();
+  musicOscillators.push(droneOsc2);
+
+  // Pad oscillator with slow LFO
+  const padOsc = ctx.createOscillator();
+  const padGain = ctx.createGain();
+  const padFilter = ctx.createBiquadFilter();
+  padOsc.type = 'triangle';
+  padOsc.frequency.value = 220;
+  padFilter.type = 'lowpass';
+  padFilter.frequency.value = 800;
+  padGain.gain.value = 0.06;
+  padOsc.connect(padFilter);
+  padFilter.connect(padGain);
+  padGain.connect(musicGainNode);
+  padOsc.start();
+  musicOscillators.push(padOsc);
+
+  // Slowly modulate pad frequency for movement
+  const lfo = ctx.createOscillator();
+  const lfoGain = ctx.createGain();
+  lfo.type = 'sine';
+  lfo.frequency.value = 0.05; // Very slow
+  lfoGain.gain.value = 30;
+  lfo.connect(lfoGain);
+  lfoGain.connect(padOsc.frequency);
+  lfo.start();
+  musicOscillators.push(lfo);
+
+  // Occasional high sparkle notes
+  const sparkleNotes = [440, 523, 659, 784, 880, 1047];
+  
+  musicIntervalId = window.setInterval(() => {
+    if (!musicEnabled || !musicPlaying) return;
+    
+    // Random chance to play a sparkle
+    if (Math.random() < 0.3) {
+      const sparkleOsc = ctx.createOscillator();
+      const sparkleGain = ctx.createGain();
+      
+      sparkleOsc.type = 'sine';
+      sparkleOsc.frequency.value = sparkleNotes[Math.floor(Math.random() * sparkleNotes.length)];
+      
+      sparkleGain.gain.value = 0;
+      sparkleOsc.connect(sparkleGain);
+      sparkleGain.connect(musicGainNode!);
+      
+      const now = ctx.currentTime;
+      sparkleGain.gain.setValueAtTime(0, now);
+      sparkleGain.gain.linearRampToValueAtTime(0.04, now + 0.1);
+      sparkleGain.gain.linearRampToValueAtTime(0, now + 2);
+      
+      sparkleOsc.start(now);
+      sparkleOsc.stop(now + 2);
+    }
+  }, 3000);
+}
+
+export function startMusic(): void {
+  if (!musicEnabled || musicPlaying) return;
+  
+  try {
+    const ctx = getAudioContext();
+    musicPlaying = true;
+    createAmbientMusic(ctx);
+  } catch (error) {
+    console.warn('Failed to start music:', error);
+  }
+}
+
+export function stopMusic(): void {
+  musicPlaying = false;
+  
+  // Stop all oscillators
+  musicOscillators.forEach(osc => {
+    try {
+      osc.stop();
+      osc.disconnect();
+    } catch (e) {
+      // Ignore
+    }
+  });
+  musicOscillators = [];
+  
+  // Disconnect gain node
+  if (musicGainNode) {
+    musicGainNode.disconnect();
+    musicGainNode = null;
+  }
+  
+  // Clear interval
+  if (musicIntervalId) {
+    clearInterval(musicIntervalId);
+    musicIntervalId = null;
+  }
+}
+
+export function toggleMusic(): boolean {
+  if (musicPlaying) {
+    stopMusic();
+    setMusicEnabled(false);
+    return false;
+  } else {
+    setMusicEnabled(true);
+    startMusic();
+    return true;
+  }
+}
+
+export function getIsMusicPlaying(): boolean {
+  return musicPlaying;
 }
 
 export function playSound(type: SoundType): void {
-  if (!soundEnabled) return;
+  if (!sfxEnabled) return;
   
   try {
     switch (type) {

@@ -13,6 +13,7 @@ import { LeaderboardModal } from '@/components/game/LeaderboardModal';
 import { PlayerNameModal } from '@/components/game/PlayerNameModal';
 import { DailyChallengeModal } from '@/components/game/DailyChallengeModal';
 import { ShareButtons } from '@/components/game/ShareButtons';
+import { SoundSettings, SoundToggleButton } from '@/components/game/SoundSettings';
 import { KeyboardHints } from '@/components/game/KeyboardHints';
 import ReactionFeed from '@/components/game/ReactionFeed';
 import ReactionTutorial from '@/components/game/ReactionTutorial';
@@ -60,6 +61,7 @@ const Index = () => {
   const [playerDailyBest, setPlayerDailyBest] = useState<number | null>(null);
   const [tutorialComplete, setTutorialComplete] = useState(false);
   const [showReactionFeed, setShowReactionFeed] = useState(false);
+  const [showSoundSettings, setShowSoundSettings] = useState(false);
   const [isNewHighScore, setIsNewHighScore] = useState(false);
   const isMobile = useIsMobile();
 
@@ -192,6 +194,9 @@ const Index = () => {
           </button>
         )}
         
+        {/* Sound Settings button */}
+        <SoundToggleButton onClick={() => setShowSoundSettings(true)} />
+        
         {/* Daily Challenge button */}
         <button
           onClick={() => setShowDailyChallenge(true)}
@@ -231,6 +236,12 @@ const Index = () => {
         score={gameState.score}
         defaultName={getStoredPlayerName()}
         isSubmitting={isSubmittingScore}
+      />
+
+      {/* Sound Settings Modal */}
+      <SoundSettings
+        isOpen={showSoundSettings}
+        onClose={() => setShowSoundSettings(false)}
       />
 
       {/* Daily Challenge Modal */}
