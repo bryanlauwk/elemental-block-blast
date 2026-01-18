@@ -88,8 +88,8 @@ const BlockLetter = ({ letter, color, index, isSecondWord, hasCrown }: BlockLett
       }}
       className={`relative inline-block font-black tracking-tight cursor-default select-none ${
         isSecondWord 
-          ? 'text-[3rem] sm:text-[4rem] md:text-[5rem]' 
-          : 'text-[1.8rem] sm:text-[2.2rem] md:text-[2.8rem]'
+          ? 'text-[2.2rem] sm:text-[3rem] md:text-[4rem] lg:text-[5rem]' 
+          : 'text-[1.4rem] sm:text-[1.8rem] md:text-[2.2rem] lg:text-[2.8rem]'
       }`}
       style={{
         fontFamily: "'Fredoka One', 'Arial Black', sans-serif",
@@ -119,7 +119,7 @@ const BlockLetter = ({ letter, color, index, isSecondWord, hasCrown }: BlockLett
       {/* Crown integrated on the letter */}
       {hasCrown && (
         <motion.div
-          className="absolute -top-3 sm:-top-4 md:-top-5 left-1/2 -translate-x-1/2"
+          className="absolute -top-2.5 sm:-top-3 md:-top-4 lg:-top-5 left-1/2 -translate-x-1/2"
           initial={{ opacity: 0, scale: 0, rotate: -20 }}
           animate={{ opacity: 1, scale: 1, rotate: 0 }}
           transition={{ delay: 0.5, type: 'spring', stiffness: 200, damping: 12 }}
@@ -129,7 +129,7 @@ const BlockLetter = ({ letter, color, index, isSecondWord, hasCrown }: BlockLett
             transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
           >
             <Crown 
-              className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7"
+              className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 lg:w-7 lg:h-7"
               strokeWidth={2.5}
               style={{
                 color: '#FFD700',
@@ -174,7 +174,7 @@ const ElementIcon = ({ element, index }: ElementIconProps) => {
     >
       {/* Main icon container */}
       <div
-        className="relative w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 rounded-xl flex items-center justify-center transition-shadow duration-200"
+        className="relative w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 lg:w-16 lg:h-16 rounded-xl flex items-center justify-center transition-shadow duration-200"
         style={{
           background: element.bgGradient,
           boxShadow: `
@@ -196,7 +196,7 @@ const ElementIcon = ({ element, index }: ElementIconProps) => {
         
         {/* Lucide Icon */}
         <Icon 
-          className="w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 drop-shadow-lg relative z-10"
+          className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7 lg:w-8 lg:h-8 drop-shadow-lg relative z-10"
           style={{ color: element.iconColor }}
           strokeWidth={2.5}
         />
@@ -224,7 +224,7 @@ export const GameTitle = () => {
       transition={{ duration: 0.5, ease: 'easeOut' }}
     >
       {/* Unified logo container with subtle glow background */}
-      <div className="relative p-4 sm:p-5 md:p-6">
+      <div className="relative p-3 sm:p-4 md:p-5 lg:p-6">
         {/* Soft glowing backdrop for visual grouping */}
         <div 
           className="absolute inset-0 -z-10 rounded-3xl"
@@ -250,7 +250,7 @@ export const GameTitle = () => {
         />
         
         {/* Title words stacked tightly */}
-        <div className="flex flex-col items-center -space-y-2 sm:-space-y-3 md:-space-y-4">
+        <div className="flex flex-col items-center -space-y-1 sm:-space-y-2 md:-space-y-3 lg:-space-y-4">
           {/* First word - ELEMENTAL (Rainbow) with crown on A */}
           <div className="flex items-center justify-center">
             {word1.split('').map((letter, i) => (
@@ -280,7 +280,7 @@ export const GameTitle = () => {
 
         {/* Element Icons Row - tighter spacing, part of logo */}
         <motion.div 
-          className="flex items-center justify-center gap-2 sm:gap-3 md:gap-4 mt-3 sm:mt-4"
+          className="flex items-center justify-center gap-1.5 sm:gap-2 md:gap-3 lg:gap-4 mt-2 sm:mt-3 md:mt-4"
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.6 }}
