@@ -383,11 +383,11 @@ const Index = () => {
           <div className="flex flex-col items-center w-full max-w-[400px] h-full">
             {/* Start screen - landing page */}
             {!hasStarted && (
-              <div className="flex flex-col items-center justify-center flex-1 gap-10 sm:gap-14 md:gap-16 py-4">
-                {/* Title Section */}
+              <div className="flex flex-col items-center justify-center flex-1 gap-6 sm:gap-8 md:gap-10 py-4">
+                {/* Title Section - unified logo */}
                 <GameTitle />
                 
-                {/* Hero Section with CTA */}
+                {/* Hero Section with CTA - closer to title */}
                 <HeroBlockDisplay>
                   {/* Play button - HUGE vibrant green arcade style */}
                   <Button

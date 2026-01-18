@@ -10,7 +10,7 @@ const elementalColors = [
   { bg: '#39CCCC', shadow: '#008B8B' }, // E - Teal
   { bg: '#0074D9', shadow: '#004080' }, // N - Blue
   { bg: '#6366F1', shadow: '#4338CA' }, // T - Indigo
-  { bg: '#B10DC9', shadow: '#800080' }, // A - Purple
+  { bg: '#B10DC9', shadow: '#800080' }, // A - Purple (crown goes here)
   { bg: '#F012BE', shadow: '#A0007A' }, // L - Magenta
 ];
 
@@ -67,9 +67,10 @@ interface BlockLetterProps {
   color: { bg: string; shadow: string };
   index: number;
   isSecondWord?: boolean;
+  hasCrown?: boolean;
 }
 
-const BlockLetter = ({ letter, color, index, isSecondWord }: BlockLetterProps) => {
+const BlockLetter = ({ letter, color, index, isSecondWord, hasCrown }: BlockLetterProps) => {
   return (
     <motion.span
       initial={{ opacity: 0, y: 30, scale: 0.5, rotateX: -90 }}
@@ -87,8 +88,8 @@ const BlockLetter = ({ letter, color, index, isSecondWord }: BlockLetterProps) =
       }}
       className={`relative inline-block font-black tracking-tight cursor-default select-none ${
         isSecondWord 
-          ? 'text-[3.5rem] sm:text-[4.5rem] md:text-[6rem]' 
-          : 'text-[2.2rem] sm:text-[2.8rem] md:text-[3.5rem]'
+          ? 'text-[3rem] sm:text-[4rem] md:text-[5rem]' 
+          : 'text-[1.8rem] sm:text-[2.2rem] md:text-[2.8rem]'
       }`}
       style={{
         fontFamily: "'Fredoka One', 'Arial Black', sans-serif",
@@ -97,86 +98,57 @@ const BlockLetter = ({ letter, color, index, isSecondWord }: BlockLetterProps) =
           ? `
             0 2px 0 rgba(255,255,255,0.4),
             3px 3px 0 ${color.shadow},
-            6px 6px 0 ${color.shadow},
-            8px 8px 0 ${color.shadow},
-            10px 10px 0 rgba(0,0,0,0.3),
-            12px 12px 15px rgba(0,0,0,0.4),
-            0 0 60px ${color.bg}60
+            5px 5px 0 ${color.shadow},
+            7px 7px 0 rgba(0,0,0,0.3),
+            9px 9px 12px rgba(0,0,0,0.4),
+            0 0 50px ${color.bg}60
           `
           : `
             0 1px 0 rgba(255,255,255,0.5),
             2px 2px 0 ${color.shadow},
-            4px 4px 0 ${color.shadow},
-            5px 5px 0 ${color.shadow},
-            6px 6px 10px rgba(0,0,0,0.3),
-            0 0 30px ${color.bg}40
+            3px 3px 0 ${color.shadow},
+            4px 4px 8px rgba(0,0,0,0.3),
+            0 0 25px ${color.bg}40
           `,
-        WebkitTextStroke: isSecondWord ? '2px rgba(0,0,0,0.15)' : '1.5px rgba(0,0,0,0.15)',
-        letterSpacing: isSecondWord ? '0.03em' : '0.05em',
+        WebkitTextStroke: isSecondWord ? '1.5px rgba(0,0,0,0.15)' : '1px rgba(0,0,0,0.15)',
+        letterSpacing: '0.02em',
         lineHeight: 1,
       }}
     >
       {letter}
+      {/* Crown integrated on the letter */}
+      {hasCrown && (
+        <motion.div
+          className="absolute -top-3 sm:-top-4 md:-top-5 left-1/2 -translate-x-1/2"
+          initial={{ opacity: 0, scale: 0, rotate: -20 }}
+          animate={{ opacity: 1, scale: 1, rotate: 0 }}
+          transition={{ delay: 0.5, type: 'spring', stiffness: 200, damping: 12 }}
+        >
+          <motion.div
+            animate={{ y: [0, -2, 0], rotate: [0, 3, -3, 0] }}
+            transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
+          >
+            <Crown 
+              className="w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7"
+              strokeWidth={2.5}
+              style={{
+                color: '#FFD700',
+                filter: `
+                  drop-shadow(0 1px 0 #CC7700)
+                  drop-shadow(0 2px 0 #AA5500)
+                  drop-shadow(0 3px 0 rgba(0,0,0,0.3))
+                  drop-shadow(0 0 12px rgba(255,215,0,0.6))
+                `,
+              }}
+            />
+          </motion.div>
+        </motion.div>
+      )}
     </motion.span>
   );
 };
 
-// Golden Crown Component
-const GoldenCrown = () => {
-  return (
-    <motion.div
-      initial={{ opacity: 0, scale: 0, rotate: -20 }}
-      animate={{ opacity: 1, scale: 1, rotate: 0 }}
-      transition={{ 
-        delay: 0.4,
-        type: 'spring',
-        stiffness: 200,
-        damping: 12
-      }}
-      className="relative -mb-2 sm:-mb-3"
-    >
-      <motion.div
-        animate={{ 
-          y: [0, -4, 0],
-          rotate: [0, 2, -2, 0]
-        }}
-        transition={{ 
-          duration: 3,
-          repeat: Infinity,
-          ease: "easeInOut"
-        }}
-      >
-        <Crown 
-          className="w-10 h-10 sm:w-14 sm:h-14 md:w-16 md:h-16"
-          strokeWidth={2}
-          style={{
-            color: '#FFD700',
-            filter: `
-              drop-shadow(0 2px 0 #CC7700)
-              drop-shadow(0 4px 0 #AA5500)
-              drop-shadow(0 6px 0 rgba(0,0,0,0.3))
-              drop-shadow(0 0 20px rgba(255,215,0,0.5))
-            `,
-          }}
-        />
-        {/* Crown sparkle effects */}
-        <motion.div
-          className="absolute -top-1 left-1/2 w-2 h-2 bg-white rounded-full"
-          style={{ transform: 'translateX(-50%)' }}
-          animate={{ 
-            opacity: [0.3, 1, 0.3],
-            scale: [0.8, 1.2, 0.8]
-          }}
-          transition={{ 
-            duration: 1.5,
-            repeat: Infinity,
-            ease: "easeInOut"
-          }}
-        />
-      </motion.div>
-    </motion.div>
-  );
-};
+// Removed separate GoldenCrown - now integrated into BlockLetter
 
 interface ElementIconProps {
   element: typeof elementIcons[0];
@@ -246,63 +218,78 @@ export const GameTitle = () => {
 
   return (
     <motion.div 
-      className="flex flex-col items-center gap-0 relative px-4"
+      className="flex flex-col items-center relative"
       initial={{ scale: 0.9, opacity: 0 }}
       animate={{ scale: 1, opacity: 1 }}
       transition={{ duration: 0.5, ease: 'easeOut' }}
     >
-      {/* Colorful glow behind title */}
-      <div 
-        className="absolute inset-0 -z-10"
-        style={{
-          background: `
-            radial-gradient(ellipse 60% 40% at 30% 40%, rgba(255,65,54,0.2) 0%, transparent 50%),
-            radial-gradient(ellipse 60% 40% at 70% 40%, rgba(0,116,217,0.2) 0%, transparent 50%),
-            radial-gradient(ellipse 80% 60% at 50% 60%, rgba(0,229,255,0.25) 0%, transparent 50%)
-          `,
-          filter: 'blur(50px)',
-        }}
-      />
-      
-      {/* First word - ELEMENTAL (Rainbow) */}
-      <div className="flex items-center justify-center">
-        {word1.split('').map((letter, i) => (
-          <BlockLetter
-            key={`w1-${i}`}
-            letter={letter}
-            color={elementalColors[i]}
-            index={i}
-          />
-        ))}
+      {/* Unified logo container with subtle glow background */}
+      <div className="relative p-4 sm:p-5 md:p-6">
+        {/* Soft glowing backdrop for visual grouping */}
+        <div 
+          className="absolute inset-0 -z-10 rounded-3xl"
+          style={{
+            background: `
+              radial-gradient(ellipse 100% 100% at 50% 50%, rgba(99,102,241,0.15) 0%, transparent 70%)
+            `,
+            filter: 'blur(30px)',
+          }}
+        />
+        
+        {/* Colorful glow behind title */}
+        <div 
+          className="absolute inset-0 -z-10"
+          style={{
+            background: `
+              radial-gradient(ellipse 50% 30% at 30% 30%, rgba(255,65,54,0.15) 0%, transparent 50%),
+              radial-gradient(ellipse 50% 30% at 70% 30%, rgba(0,116,217,0.15) 0%, transparent 50%),
+              radial-gradient(ellipse 70% 50% at 50% 70%, rgba(0,229,255,0.2) 0%, transparent 50%)
+            `,
+            filter: 'blur(40px)',
+          }}
+        />
+        
+        {/* Title words stacked tightly */}
+        <div className="flex flex-col items-center -space-y-2 sm:-space-y-3 md:-space-y-4">
+          {/* First word - ELEMENTAL (Rainbow) with crown on A */}
+          <div className="flex items-center justify-center">
+            {word1.split('').map((letter, i) => (
+              <BlockLetter
+                key={`w1-${i}`}
+                letter={letter}
+                color={elementalColors[i]}
+                index={i}
+                hasCrown={i === 7} // Crown on "A"
+              />
+            ))}
+          </div>
+
+          {/* Second word - BLAST (Cyan/Teal) - tucked under ELEMENTAL */}
+          <div className="flex items-center justify-center">
+            {word2.split('').map((letter, i) => (
+              <BlockLetter 
+                key={`w2-${i}`} 
+                letter={letter} 
+                color={blastColors[i]} 
+                index={9 + i}
+                isSecondWord
+              />
+            ))}
+          </div>
+        </div>
+
+        {/* Element Icons Row - tighter spacing, part of logo */}
+        <motion.div 
+          className="flex items-center justify-center gap-2 sm:gap-3 md:gap-4 mt-3 sm:mt-4"
+          initial={{ opacity: 0, y: 15 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.6 }}
+        >
+          {elementIcons.map((element, index) => (
+            <ElementIcon key={element.name} element={element} index={index} />
+          ))}
+        </motion.div>
       </div>
-
-      {/* Golden Crown */}
-      <GoldenCrown />
-
-      {/* Second word - BLAST (Cyan/Teal) */}
-      <div className="flex items-center justify-center -mt-1 sm:-mt-2">
-        {word2.split('').map((letter, i) => (
-          <BlockLetter 
-            key={`w2-${i}`} 
-            letter={letter} 
-            color={blastColors[i]} 
-            index={9 + i}
-            isSecondWord
-          />
-        ))}
-      </div>
-
-      {/* Element Icons Row */}
-      <motion.div 
-        className="flex items-center justify-center gap-3 sm:gap-4 md:gap-5 mt-6 sm:mt-8 md:mt-10"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.6 }}
-      >
-        {elementIcons.map((element, index) => (
-          <ElementIcon key={element.name} element={element} index={index} />
-        ))}
-      </motion.div>
     </motion.div>
   );
 };
