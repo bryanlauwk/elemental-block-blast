@@ -172,20 +172,21 @@ const Index = () => {
   return (
     <div className="min-h-screen text-white flex flex-col relative overflow-hidden"
       style={{
-        background: 'radial-gradient(ellipse 120% 80% at 50% 50%, hsl(220 75% 28%) 0%, hsl(225 80% 18%) 40%, hsl(230 100% 2%) 100%)',
+        background: 'radial-gradient(ellipse 120% 80% at 50% 50%, hsl(225 70% 15%) 0%, hsl(230 85% 8%) 50%, hsl(235 100% 3%) 100%)',
       }}
     >
-      {/* Grid overlay - wall effect */}
+      {/* Grid overlay - neon cyan glow wall effect */}
       <div 
         className="absolute inset-0 pointer-events-none"
         style={{
           background: `
-            linear-gradient(90deg, rgba(34, 211, 238, 0.08) 1px, transparent 1px),
-            linear-gradient(rgba(34, 211, 238, 0.08) 1px, transparent 1px)
+            linear-gradient(90deg, rgba(34, 211, 238, 0.2) 2px, transparent 2px),
+            linear-gradient(rgba(34, 211, 238, 0.2) 2px, transparent 2px)
           `,
           backgroundSize: '60px 60px',
-          maskImage: 'linear-gradient(to bottom, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.2) 70%, transparent 85%)',
-          WebkitMaskImage: 'linear-gradient(to bottom, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.2) 70%, transparent 85%)',
+          maskImage: 'linear-gradient(to bottom, rgba(0,0,0,0.5) 0%, rgba(0,0,0,0.15) 60%, transparent 80%)',
+          WebkitMaskImage: 'linear-gradient(to bottom, rgba(0,0,0,0.5) 0%, rgba(0,0,0,0.15) 60%, transparent 80%)',
+          boxShadow: 'inset 0 0 100px rgba(34, 211, 238, 0.1)',
         }}
       />
 
@@ -346,37 +347,39 @@ const Index = () => {
                 {/* Hero blocks display */}
                 <HeroBlockDisplay />
                 
-                {/* Play button - Block Blast style massive green 3D button */}
+                {/* Play button - Vibrant lime green 3D pressable button */}
                 <div className="relative group">
                   <Button
                     onClick={startGame}
                     size="lg"
-                    className="relative bg-gradient-to-b from-emerald-400 via-emerald-500 to-emerald-600 hover:from-emerald-300 hover:via-emerald-400 hover:to-emerald-500 text-white font-black text-3xl sm:text-4xl px-20 sm:px-24 py-8 sm:py-10 rounded-2xl transition-all overflow-hidden border-0 active:translate-y-1 active:shadow-none flex items-center gap-3"
+                    className="relative bg-gradient-to-b from-lime-400 via-lime-500 to-lime-600 hover:from-lime-300 hover:via-lime-400 hover:to-lime-500 text-white font-black text-3xl sm:text-4xl px-20 sm:px-24 py-8 sm:py-10 rounded-2xl transition-all overflow-hidden border-0 active:translate-y-1 active:shadow-none flex items-center gap-3"
                     style={{
-                      boxShadow: '0 8px 0 #15803D, 0 12px 30px rgba(34,197,94,0.5), inset 0 4px 8px rgba(255,255,255,0.4)',
+                      boxShadow: '0 8px 0 #365314, 0 12px 35px rgba(132,204,22,0.6), inset 0 4px 10px rgba(255,255,255,0.5)',
+                      borderBottom: '8px solid #365314',
                     }}
                   >
                     {/* Play triangle icon */}
                     <Play className="w-8 h-8 fill-white relative z-10" strokeWidth={0} />
                     {/* Shine effect */}
-                    <div className="absolute top-0 left-0 right-0 h-1/3 bg-gradient-to-b from-white/40 to-transparent rounded-t-2xl" />
-                    <span className="relative z-10 tracking-wide drop-shadow-sm">PLAY</span>
+                    <div className="absolute top-0 left-0 right-0 h-1/3 bg-gradient-to-b from-white/50 to-transparent rounded-t-2xl" />
+                    <span className="relative z-10 tracking-wide drop-shadow-lg">PLAY</span>
                   </Button>
                 </div>
                 
-                {/* Daily Challenge button - White/cream with orange text */}
+                {/* Daily Challenge button - Golden yellow with dark orange 3D edge */}
                 <div className="relative group">
                   <Button
                     onClick={() => setShowDailyChallenge(true)}
                     size="lg"
-                    className="relative bg-gradient-to-b from-white via-gray-50 to-gray-100 hover:from-gray-50 hover:via-gray-100 hover:to-gray-200 text-amber-600 font-bold text-lg px-10 py-6 rounded-xl transition-all overflow-hidden border-0 active:translate-y-1 active:shadow-none flex items-center gap-2"
+                    className="relative bg-gradient-to-b from-amber-300 via-amber-400 to-amber-500 hover:from-amber-200 hover:via-amber-300 hover:to-amber-400 text-amber-900 font-bold text-lg px-10 py-6 rounded-xl transition-all overflow-hidden border-0 active:translate-y-1 active:shadow-none flex items-center gap-2"
                     style={{
-                      boxShadow: '0 4px 0 #D1D5DB, 0 8px 20px rgba(0,0,0,0.15), inset 0 2px 4px rgba(255,255,255,0.8)',
+                      boxShadow: '0 6px 0 #B45309, 0 10px 25px rgba(245,158,11,0.5), inset 0 3px 6px rgba(255,255,255,0.6)',
+                      borderBottom: '6px solid #B45309',
                     }}
                   >
-                    <Calendar className="w-5 h-5 text-amber-500 relative z-10" />
-                    <div className="absolute top-0 left-0 right-0 h-1/3 bg-gradient-to-b from-white/60 to-transparent rounded-t-xl" />
-                    <span className="relative z-10">Daily Challenge</span>
+                    <Calendar className="w-5 h-5 text-amber-800 relative z-10" />
+                    <div className="absolute top-0 left-0 right-0 h-1/3 bg-gradient-to-b from-white/50 to-transparent rounded-t-xl" />
+                    <span className="relative z-10 font-extrabold">Daily Challenge</span>
                   </Button>
                 </div>
               </div>
