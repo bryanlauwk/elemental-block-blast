@@ -374,36 +374,33 @@ const Index = () => {
                 {/* Hero blocks display */}
                 <HeroBlockDisplay />
                 
-                {/* Play button - Vibrant lime green with 3D pressable look */}
+                {/* Play button - Compact vibrant green with 3D pressable look */}
                 <div className="relative group">
                   <Button
                     onClick={startGame}
                     size="lg"
-                    className="relative bg-gradient-to-b from-lime-400 via-lime-500 to-lime-600 hover:from-lime-300 hover:via-lime-400 hover:to-lime-500 text-white font-black text-3xl sm:text-4xl px-20 sm:px-24 py-8 sm:py-10 rounded-2xl transition-all overflow-hidden border-0 active:translate-y-1 active:shadow-none flex items-center gap-3"
+                    className="relative bg-gradient-to-b from-emerald-400 via-emerald-500 to-emerald-600 hover:from-emerald-300 hover:via-emerald-400 hover:to-emerald-500 text-white font-black text-2xl px-12 py-5 rounded-full transition-all overflow-hidden border-0 active:translate-y-1 active:shadow-none"
                     style={{
-                      boxShadow: '0 8px 0 #3F6212, 0 12px 30px rgba(132,204,22,0.5), inset 0 4px 8px rgba(255,255,255,0.4)',
+                      boxShadow: '0 6px 0 #047857, 0 10px 25px rgba(16,185,129,0.5), inset 0 3px 6px rgba(255,255,255,0.4)',
                     }}
                   >
-                    {/* Play triangle icon */}
-                    <Play className="w-8 h-8 fill-white relative z-10" strokeWidth={0} />
                     {/* Shine effect */}
-                    <div className="absolute top-0 left-0 right-0 h-1/3 bg-gradient-to-b from-white/40 to-transparent rounded-t-2xl" />
-                    <span className="relative z-10 tracking-wide drop-shadow-sm">PLAY</span>
+                    <div className="absolute top-0 left-0 right-0 h-1/2 bg-gradient-to-b from-white/35 to-transparent rounded-t-full" />
+                    <span className="relative z-10 tracking-wide">PLAY</span>
                   </Button>
                 </div>
                 
-                {/* Daily Challenge button - Golden yellow with dark orange 3D edge */}
+                {/* Daily Challenge button - Golden yellow compact */}
                 <div className="relative group">
                   <Button
                     onClick={() => setShowDailyChallenge(true)}
-                    size="lg"
-                    className="relative bg-gradient-to-b from-yellow-400 via-amber-400 to-amber-500 hover:from-yellow-300 hover:via-amber-300 hover:to-amber-400 text-amber-900 font-bold text-lg px-10 py-6 rounded-xl transition-all overflow-hidden border-0 active:translate-y-1 active:shadow-none flex items-center gap-2"
+                    size="default"
+                    className="relative bg-gradient-to-b from-yellow-400 via-amber-400 to-amber-500 hover:from-yellow-300 hover:via-amber-300 hover:to-amber-400 text-amber-900 font-bold text-base px-8 py-4 rounded-full transition-all overflow-hidden border-0 active:translate-y-1 active:shadow-none"
                     style={{
-                      boxShadow: '0 4px 0 #B45309, 0 8px 20px rgba(245,158,11,0.4), inset 0 2px 4px rgba(255,255,255,0.6)',
+                      boxShadow: '0 4px 0 #B45309, 0 6px 15px rgba(245,158,11,0.4), inset 0 2px 4px rgba(255,255,255,0.5)',
                     }}
                   >
-                    <Calendar className="w-5 h-5 text-amber-800 relative z-10" />
-                    <div className="absolute top-0 left-0 right-0 h-1/3 bg-gradient-to-b from-white/50 to-transparent rounded-t-xl" />
+                    <div className="absolute top-0 left-0 right-0 h-1/2 bg-gradient-to-b from-white/40 to-transparent rounded-t-full" />
                     <span className="relative z-10">Daily Challenge</span>
                   </Button>
                 </div>

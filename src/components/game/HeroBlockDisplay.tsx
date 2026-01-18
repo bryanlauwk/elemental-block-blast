@@ -7,20 +7,18 @@ const ELEMENTS = [
   { name: 'helium', bg: '#22C55E', emoji: '🌿', iconBg: 'linear-gradient(145deg, #22C55E, #16A34A)' },
 ];
 
-// Block colors for the stacks - glossy plastic style
+// Neon block colors for the stacks - brighter, more vivid
 const BLOCK_COLORS = {
-  blue: { bg: '#3B82F6', shadow: '#1D4ED8', highlight: '#93C5FD' },
-  red: { bg: '#EF4444', shadow: '#B91C1C', highlight: '#FCA5A5' },
-  cyan: { bg: '#06B6D4', shadow: '#0891B2', highlight: '#67E8F9' },
-  green: { bg: '#22C55E', shadow: '#15803D', highlight: '#86EFAC' },
-  orange: { bg: '#F97316', shadow: '#C2410C', highlight: '#FDBA74' },
-  purple: { bg: '#8B5CF6', shadow: '#6D28D9', highlight: '#C4B5FD' },
-  pink: { bg: '#EC4899', shadow: '#BE185D', highlight: '#F9A8D4' },
-  gold: { bg: '#EAB308', shadow: '#A16207', highlight: '#FDE68A' },
+  neonBlue: { bg: '#3B9EFF', shadow: '#1565C0', highlight: '#90CAF9' },
+  neonRed: { bg: '#FF4757', shadow: '#C0392B', highlight: '#FF8A80' },
+  neonCyan: { bg: '#00D9FF', shadow: '#00838F', highlight: '#84FFFF' },
+  neonGreen: { bg: '#00E676', shadow: '#00C853', highlight: '#B9F6CA' },
+  neonOrange: { bg: '#FF9100', shadow: '#E65100', highlight: '#FFD180' },
+  neonPurple: { bg: '#D500F9', shadow: '#9C27B0', highlight: '#EA80FC' },
+  neonPink: { bg: '#FF4081', shadow: '#C51162', highlight: '#FF80AB' },
 };
 
-const BLOCK_SIZE = 40;
-const GAP = 2;
+const BLOCK_SIZE = 48;
 
 // Element icons row - glossy 3D buttons
 const ElementIconsRow = () => {
@@ -44,7 +42,7 @@ const ElementIconsRow = () => {
   );
 };
 
-// Single 3D glossy plastic block
+// Single 3D glossy plastic block - using CSS grid, no gaps
 interface BlockProps {
   color: { bg: string; shadow: string; highlight: string };
   size?: number;
@@ -53,207 +51,173 @@ interface BlockProps {
 const Block = ({ color, size = BLOCK_SIZE }: BlockProps) => {
   return (
     <div
-      className="rounded-lg relative overflow-hidden"
+      className="relative overflow-hidden"
       style={{
         width: size,
         height: size,
         backgroundColor: color.bg,
         boxShadow: `
-          0 4px 0 ${color.shadow},
-          0 6px 12px rgba(0,0,0,0.4),
-          inset 3px 3px 8px ${color.highlight}80,
-          inset -2px -2px 6px rgba(0,0,0,0.2)
+          inset 4px 4px 10px ${color.highlight}90,
+          inset -3px -3px 8px rgba(0,0,0,0.3)
         `,
-        border: '1px solid rgba(255,255,255,0.3)',
+        border: '1px solid rgba(255,255,255,0.4)',
+        borderRadius: '6px',
       }}
     >
       {/* Top gloss shine */}
       <div 
-        className="absolute top-1 left-1 w-3 h-3 rounded-full"
+        className="absolute top-1.5 left-1.5 w-4 h-4 rounded-full"
         style={{
-          background: 'radial-gradient(circle, rgba(255,255,255,0.7) 0%, transparent 70%)',
+          background: 'radial-gradient(circle, rgba(255,255,255,0.8) 0%, transparent 70%)',
         }}
       />
       {/* Gradient overlay */}
-      <div className="absolute top-0 left-0 right-0 h-1/2 bg-gradient-to-b from-white/25 to-transparent rounded-t-md" />
-      <div className="absolute bottom-0 left-0 right-0 h-1/4 bg-gradient-to-t from-black/20 to-transparent" />
+      <div className="absolute top-0 left-0 right-0 h-1/2 bg-gradient-to-b from-white/30 to-transparent" />
+      <div className="absolute bottom-0 left-0 right-0 h-1/3 bg-gradient-to-t from-black/25 to-transparent" />
     </div>
   );
 };
 
-// Left block stack - staggered heights like Block Blast
+// Left block stack - solid staircase shape using CSS grid
 const LeftBlockStack = () => {
-  const blocks = [
-    // Bottom row (y=3)
-    { color: BLOCK_COLORS.blue, x: 0, y: 3 },
-    { color: BLOCK_COLORS.blue, x: 1, y: 3 },
-    { color: BLOCK_COLORS.cyan, x: 2, y: 3 },
-    // Row 2 (y=2)
-    { color: BLOCK_COLORS.red, x: 0, y: 2 },
-    { color: BLOCK_COLORS.purple, x: 1, y: 2 },
-    // Row 3 (y=1)
-    { color: BLOCK_COLORS.red, x: 0, y: 1 },
-    { color: BLOCK_COLORS.cyan, x: 1, y: 1 },
-    // Top (y=0)
-    { color: BLOCK_COLORS.cyan, x: 0, y: 0 },
+  // Staircase pattern: 4 rows tall on left, descending to 1 row on right
+  // Grid is 3 columns x 5 rows
+  const grid = [
+    // Row 0 (top)
+    [null, null, null],
+    // Row 1
+    [BLOCK_COLORS.neonCyan, null, null],
+    // Row 2
+    [BLOCK_COLORS.neonRed, BLOCK_COLORS.neonCyan, null],
+    // Row 3
+    [BLOCK_COLORS.neonRed, BLOCK_COLORS.neonPurple, BLOCK_COLORS.neonCyan],
+    // Row 4 (bottom)
+    [BLOCK_COLORS.neonBlue, BLOCK_COLORS.neonBlue, BLOCK_COLORS.neonRed],
   ];
 
-  const width = 3 * (BLOCK_SIZE + GAP);
-  const height = 4 * (BLOCK_SIZE + GAP);
-
   return (
-    <div className="relative" style={{ width, height }}>
-      {blocks.map((block, i) => (
-        <div
-          key={i}
-          className="absolute"
-          style={{
-            left: block.x * (BLOCK_SIZE + GAP),
-            top: block.y * (BLOCK_SIZE + GAP),
-          }}
-        >
-          <Block color={block.color} />
-        </div>
-      ))}
+    <div
+      className="grid"
+      style={{
+        gridTemplateColumns: `repeat(3, ${BLOCK_SIZE}px)`,
+        gridTemplateRows: `repeat(5, ${BLOCK_SIZE}px)`,
+        gap: 0,
+      }}
+    >
+      {grid.flatMap((row, rowIdx) =>
+        row.map((color, colIdx) => (
+          <div key={`${rowIdx}-${colIdx}`}>
+            {color ? <Block color={color} /> : <div style={{ width: BLOCK_SIZE, height: BLOCK_SIZE }} />}
+          </div>
+        ))
+      )}
     </div>
   );
 };
 
-// Right block stack - staggered heights like Block Blast
+// Right block stack - solid staircase shape (mirror of left)
 const RightBlockStack = () => {
-  const blocks = [
-    // Bottom row (y=3)
-    { color: BLOCK_COLORS.cyan, x: 0, y: 3 },
-    { color: BLOCK_COLORS.orange, x: 1, y: 3 },
-    { color: BLOCK_COLORS.orange, x: 2, y: 3 },
-    // Row 2 (y=2)
-    { color: BLOCK_COLORS.orange, x: 1, y: 2 },
-    { color: BLOCK_COLORS.green, x: 2, y: 2 },
-    // Row 3 (y=1)
-    { color: BLOCK_COLORS.green, x: 1, y: 1 },
-    { color: BLOCK_COLORS.green, x: 2, y: 1 },
-    // Top (y=0)
-    { color: BLOCK_COLORS.green, x: 2, y: 0 },
+  // Staircase pattern: 1 row on left, ascending to 4 rows on right
+  const grid = [
+    // Row 0 (top)
+    [null, null, null],
+    // Row 1
+    [null, null, BLOCK_COLORS.neonGreen],
+    // Row 2
+    [null, BLOCK_COLORS.neonGreen, BLOCK_COLORS.neonGreen],
+    // Row 3
+    [BLOCK_COLORS.neonCyan, BLOCK_COLORS.neonOrange, BLOCK_COLORS.neonOrange],
+    // Row 4 (bottom)
+    [BLOCK_COLORS.neonBlue, BLOCK_COLORS.neonOrange, BLOCK_COLORS.neonOrange],
   ];
 
-  const width = 3 * (BLOCK_SIZE + GAP);
-  const height = 4 * (BLOCK_SIZE + GAP);
-
   return (
-    <div className="relative" style={{ width, height }}>
-      {blocks.map((block, i) => (
-        <div
-          key={i}
-          className="absolute"
-          style={{
-            left: block.x * (BLOCK_SIZE + GAP),
-            top: block.y * (BLOCK_SIZE + GAP),
-          }}
-        >
-          <Block color={block.color} />
-        </div>
-      ))}
+    <div
+      className="grid"
+      style={{
+        gridTemplateColumns: `repeat(3, ${BLOCK_SIZE}px)`,
+        gridTemplateRows: `repeat(5, ${BLOCK_SIZE}px)`,
+        gap: 0,
+      }}
+    >
+      {grid.flatMap((row, rowIdx) =>
+        row.map((color, colIdx) => (
+          <div key={`${rowIdx}-${colIdx}`}>
+            {color ? <Block color={color} /> : <div style={{ width: BLOCK_SIZE, height: BLOCK_SIZE }} />}
+          </div>
+        ))
+      )}
     </div>
   );
 };
 
-// Center floating piece - Gold/Pink glowing cluster
+// Center floating piece - Pink glowing balloon/gem
 const CenterFloatingPiece = () => {
-  // L-shaped or T-shaped piece in gold/pink
-  const blocks = [
-    { color: BLOCK_COLORS.gold, x: 0, y: 0 },
-    { color: BLOCK_COLORS.gold, x: 1, y: 0 },
-    { color: BLOCK_COLORS.pink, x: 0, y: 1 },
-    { color: BLOCK_COLORS.gold, x: 1, y: 1 },
-  ];
-
   return (
     <div className="absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2 z-10">
       {/* Radial glow behind piece */}
       <div
-        className="absolute -inset-8"
+        className="absolute -inset-12"
         style={{
-          background: 'radial-gradient(circle, rgba(255,255,255,0.4) 0%, rgba(251,191,36,0.3) 30%, rgba(236,72,153,0.2) 50%, transparent 70%)',
-          filter: 'blur(15px)',
+          background: 'radial-gradient(circle, rgba(255,255,255,0.5) 0%, rgba(236,72,153,0.4) 30%, rgba(168,85,247,0.2) 50%, transparent 70%)',
+          filter: 'blur(20px)',
         }}
       />
-      {/* Speed lines / God rays */}
+      {/* The pink gem/balloon shape */}
       <div
-        className="absolute -inset-12 pointer-events-none"
+        className="relative w-20 h-24 rounded-[50%_50%_50%_50%/60%_60%_40%_40%]"
         style={{
-          background: 'radial-gradient(ellipse 80% 120% at 50% 100%, rgba(255,255,255,0.15) 0%, transparent 60%)',
+          background: 'linear-gradient(180deg, #FF80AB 0%, #F48FB1 30%, #EC407A 70%, #AD1457 100%)',
+          boxShadow: `
+            0 8px 0 #880E4F,
+            0 12px 30px rgba(236,64,122,0.5),
+            inset 0 -10px 20px rgba(136,14,79,0.3),
+            inset 8px 8px 20px rgba(255,255,255,0.5)
+          `,
         }}
-      />
-      {/* The piece blocks */}
-      <div className="relative" style={{ width: 2 * (BLOCK_SIZE + GAP), height: 2 * (BLOCK_SIZE + GAP) }}>
-        {blocks.map((block, i) => (
-          <div
-            key={i}
-            className="absolute"
-            style={{
-              left: block.x * (BLOCK_SIZE + GAP),
-              top: block.y * (BLOCK_SIZE + GAP),
-            }}
-          >
-            <Block color={block.color} size={BLOCK_SIZE} />
-          </div>
-        ))}
+      >
+        {/* Gloss highlight */}
+        <div
+          className="absolute top-3 left-4 w-6 h-8 rounded-full"
+          style={{
+            background: 'radial-gradient(ellipse 100% 100% at 30% 30%, rgba(255,255,255,0.7) 0%, transparent 60%)',
+          }}
+        />
+        {/* Bottom connector */}
+        <div
+          className="absolute -bottom-3 left-1/2 -translate-x-1/2 w-3 h-4"
+          style={{
+            background: 'linear-gradient(180deg, #AD1457 0%, #880E4F 100%)',
+            borderRadius: '0 0 4px 4px',
+          }}
+        />
       </div>
     </div>
   );
 };
 
-// Perspective floor grid - 3D ground effect
-const PerspectiveFloor = () => {
+// Bottom floor blocks - center platform
+const FloorBlocks = () => {
+  const blocks = [
+    BLOCK_COLORS.neonBlue,
+    BLOCK_COLORS.neonCyan,
+    BLOCK_COLORS.neonPurple,
+    BLOCK_COLORS.neonCyan,
+    BLOCK_COLORS.neonBlue,
+  ];
+
   return (
     <div
-      className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[500px] h-36 pointer-events-none overflow-hidden"
+      className="grid absolute bottom-0 left-1/2 -translate-x-1/2"
       style={{
-        perspective: '300px',
+        gridTemplateColumns: `repeat(5, ${BLOCK_SIZE}px)`,
+        gap: 0,
       }}
     >
-      {/* The grid */}
-      <div
-        className="w-full h-full"
-        style={{
-          background: `
-            linear-gradient(90deg, rgba(34, 211, 238, 0.3) 1px, transparent 1px),
-            linear-gradient(rgba(34, 211, 238, 0.3) 1px, transparent 1px)
-          `,
-          backgroundSize: '40px 40px',
-          transform: 'rotateX(65deg)',
-          transformOrigin: 'center top',
-          maskImage: 'linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.8) 30%, rgba(0,0,0,0.4) 100%)',
-          WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.8) 30%, rgba(0,0,0,0.4) 100%)',
-        }}
-      />
-      {/* Central spotlight glow */}
-      <div
-        className="absolute top-0 left-1/2 -translate-x-1/2 w-64 h-24"
-        style={{
-          background: 'radial-gradient(ellipse, rgba(255, 255, 255, 0.25) 0%, rgba(34, 211, 238, 0.3) 40%, transparent 70%)',
-          filter: 'blur(20px)',
-        }}
-      />
+      {blocks.map((color, i) => (
+        <Block key={i} color={color} />
+      ))}
     </div>
-  );
-};
-
-// Wall grid overlay - 2D vertical/horizontal grid on top portion
-const WallGrid = () => {
-  return (
-    <div
-      className="absolute inset-0 pointer-events-none"
-      style={{
-        background: `
-          linear-gradient(90deg, rgba(34, 211, 238, 0.08) 1px, transparent 1px),
-          linear-gradient(rgba(34, 211, 238, 0.08) 1px, transparent 1px)
-        `,
-        backgroundSize: '50px 50px',
-        maskImage: 'linear-gradient(to bottom, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.3) 60%, transparent 80%)',
-        WebkitMaskImage: 'linear-gradient(to bottom, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.3) 60%, transparent 80%)',
-      }}
-    />
   );
 };
 
@@ -264,25 +228,22 @@ export const HeroBlockDisplay = () => {
       <ElementIconsRow />
 
       {/* Main display with blocks and floating piece */}
-      <div className="relative h-[220px] w-[350px] sm:w-[400px]">
-        {/* Wall grid overlay */}
-        <WallGrid />
-        
-        {/* Perspective floor */}
-        <PerspectiveFloor />
-
-        {/* Left stack - positioned left */}
-        <div className="absolute left-0 bottom-12">
+      <div className="relative h-[280px] w-[380px] sm:w-[420px]">
+        {/* Left stack - solid staircase */}
+        <div className="absolute left-0 bottom-0">
           <LeftBlockStack />
         </div>
 
         {/* Center floating piece with glow */}
         <CenterFloatingPiece />
 
-        {/* Right stack - positioned right */}
-        <div className="absolute right-0 bottom-12">
+        {/* Right stack - solid staircase (mirrored) */}
+        <div className="absolute right-0 bottom-0">
           <RightBlockStack />
         </div>
+
+        {/* Floor blocks connecting the stacks */}
+        <FloorBlocks />
       </div>
     </div>
   );
