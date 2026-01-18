@@ -137,6 +137,7 @@ export interface BlockBlastEngine {
   isDailyChallenge: boolean;
   startGame: () => void;
   startDailyChallenge: () => void;
+  resetGame: () => void;
   selectPiece: (piece: DraggablePiece | null) => void;
   setDropPreview: (pos: Position | null) => void;
   canPlacePiece: (piece: DraggablePiece, pos: Position) => boolean;
@@ -697,6 +698,26 @@ export function useBlockBlastEngine(): BlockBlastEngine {
     setReactionPreviewSummary(null);
   }, [resolveGrid, canAnyPieceFit, failedAttempts]);
 
+  // Reset game - return to menu without saving score
+  const resetGame = useCallback(() => {
+    seededRngRef.current = null;
+    setIsDailyChallenge(false);
+    setGameState({
+      grid: createEmptyGrid(),
+      availablePieces: [],
+      selectedPiece: null,
+      dropPreview: null,
+      score: 0,
+      combo: 0,
+      isGameOver: false,
+      lastLifeTick: Date.now(),
+    });
+    setReactionPreviews([]);
+    setReactionEvents([]);
+    setReactionPreviewSummary(null);
+    setFailedAttempts(0);
+  }, []);
+
   return {
     gameState,
     shakeIntensity,
@@ -709,6 +730,7 @@ export function useBlockBlastEngine(): BlockBlastEngine {
     isDailyChallenge,
     startGame,
     startDailyChallenge,
+    resetGame,
     selectPiece,
     setDropPreview,
     canPlacePiece,

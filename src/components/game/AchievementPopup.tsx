@@ -1,0 +1,114 @@
+import { motion, AnimatePresence } from 'framer-motion';
+import { Award } from 'lucide-react';
+import { Achievement } from '@/hooks/useAchievements';
+import { useEffect } from 'react';
+import { playSound } from '@/game/sounds';
+
+interface AchievementPopupProps {
+  achievement: Achievement | null;
+  onDismiss: () => void;
+}
+
+export function AchievementPopup({ achievement, onDismiss }: AchievementPopupProps) {
+  useEffect(() => {
+    if (achievement) {
+      playSound('highScore');
+      const timer = setTimeout(onDismiss, 4000);
+      return () => clearTimeout(timer);
+    }
+  }, [achievement, onDismiss]);
+
+  return (
+    <AnimatePresence>
+      {achievement && (
+        <motion.div
+          initial={{ opacity: 0, y: -100, scale: 0.8 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          exit={{ opacity: 0, y: -50, scale: 0.9 }}
+          className="fixed top-20 left-1/2 -translate-x-1/2 z-50"
+          onClick={onDismiss}
+        >
+          <motion.div
+            className="relative bg-gradient-to-r from-amber-600/90 via-yellow-500/90 to-amber-600/90 border-2 border-yellow-400/60 rounded-2xl px-6 py-4 shadow-2xl backdrop-blur-sm cursor-pointer"
+            animate={{ 
+              boxShadow: [
+                '0 0 20px rgba(251, 191, 36, 0.3)',
+                '0 0 40px rgba(251, 191, 36, 0.5)',
+                '0 0 20px rgba(251, 191, 36, 0.3)',
+              ]
+            }}
+            transition={{ duration: 1.5, repeat: Infinity }}
+          >
+            {/* Sparkle effects */}
+            <motion.div
+              className="absolute -top-2 -left-2 w-4 h-4 text-yellow-300"
+              animate={{ 
+                scale: [0, 1, 0],
+                rotate: [0, 180, 360],
+              }}
+              transition={{ duration: 1, repeat: Infinity }}
+            >
+              ✦
+            </motion.div>
+            <motion.div
+              className="absolute -top-1 -right-3 w-3 h-3 text-yellow-200"
+              animate={{ 
+                scale: [0, 1, 0],
+                rotate: [0, 180, 360],
+              }}
+              transition={{ duration: 1, repeat: Infinity, delay: 0.3 }}
+            >
+              ✦
+            </motion.div>
+            <motion.div
+              className="absolute -bottom-2 right-4 w-3 h-3 text-amber-300"
+              animate={{ 
+                scale: [0, 1, 0],
+                rotate: [0, 180, 360],
+              }}
+              transition={{ duration: 1, repeat: Infinity, delay: 0.6 }}
+            >
+              ✦
+            </motion.div>
+
+            <div className="flex items-center gap-4">
+              {/* Icon */}
+              <div className="relative">
+                <motion.div
+                  className="w-14 h-14 rounded-full bg-black/30 border-2 border-yellow-300/50 flex items-center justify-center text-3xl"
+                  animate={{ rotate: [0, 5, -5, 0] }}
+                  transition={{ duration: 0.5, delay: 0.2 }}
+                >
+                  {achievement.icon}
+                </motion.div>
+                <motion.div
+                  className="absolute -top-1 -right-1 w-6 h-6 bg-yellow-400 rounded-full flex items-center justify-center"
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ delay: 0.3, type: 'spring' }}
+                >
+                  <Award className="w-4 h-4 text-amber-900" />
+                </motion.div>
+              </div>
+
+              {/* Text */}
+              <div>
+                <p className="text-xs font-semibold text-yellow-200 uppercase tracking-wider mb-0.5">
+                  Achievement Unlocked!
+                </p>
+                <h3 className="text-lg font-black text-white mb-0.5">
+                  {achievement.name}
+                </h3>
+                <p className="text-sm text-yellow-100/80">
+                  +{achievement.points} points
+                </p>
+              </div>
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+}
+
+export default AchievementPopup;
