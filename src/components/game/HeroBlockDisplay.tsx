@@ -10,115 +10,150 @@ const ELEMENT_COLORS = {
   helium: { bg: '#EC4899', glow: 'rgba(236, 72, 153, 0.6)', emoji: '🎈' },
 };
 
-type ElementType = keyof typeof ELEMENT_COLORS;
+type ElementType = keyof typeof ELEMENT_COLORS | null;
 
-const BLOCK_SIZE = 36;
+// Sample grid state to showcase gameplay (8x8)
+// null = empty, element name = filled
+const SAMPLE_GRID: ElementType[][] = [
+  [null, null, null, null, null, null, null, null],
+  [null, null, null, null, null, null, null, null],
+  [null, null, null, 'helium', 'helium', null, null, null],
+  [null, 'water', 'water', 'fire', 'fire', null, 'acid', null],
+  ['stone', 'water', 'wood', 'fire', 'helium', 'helium', 'acid', null],
+  ['stone', 'fire', 'wood', 'water', 'acid', 'water', 'acid', 'fire'],
+  ['wood', 'fire', 'stone', 'water', 'acid', 'helium', 'wood', 'fire'],
+  ['fire', 'water', 'stone', 'wood', 'helium', 'acid', 'fire', 'water'],
+];
+
+// Sample pieces for tray
+const SAMPLE_PIECES = [
+  { shape: [[0, 0], [0, 1], [1, 0], [1, 1]], element: 'water' as const },
+  { shape: [[0, 0], [1, 0], [2, 0]], element: 'fire' as const },
+  { shape: [[0, 0], [0, 1], [1, 1]], element: 'acid' as const },
+];
+
+const CELL_SIZE = 28;
+const GRID_GAP = 2;
 
 interface BlockCellProps {
   element: ElementType;
+  size?: number;
   delay?: number;
 }
 
-const BlockCell = ({ element, delay = 0 }: BlockCellProps) => {
+const BlockCell = ({ element, size = CELL_SIZE, delay = 0 }: BlockCellProps) => {
+  if (!element) {
+    return (
+      <div
+        className="rounded-md"
+        style={{
+          width: size,
+          height: size,
+          backgroundColor: 'rgba(30, 40, 70, 0.6)',
+          border: '1px solid rgba(100, 150, 255, 0.15)',
+        }}
+      />
+    );
+  }
+
   const { bg, glow, emoji } = ELEMENT_COLORS[element];
-  
+
   return (
     <motion.div
-      className="rounded-lg flex items-center justify-center relative overflow-hidden"
+      className="rounded-md flex items-center justify-center relative overflow-hidden"
       style={{
-        width: BLOCK_SIZE,
-        height: BLOCK_SIZE,
+        width: size,
+        height: size,
         backgroundColor: bg,
         boxShadow: `
-          0 4px 0 ${bg}99,
-          0 6px 12px ${glow},
-          inset 0 2px 4px rgba(255,255,255,0.4)
+          0 3px 0 ${bg}99,
+          0 4px 8px ${glow},
+          inset 0 2px 4px rgba(255,255,255,0.35)
         `,
-        border: '2px solid rgba(255,255,255,0.3)',
+        border: '1px solid rgba(255,255,255,0.25)',
       }}
       initial={{ scale: 0, opacity: 0 }}
       animate={{ scale: 1, opacity: 1 }}
-      transition={{ 
-        delay, 
-        duration: 0.3, 
-        type: 'spring', 
-        stiffness: 400 
+      transition={{
+        delay,
+        duration: 0.2,
+        type: 'spring',
+        stiffness: 500,
       }}
     >
       {/* Shine */}
-      <div className="absolute top-0 left-0 right-0 h-1/3 bg-gradient-to-b from-white/40 to-transparent rounded-t-md" />
-      <span className="relative z-10" style={{ fontSize: BLOCK_SIZE * 0.5 }}>{emoji}</span>
+      <div className="absolute top-0 left-0 right-0 h-1/3 bg-gradient-to-b from-white/35 to-transparent rounded-t-sm" />
+      <span className="relative z-10" style={{ fontSize: size * 0.45 }}>
+        {emoji}
+      </span>
     </motion.div>
   );
 };
 
-// Left tower stack
-const LeftTower = () => {
-  const blocks: ElementType[] = ['fire', 'fire', 'water', 'stone', 'wood'];
-  
-  return (
-    <motion.div 
-      className="flex flex-col-reverse gap-1"
-      initial={{ opacity: 0, x: -30 }}
-      animate={{ opacity: 1, x: 0 }}
-      transition={{ delay: 0.2, duration: 0.5 }}
-    >
-      {blocks.map((element, i) => (
-        <BlockCell key={i} element={element} delay={0.3 + i * 0.08} />
-      ))}
-    </motion.div>
-  );
-};
-
-// Right tower stack
-const RightTower = () => {
-  const blocks: ElementType[] = ['acid', 'helium', 'water', 'fire', 'stone'];
-  
-  return (
-    <motion.div 
-      className="flex flex-col-reverse gap-1"
-      initial={{ opacity: 0, x: 30 }}
-      animate={{ opacity: 1, x: 0 }}
-      transition={{ delay: 0.2, duration: 0.5 }}
-    >
-      {blocks.map((element, i) => (
-        <BlockCell key={i} element={element} delay={0.35 + i * 0.08} />
-      ))}
-    </motion.div>
-  );
-};
-
-// Center floating piece with beam
-const CenterPiece = () => {
-  const shape: { row: number; col: number; element: ElementType }[] = [
-    { row: 0, col: 0, element: 'water' },
-    { row: 0, col: 1, element: 'water' },
-    { row: 1, col: 0, element: 'water' },
-    { row: 1, col: 1, element: 'water' },
-  ];
-  
+// 8x8 Game Grid Preview
+const GameGridPreview = () => {
   return (
     <motion.div
-      className="relative flex flex-col items-center"
+      className="relative p-3 rounded-xl"
+      style={{
+        background: 'linear-gradient(145deg, rgba(20, 30, 60, 0.95), rgba(15, 20, 45, 0.98))',
+        boxShadow: '0 8px 32px rgba(0,0,0,0.5), 0 0 40px rgba(59, 130, 246, 0.2)',
+        border: '2px solid rgba(100, 150, 255, 0.2)',
+      }}
+      initial={{ opacity: 0, scale: 0.9 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ delay: 0.2, duration: 0.4 }}
+    >
+      <div
+        className="grid"
+        style={{
+          gridTemplateColumns: `repeat(8, ${CELL_SIZE}px)`,
+          gap: GRID_GAP,
+        }}
+      >
+        {SAMPLE_GRID.map((row, rowIndex) =>
+          row.map((cell, colIndex) => (
+            <BlockCell
+              key={`${rowIndex}-${colIndex}`}
+              element={cell}
+              delay={0.3 + (rowIndex * 8 + colIndex) * 0.008}
+            />
+          ))
+        )}
+      </div>
+    </motion.div>
+  );
+};
+
+// Floating piece above grid
+const FloatingPiece = () => {
+  const piece = { shape: [[0, 0], [0, 1], [1, 0]], element: 'helium' as const };
+  const pieceSize = 24;
+
+  // Calculate grid bounds
+  const cols = Math.max(...piece.shape.map((p) => p[1])) + 1;
+  const rows = Math.max(...piece.shape.map((p) => p[0])) + 1;
+
+  return (
+    <motion.div
+      className="absolute -top-16 left-1/2 -translate-x-1/2"
       initial={{ opacity: 0, y: -20 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: 0.4, duration: 0.5 }}
+      transition={{ delay: 0.5, duration: 0.4 }}
     >
-      {/* Downward beam/glow */}
+      {/* Downward beam */}
       <motion.div
-        className="absolute top-full left-1/2 -translate-x-1/2 w-20 h-32 pointer-events-none"
+        className="absolute top-full left-1/2 -translate-x-1/2 w-16 h-20 pointer-events-none"
         style={{
           background: `linear-gradient(to bottom, 
-            rgba(59, 130, 246, 0.4) 0%,
-            rgba(59, 130, 246, 0.2) 30%,
-            rgba(59, 130, 246, 0.05) 70%,
+            rgba(236, 72, 153, 0.4) 0%,
+            rgba(236, 72, 153, 0.15) 50%,
             transparent 100%
           )`,
-          filter: 'blur(8px)',
+          filter: 'blur(6px)',
         }}
         animate={{
-          opacity: [0.6, 1, 0.6],
-          scaleY: [1, 1.1, 1],
+          opacity: [0.5, 0.8, 0.5],
         }}
         transition={{
           duration: 2,
@@ -126,45 +161,119 @@ const CenterPiece = () => {
           ease: 'easeInOut',
         }}
       />
-      
-      {/* Floating piece */}
+
+      {/* Piece container */}
       <motion.div
-        className="relative p-2 rounded-xl"
+        className="p-2 rounded-lg"
         style={{
-          background: 'linear-gradient(145deg, rgba(40, 40, 60, 0.9), rgba(25, 25, 40, 0.95))',
-          boxShadow: '0 8px 24px rgba(0,0,0,0.4), 0 0 30px rgba(59, 130, 246, 0.3)',
+          background: 'linear-gradient(145deg, rgba(40, 50, 80, 0.9), rgba(25, 30, 55, 0.95))',
+          boxShadow: '0 4px 16px rgba(0,0,0,0.4), 0 0 20px rgba(236, 72, 153, 0.3)',
           border: '2px solid rgba(255,255,255,0.15)',
         }}
         animate={{
-          y: [0, -8, 0],
+          y: [0, -6, 0],
         }}
         transition={{
-          duration: 2.5,
+          duration: 2,
           repeat: Infinity,
           ease: 'easeInOut',
         }}
       >
-        <div className="grid grid-cols-2 gap-1">
-          {shape.map((block, i) => (
-            <BlockCell key={i} element={block.element} delay={0.5 + i * 0.05} />
-          ))}
+        <div
+          className="grid gap-1"
+          style={{
+            gridTemplateColumns: `repeat(${cols}, ${pieceSize}px)`,
+            gridTemplateRows: `repeat(${rows}, ${pieceSize}px)`,
+          }}
+        >
+          {Array.from({ length: rows * cols }).map((_, i) => {
+            const row = Math.floor(i / cols);
+            const col = i % cols;
+            const isBlock = piece.shape.some((p) => p[0] === row && p[1] === col);
+            
+            if (!isBlock) return <div key={i} style={{ width: pieceSize, height: pieceSize }} />;
+            
+            return <BlockCell key={i} element={piece.element} size={pieceSize} delay={0.6} />;
+          })}
         </div>
       </motion.div>
     </motion.div>
   );
 };
 
+// Piece tray preview
+const PieceTrayPreview = () => {
+  const pieceSize = 20;
+
+  return (
+    <motion.div
+      className="flex justify-center gap-4 mt-4"
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.6, duration: 0.4 }}
+    >
+      {SAMPLE_PIECES.map((piece, pieceIndex) => {
+        const cols = Math.max(...piece.shape.map((p) => p[1])) + 1;
+        const rows = Math.max(...piece.shape.map((p) => p[0])) + 1;
+
+        return (
+          <motion.div
+            key={pieceIndex}
+            className="p-2 rounded-lg"
+            style={{
+              background: 'linear-gradient(145deg, rgba(35, 45, 75, 0.8), rgba(20, 25, 50, 0.9))',
+              boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+              border: '1px solid rgba(100, 150, 255, 0.15)',
+            }}
+            whileHover={{ scale: 1.05 }}
+          >
+            <div
+              className="grid gap-0.5"
+              style={{
+                gridTemplateColumns: `repeat(${cols}, ${pieceSize}px)`,
+                gridTemplateRows: `repeat(${rows}, ${pieceSize}px)`,
+              }}
+            >
+              {Array.from({ length: rows * cols }).map((_, i) => {
+                const row = Math.floor(i / cols);
+                const col = i % cols;
+                const isBlock = piece.shape.some((p) => p[0] === row && p[1] === col);
+
+                if (!isBlock) return <div key={i} style={{ width: pieceSize, height: pieceSize }} />;
+
+                return (
+                  <BlockCell
+                    key={i}
+                    element={piece.element}
+                    size={pieceSize}
+                    delay={0.7 + pieceIndex * 0.1}
+                  />
+                );
+              })}
+            </div>
+          </motion.div>
+        );
+      })}
+    </motion.div>
+  );
+};
+
 export const HeroBlockDisplay = () => {
   return (
-    <motion.div 
-      className="flex items-end justify-center gap-6 py-4"
+    <motion.div
+      className="flex flex-col items-center py-4"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.5 }}
     >
-      <LeftTower />
-      <CenterPiece />
-      <RightTower />
+      {/* Main grid with floating piece */}
+      <div className="relative">
+        <FloatingPiece />
+        <GameGridPreview />
+      </div>
+
+      {/* Piece tray below */}
+      <PieceTrayPreview />
     </motion.div>
   );
 };
