@@ -61,9 +61,11 @@ export default {
         game: {
           "bg-start": "hsl(var(--game-bg-start))",
           "bg-end": "hsl(var(--game-bg-end))",
+          "bg-center": "hsl(var(--game-bg-center))",
           "grid-dark": "hsl(var(--game-grid-dark))",
           "grid-darker": "hsl(var(--game-grid-darker))",
           "grid-border": "hsl(var(--game-grid-border))",
+          "grid-line": "hsl(var(--game-grid-line))",
           "cell": "hsl(var(--game-cell))",
           "cell-hover": "hsl(var(--game-cell-hover))",
           "tray": "hsl(var(--game-tray))",
@@ -73,6 +75,9 @@ export default {
           "score-mid": "hsl(var(--game-score-mid))",
           "score-end": "hsl(var(--game-score-end))",
           "text-muted": "hsl(var(--game-text-muted))",
+          "glow": "hsl(var(--game-glow))",
+          "icon-bg": "hsl(var(--game-icon-bg))",
+          "icon-border": "hsl(var(--game-icon-border))",
         },
       },
       borderRadius: {

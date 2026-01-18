@@ -47,12 +47,14 @@ All colors MUST be HSL.
     --sidebar-border: 220 13% 91%;
     --sidebar-ring: 217.2 91.2% 59.8%;
 
-    /* Block Blast Game Theme - Blue arena style */
-    --game-bg-start: 220 65% 25%;
-    --game-bg-end: 230 70% 12%;
+    /* Block Blast Game Theme - Deep blue arena style */
+    --game-bg-start: 230 100% 2%;
+    --game-bg-end: 225 80% 18%;
+    --game-bg-center: 220 75% 28%;
     --game-grid-dark: 220 55% 8%;
     --game-grid-darker: 225 60% 5%;
-    --game-grid-border: 210 50% 30%;
+    --game-grid-border: 200 80% 50%;
+    --game-grid-line: 195 85% 55%;
     --game-cell: 220 45% 12%;
     --game-cell-hover: 220 45% 18%;
     --game-tray: 220 45% 10%;
@@ -62,6 +64,9 @@ All colors MUST be HSL.
     --game-score-mid: 25 95% 50%;
     --game-score-end: 350 85% 55%;
     --game-text-muted: 220 20% 55%;
+    --game-glow: 195 100% 60%;
+    --game-icon-bg: 220 70% 20%;
+    --game-icon-border: 200 80% 50%;
   }
 
   .dark {
@@ -102,11 +107,13 @@ All colors MUST be HSL.
     --sidebar-ring: 217.2 91.2% 59.8%;
 
     /* Block Blast Game Theme - Dark mode same as light for game */
-    --game-bg-start: 220 65% 25%;
-    --game-bg-end: 230 70% 12%;
+    --game-bg-start: 230 100% 2%;
+    --game-bg-end: 225 80% 18%;
+    --game-bg-center: 220 75% 28%;
     --game-grid-dark: 220 55% 8%;
     --game-grid-darker: 225 60% 5%;
-    --game-grid-border: 210 50% 30%;
+    --game-grid-border: 200 80% 50%;
+    --game-grid-line: 195 85% 55%;
     --game-cell: 220 45% 12%;
     --game-cell-hover: 220 45% 18%;
     --game-tray: 220 45% 10%;
@@ -116,6 +123,9 @@ All colors MUST be HSL.
     --game-score-mid: 25 95% 50%;
     --game-score-end: 350 85% 55%;
     --game-text-muted: 220 20% 55%;
+    --game-glow: 195 100% 60%;
+    --game-icon-bg: 220 70% 20%;
+    --game-icon-border: 200 80% 50%;
   }
 }
 

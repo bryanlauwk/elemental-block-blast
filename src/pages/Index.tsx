@@ -22,7 +22,7 @@ import BackgroundDoodles from '@/components/game/BackgroundDoodles';
 import GameTitle from '@/components/game/GameTitle';
 import HeroBlockDisplay from '@/components/game/HeroBlockDisplay';
 import { Button } from '@/components/ui/button';
-import { Trophy, Play, RotateCcw, HelpCircle, Zap, Calendar } from 'lucide-react';
+import { Trophy, Play, RotateCcw, HelpCircle, Zap, Calendar, Volume2 } from 'lucide-react';
 import { Position } from '@/game/types';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { playSound } from '@/game/sounds';
@@ -161,8 +161,34 @@ const Index = () => {
 
   const hasStarted = gameState.availablePieces.length > 0;
 
+  // Glassmorphism icon button style
+  const iconButtonClass = "w-11 h-11 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center transition-all hover:scale-105";
+  const iconButtonStyle = {
+    background: 'linear-gradient(145deg, rgba(30, 58, 138, 0.9), rgba(15, 23, 42, 0.95))',
+    boxShadow: '0 4px 0 rgba(6, 182, 212, 0.3), 0 6px 15px rgba(0,0,0,0.4), inset 0 1px 2px rgba(255,255,255,0.1)',
+    border: '1px solid rgba(34, 211, 238, 0.4)',
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-b from-game-bg-start to-game-bg-end text-white flex flex-col relative">
+    <div className="min-h-screen text-white flex flex-col relative overflow-hidden"
+      style={{
+        background: 'radial-gradient(ellipse 120% 80% at 50% 50%, hsl(220 75% 28%) 0%, hsl(225 80% 18%) 40%, hsl(230 100% 2%) 100%)',
+      }}
+    >
+      {/* Grid overlay - wall effect */}
+      <div 
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          background: `
+            linear-gradient(90deg, rgba(34, 211, 238, 0.08) 1px, transparent 1px),
+            linear-gradient(rgba(34, 211, 238, 0.08) 1px, transparent 1px)
+          `,
+          backgroundSize: '60px 60px',
+          maskImage: 'linear-gradient(to bottom, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.2) 70%, transparent 85%)',
+          WebkitMaskImage: 'linear-gradient(to bottom, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.2) 70%, transparent 85%)',
+        }}
+      />
+
       {/* Background decorations */}
       <BackgroundDoodles />
 
@@ -171,55 +197,68 @@ const Index = () => {
         <ReactionTutorial onComplete={() => setTutorialComplete(true)} />
       )}
 
-      {/* Floating buttons - top right */}
-      <div className="fixed top-4 right-4 z-30 flex gap-2">
-        {/* Reaction feed toggle (mobile & tablet) */}
-        {hasStarted && (
+      {/* Top bar icons - glassmorphism squircles */}
+      <div className="fixed top-4 left-4 right-4 z-30 flex justify-between">
+        {/* Left icons */}
+        <div className="flex gap-2">
+          {/* Sound Settings button */}
           <button
-            onClick={() => setShowReactionFeed(!showReactionFeed)}
-            className={`p-2.5 rounded-full border transition-colors lg:hidden ${
-              showReactionFeed 
-                ? 'bg-game-accent/20 border-game-accent/50' 
-                : 'bg-game-grid-dark/80 border-game-grid-border/50 hover:bg-game-grid-dark'
-            }`}
-            title="View Reactions"
+            onClick={() => setShowSoundSettings(true)}
+            className={iconButtonClass}
+            style={iconButtonStyle}
+            title="Sound Settings"
           >
-            <Zap className={`w-5 h-5 ${showReactionFeed ? 'text-game-accent' : 'text-yellow-400'}`} />
+            <Volume2 className="w-5 h-5 text-white" />
           </button>
-        )}
+          
+          {/* Daily Challenge button */}
+          <button
+            onClick={() => setShowDailyChallenge(true)}
+            className={iconButtonClass}
+            style={iconButtonStyle}
+            title="Daily Challenge"
+          >
+            <Calendar className="w-5 h-5 text-white" />
+          </button>
+        </div>
         
-        {/* Sound Settings button */}
-        <SoundToggleButton onClick={() => setShowSoundSettings(true)} />
-        
-        {/* Daily Challenge button */}
-        <button
-          onClick={() => setShowDailyChallenge(true)}
-          className="p-2.5 rounded-full bg-gradient-to-br from-amber-500/20 to-orange-500/20 border border-amber-500/50 hover:from-amber-500/30 hover:to-orange-500/30 transition-colors"
-          title="Daily Challenge"
-        >
-          <Calendar className="w-5 h-5 text-amber-400" />
-        </button>
-        
-        {/* Leaderboard button */}
-        <button
-          onClick={() => setShowLeaderboard(true)}
-          className="p-2.5 rounded-full bg-game-grid-dark/80 border border-game-grid-border/50 hover:bg-game-grid-dark transition-colors"
-          title="View High Scores"
-        >
-          <Trophy className="w-5 h-5 text-yellow-400" />
-        </button>
+        {/* Right icons */}
+        <div className="flex gap-2">
+          {/* Reaction feed toggle (mobile & tablet) */}
+          {hasStarted && (
+            <button
+              onClick={() => setShowReactionFeed(!showReactionFeed)}
+              className={`${iconButtonClass} lg:hidden`}
+              style={iconButtonStyle}
+              title="View Reactions"
+            >
+              <Zap className={`w-5 h-5 ${showReactionFeed ? 'text-game-accent' : 'text-yellow-400'}`} />
+            </button>
+          )}
+          
+          {/* Leaderboard button - Trophy with gold fill */}
+          <button
+            onClick={() => setShowLeaderboard(true)}
+            className={iconButtonClass}
+            style={iconButtonStyle}
+            title="View High Scores"
+          >
+            <Trophy className="w-5 h-5" fill="#FBBF24" stroke="#F59E0B" />
+          </button>
 
-        {/* Help button to replay tutorial */}
-        <button
-          onClick={() => {
-            localStorage.removeItem('elemental-blast-tutorial-seen');
-            setTutorialComplete(false);
-          }}
-          className="p-2.5 rounded-full bg-game-grid-dark/80 border border-game-grid-border/50 hover:bg-game-grid-dark transition-colors"
-          title="How to Play"
-        >
-          <HelpCircle className="w-5 h-5 text-white/60" />
-        </button>
+          {/* Help button to replay tutorial */}
+          <button
+            onClick={() => {
+              localStorage.removeItem('elemental-blast-tutorial-seen');
+              setTutorialComplete(false);
+            }}
+            className={iconButtonClass}
+            style={iconButtonStyle}
+            title="How to Play"
+          >
+            <HelpCircle className="w-5 h-5 text-white" />
+          </button>
+        </div>
       </div>
 
       {/* Player Name Modal */}
@@ -307,33 +346,36 @@ const Index = () => {
                 {/* Hero blocks display */}
                 <HeroBlockDisplay />
                 
-                {/* Play button - Block Blast style green */}
-                <div className="relative">
+                {/* Play button - Block Blast style massive green 3D button */}
+                <div className="relative group">
                   <Button
                     onClick={startGame}
                     size="lg"
-                    className="relative bg-gradient-to-b from-emerald-400 to-emerald-600 hover:from-emerald-300 hover:to-emerald-500 text-white font-black text-3xl px-16 py-8 rounded-2xl transition-all overflow-hidden border-0"
+                    className="relative bg-gradient-to-b from-emerald-400 via-emerald-500 to-emerald-600 hover:from-emerald-300 hover:via-emerald-400 hover:to-emerald-500 text-white font-black text-3xl sm:text-4xl px-20 sm:px-24 py-8 sm:py-10 rounded-2xl transition-all overflow-hidden border-0 active:translate-y-1 active:shadow-none flex items-center gap-3"
                     style={{
-                      boxShadow: '0 6px 0 #16a34a, 0 10px 30px rgba(34,197,94,0.4), inset 0 3px 6px rgba(255,255,255,0.35)',
+                      boxShadow: '0 8px 0 #15803D, 0 12px 30px rgba(34,197,94,0.5), inset 0 4px 8px rgba(255,255,255,0.4)',
                     }}
                   >
+                    {/* Play triangle icon */}
+                    <Play className="w-8 h-8 fill-white relative z-10" strokeWidth={0} />
                     {/* Shine effect */}
-                    <div className="absolute top-0 left-0 right-0 h-1/3 bg-gradient-to-b from-white/35 to-transparent rounded-t-2xl" />
-                    <span className="relative z-10 tracking-wide">PLAY</span>
+                    <div className="absolute top-0 left-0 right-0 h-1/3 bg-gradient-to-b from-white/40 to-transparent rounded-t-2xl" />
+                    <span className="relative z-10 tracking-wide drop-shadow-sm">PLAY</span>
                   </Button>
                 </div>
                 
-                {/* Daily Challenge button - yellow/amber style */}
-                <div className="relative">
+                {/* Daily Challenge button - White/cream with orange text */}
+                <div className="relative group">
                   <Button
                     onClick={() => setShowDailyChallenge(true)}
                     size="lg"
-                    className="relative bg-gradient-to-b from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-amber-900 font-bold text-lg px-8 py-5 rounded-xl transition-all overflow-hidden border-0"
+                    className="relative bg-gradient-to-b from-white via-gray-50 to-gray-100 hover:from-gray-50 hover:via-gray-100 hover:to-gray-200 text-amber-600 font-bold text-lg px-10 py-6 rounded-xl transition-all overflow-hidden border-0 active:translate-y-1 active:shadow-none flex items-center gap-2"
                     style={{
-                      boxShadow: '0 4px 0 #B45309, 0 8px 20px rgba(245,158,11,0.3), inset 0 2px 4px rgba(255,255,255,0.35)',
+                      boxShadow: '0 4px 0 #D1D5DB, 0 8px 20px rgba(0,0,0,0.15), inset 0 2px 4px rgba(255,255,255,0.8)',
                     }}
                   >
-                    <div className="absolute top-0 left-0 right-0 h-1/3 bg-gradient-to-b from-white/30 to-transparent rounded-t-xl" />
+                    <Calendar className="w-5 h-5 text-amber-500 relative z-10" />
+                    <div className="absolute top-0 left-0 right-0 h-1/3 bg-gradient-to-b from-white/60 to-transparent rounded-t-xl" />
                     <span className="relative z-10">Daily Challenge</span>
                   </Button>
                 </div>
