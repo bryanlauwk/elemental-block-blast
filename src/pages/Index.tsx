@@ -4,6 +4,8 @@ import { useBlockBlastEngine } from '@/hooks/useBlockBlastEngine';
 import { useHighScores } from '@/hooks/useHighScores';
 import { useGlobalLeaderboard } from '@/hooks/useGlobalLeaderboard';
 import { useDailyChallenge } from '@/hooks/useDailyChallenge';
+import { useDailyStreak } from '@/hooks/useDailyStreak';
+import { useAchievements } from '@/hooks/useAchievements';
 import { BlockBlastGrid } from '@/components/game/BlockBlastGrid';
 import { PieceTray } from '@/components/game/PieceTray';
 import { BlockBlastScoreboard } from '@/components/game/BlockBlastScoreboard';
@@ -13,8 +15,12 @@ import { LeaderboardModal } from '@/components/game/LeaderboardModal';
 import { PlayerNameModal } from '@/components/game/PlayerNameModal';
 import { DailyChallengeModal } from '@/components/game/DailyChallengeModal';
 import { ShareButtons } from '@/components/game/ShareButtons';
-import { SoundSettings, SoundToggleButton } from '@/components/game/SoundSettings';
+import { SoundSettings } from '@/components/game/SoundSettings';
 import { KeyboardHints } from '@/components/game/KeyboardHints';
+import { ExitConfirmModal } from '@/components/game/ExitConfirmModal';
+import { StreakBadge } from '@/components/game/StreakBadge';
+import { AchievementPopup } from '@/components/game/AchievementPopup';
+import { AchievementsModal } from '@/components/game/AchievementsModal';
 import ReactionFeed from '@/components/game/ReactionFeed';
 import ReactionTutorial from '@/components/game/ReactionTutorial';
 import ReactionParticles from '@/components/game/ReactionParticles';
@@ -22,7 +28,7 @@ import ReactionParticles from '@/components/game/ReactionParticles';
 import GameTitle from '@/components/game/GameTitle';
 import HeroBlockDisplay from '@/components/game/HeroBlockDisplay';
 import { Button } from '@/components/ui/button';
-import { Trophy, Play, RotateCcw, HelpCircle, Zap, Calendar, Volume2 } from 'lucide-react';
+import { Trophy, Play, RotateCcw, HelpCircle, Zap, Calendar, Volume2, Home, Award } from 'lucide-react';
 import { Position } from '@/game/types';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { playSound } from '@/game/sounds';
@@ -40,6 +46,7 @@ const Index = () => {
     isDailyChallenge,
     startGame,
     startDailyChallenge,
+    resetGame,
     selectPiece,
     setDropPreview,
     canPlacePiece,
@@ -49,11 +56,15 @@ const Index = () => {
   const { highScores, topScore, saveScore, clearScores } = useHighScores();
   const { submitScore, getStoredPlayerName, storePlayerName } = useGlobalLeaderboard();
   const { submitDailyScore, getPlayerDailyScore } = useDailyChallenge();
+  const { currentStreak, playedToday, recordPlay, isStreakAtRisk } = useDailyStreak();
+  const { achievements, totalPoints, justUnlocked, checkAchievements, clearJustUnlocked } = useAchievements();
   
   const hasGameEnded = useRef(false);
   const [showLeaderboard, setShowLeaderboard] = useState(false);
   const [showDailyChallenge, setShowDailyChallenge] = useState(false);
   const [showPlayerNameModal, setShowPlayerNameModal] = useState(false);
+  const [showExitModal, setShowExitModal] = useState(false);
+  const [showAchievements, setShowAchievements] = useState(false);
   const [isSubmittingScore, setIsSubmittingScore] = useState(false);
   const [submittedPlayerName, setSubmittedPlayerName] = useState<string | null>(null);
   const [globalRank, setGlobalRank] = useState<number | null>(null);
@@ -90,6 +101,15 @@ const Index = () => {
         playSound('gameOver');
       }
       
+      // Record streak play
+      recordPlay();
+      
+      // Check achievements
+      checkAchievements({ score: gameState.score, streak: currentStreak });
+      if (isDailyChallenge) {
+        checkAchievements({ dailyChallengesCompleted: 1 });
+      }
+      
       // Save to local scores (for both regular and daily)
       if (!isDailyChallenge) {
         saveScore(gameState.score);
@@ -106,8 +126,28 @@ const Index = () => {
       setSubmittedPlayerName(null);
       setGlobalRank(null);
     }
-  }, [gameState.isGameOver, gameState.score, saveScore, topScore, isDailyChallenge]);
+  }, [gameState.isGameOver, gameState.score, saveScore, topScore, isDailyChallenge, recordPlay, checkAchievements, currentStreak]);
 
+  // Check achievements when combo/reactions happen
+  useEffect(() => {
+    if (comboDisplay.show && comboDisplay.count > 0) {
+      checkAchievements({ combo: comboDisplay.count });
+    }
+  }, [comboDisplay.show, comboDisplay.count, checkAchievements]);
+
+  // Check achievements on reaction events
+  useEffect(() => {
+    if (reactionEvents.length > 0) {
+      const lastEvent = reactionEvents[reactionEvents.length - 1];
+      checkAchievements({ reactionType: lastEvent.type, reactionCount: 1 });
+    }
+  }, [reactionEvents, checkAchievements]);
+
+  // Handle exit game
+  const handleExitGame = useCallback(() => {
+    setShowExitModal(false);
+    resetGame();
+  }, [resetGame]);
   const handleSubmitScore = useCallback(async (playerName: string) => {
     setIsSubmittingScore(true);
     try {
@@ -191,7 +231,19 @@ const Index = () => {
       {/* Top bar icons - glassmorphism squircles */}
       <div className="fixed top-4 left-4 right-4 z-30 flex justify-between">
         {/* Left icons */}
-        <div className="flex gap-2">
+        <div className="flex gap-2 items-center">
+          {/* Exit/Home button - only during gameplay */}
+          {hasStarted && !gameState.isGameOver && (
+            <button
+              onClick={() => setShowExitModal(true)}
+              className={iconButtonClass}
+              style={iconButtonStyle}
+              title="Exit Game"
+            >
+              <Home className="w-5 h-5 text-white" />
+            </button>
+          )}
+          
           {/* Sound Settings button */}
           <button
             onClick={() => setShowSoundSettings(true)}
@@ -211,10 +263,15 @@ const Index = () => {
           >
             <Calendar className="w-5 h-5 text-white" />
           </button>
+          
+          {/* Streak badge */}
+          {currentStreak > 0 && (
+            <StreakBadge streak={currentStreak} isAtRisk={isStreakAtRisk} size="md" />
+          )}
         </div>
         
         {/* Right icons */}
-        <div className="flex gap-2">
+        <div className="flex gap-2 items-center">
           {/* Reaction feed toggle (mobile & tablet) */}
           {hasStarted && (
             <button
@@ -226,6 +283,16 @@ const Index = () => {
               <Zap className={`w-5 h-5 ${showReactionFeed ? 'text-game-accent' : 'text-yellow-400'}`} />
             </button>
           )}
+          
+          {/* Achievements button */}
+          <button
+            onClick={() => setShowAchievements(true)}
+            className={iconButtonClass}
+            style={iconButtonStyle}
+            title="Achievements"
+          >
+            <Award className="w-5 h-5 text-amber-400" />
+          </button>
           
           {/* Leaderboard button - Trophy with gold fill */}
           <button
@@ -285,6 +352,28 @@ const Index = () => {
         currentScore={gameState.isGameOver ? gameState.score : undefined}
         onClear={clearScores}
         highlightPlayerName={submittedPlayerName || undefined}
+      />
+
+      {/* Exit Confirm Modal */}
+      <ExitConfirmModal
+        isOpen={showExitModal}
+        onClose={() => setShowExitModal(false)}
+        onConfirm={handleExitGame}
+        currentScore={gameState.score}
+      />
+
+      {/* Achievements Modal */}
+      <AchievementsModal
+        isOpen={showAchievements}
+        onClose={() => setShowAchievements(false)}
+        achievements={achievements}
+        totalPoints={totalPoints}
+      />
+
+      {/* Achievement Popup */}
+      <AchievementPopup
+        achievement={justUnlocked}
+        onDismiss={clearJustUnlocked}
       />
 
       {/* Main content wrapper - proper spacing zones */}
