@@ -2,12 +2,14 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useBlockBlastEngine } from '@/hooks/useBlockBlastEngine';
 import { useHighScores } from '@/hooks/useHighScores';
+import { useGlobalLeaderboard } from '@/hooks/useGlobalLeaderboard';
 import { BlockBlastGrid } from '@/components/game/BlockBlastGrid';
 import { PieceTray } from '@/components/game/PieceTray';
 import { BlockBlastScoreboard } from '@/components/game/BlockBlastScoreboard';
 import { ScorePopup } from '@/components/game/ScorePopup';
 import { ElementLegend } from '@/components/game/ElementLegend';
 import { LeaderboardModal } from '@/components/game/LeaderboardModal';
+import { PlayerNameModal } from '@/components/game/PlayerNameModal';
 import { KeyboardHints } from '@/components/game/KeyboardHints';
 import ReactionFeed from '@/components/game/ReactionFeed';
 import ReactionTutorial from '@/components/game/ReactionTutorial';
@@ -40,8 +42,14 @@ const Index = () => {
   } = useBlockBlastEngine();
 
   const { highScores, topScore, saveScore, clearScores } = useHighScores();
+  const { submitScore, getStoredPlayerName, storePlayerName } = useGlobalLeaderboard();
+  
   const hasGameEnded = useRef(false);
   const [showLeaderboard, setShowLeaderboard] = useState(false);
+  const [showPlayerNameModal, setShowPlayerNameModal] = useState(false);
+  const [isSubmittingScore, setIsSubmittingScore] = useState(false);
+  const [submittedPlayerName, setSubmittedPlayerName] = useState<string | null>(null);
+  const [globalRank, setGlobalRank] = useState<number | null>(null);
   const [tutorialComplete, setTutorialComplete] = useState(false);
   const [showReactionFeed, setShowReactionFeed] = useState(false);
   const [isNewHighScore, setIsNewHighScore] = useState(false);
@@ -59,12 +67,36 @@ const Index = () => {
         playSound('gameOver');
       }
       saveScore(gameState.score);
+      
+      // Show player name modal for score submission if score is decent
+      if (gameState.score >= 100) {
+        setShowPlayerNameModal(true);
+      }
     }
     if (!gameState.isGameOver) {
       hasGameEnded.current = false;
       setIsNewHighScore(false);
+      setSubmittedPlayerName(null);
+      setGlobalRank(null);
     }
   }, [gameState.isGameOver, gameState.score, saveScore, topScore]);
+
+  const handleSubmitScore = useCallback(async (playerName: string) => {
+    setIsSubmittingScore(true);
+    try {
+      storePlayerName(playerName);
+      const result = await submitScore(playerName, gameState.score);
+      if (result.success) {
+        setSubmittedPlayerName(playerName);
+        setGlobalRank(result.rank || null);
+        setShowPlayerNameModal(false);
+      }
+    } catch (err) {
+      console.error('Failed to submit score:', err);
+    } finally {
+      setIsSubmittingScore(false);
+    }
+  }, [gameState.score, submitScore, storePlayerName]);
 
   const handleCellHover = useCallback((pos: Position) => {
     if (gameState.selectedPiece && canPlacePiece(gameState.selectedPiece, pos)) {
@@ -140,6 +172,16 @@ const Index = () => {
         </button>
       </div>
 
+      {/* Player Name Modal */}
+      <PlayerNameModal
+        isOpen={showPlayerNameModal}
+        onClose={() => setShowPlayerNameModal(false)}
+        onSubmit={handleSubmitScore}
+        score={gameState.score}
+        defaultName={getStoredPlayerName()}
+        isSubmitting={isSubmittingScore}
+      />
+
       {/* Leaderboard Modal */}
       <LeaderboardModal
         isOpen={showLeaderboard}
@@ -147,6 +189,7 @@ const Index = () => {
         highScores={highScores}
         currentScore={gameState.isGameOver ? gameState.score : undefined}
         onClear={clearScores}
+        highlightPlayerName={submittedPlayerName || undefined}
       />
 
       {/* Main content wrapper */}
@@ -281,6 +324,21 @@ const Index = () => {
                           {gameState.score.toLocaleString()}
                         </p>
                         
+                        {/* Global rank display */}
+                        {globalRank && submittedPlayerName && (
+                          <motion.div
+                            initial={{ opacity: 0, y: 5 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.2 }}
+                            className="mb-2"
+                          >
+                            <span className="inline-block px-3 py-1 bg-game-accent/20 border border-game-accent/40 rounded-full text-sm">
+                              <Trophy className="w-4 h-4 inline-block mr-1 text-yellow-400" />
+                              <span className="text-white font-medium">Global Rank: #{globalRank}</span>
+                            </span>
+                          </motion.div>
+                        )}
+                        
                         {/* Social proof - percentile ranking */}
                         <motion.p
                           initial={{ opacity: 0, y: 5 }}
@@ -298,6 +356,18 @@ const Index = () => {
                                   ? "Top 75% of players"
                                   : "Keep practicing!"}
                         </motion.p>
+                        
+                        {/* Submit score button if not already submitted */}
+                        {!submittedPlayerName && gameState.score >= 100 && (
+                          <Button
+                            onClick={() => setShowPlayerNameModal(true)}
+                            variant="outline"
+                            className="mb-3 border-game-accent/50 text-game-accent hover:bg-game-accent/10"
+                          >
+                            <Trophy className="w-4 h-4 mr-2" />
+                            Submit to Leaderboard
+                          </Button>
+                        )}
                         
                         <Button
                           onClick={startGame}
