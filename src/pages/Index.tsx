@@ -161,8 +161,8 @@ const Index = () => {
 
   const hasStarted = gameState.availablePieces.length > 0;
 
-  // Glassmorphism icon button style
-  const iconButtonClass = "w-11 h-11 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center transition-all hover:scale-105";
+  // Glassmorphism icon button style - mobile optimized
+  const iconButtonClass = "w-10 h-10 sm:w-11 sm:h-11 md:w-12 md:h-12 rounded-xl flex items-center justify-center transition-all hover:scale-105 active:scale-95";
   const iconButtonStyle = {
     background: 'linear-gradient(145deg, rgba(30, 58, 138, 0.9), rgba(15, 23, 42, 0.95))',
     boxShadow: '0 4px 0 rgba(6, 182, 212, 0.3), 0 6px 15px rgba(0,0,0,0.4), inset 0 1px 2px rgba(255,255,255,0.1)',
@@ -324,11 +324,11 @@ const Index = () => {
         highlightPlayerName={submittedPlayerName || undefined}
       />
 
-      {/* Main content wrapper */}
-      <main className="flex-1 flex items-center justify-center px-4 py-6">
+      {/* Main content wrapper - mobile-first centering */}
+      <main className="flex-1 flex items-center justify-center px-3 py-4 pt-20 sm:pt-24">
         <div className="flex gap-6 items-start max-w-4xl w-full justify-center">
           {/* Main game column */}
-          <div className="flex flex-col items-center gap-6">
+          <div className="flex flex-col items-center gap-3 sm:gap-5 w-full max-w-[400px]">
             {/* Title - Bold 3D style for start screen, minimal when playing */}
             {!hasStarted ? (
               <GameTitle />
@@ -370,33 +370,33 @@ const Index = () => {
 
             {/* Start screen */}
             {!hasStarted && (
-              <div className="flex flex-col items-center gap-4">
+              <div className="flex flex-col items-center gap-2 w-full">
                 {/* Hero blocks display with CTA buttons inside */}
                 <HeroBlockDisplay>
-                  {/* Play button - Compact vibrant green with 3D pressable look */}
+                  {/* Play button - Large vibrant green arcade style */}
                   <Button
                     onClick={startGame}
                     size="lg"
-                    className="relative bg-gradient-to-b from-emerald-400 via-emerald-500 to-emerald-600 hover:from-emerald-300 hover:via-emerald-400 hover:to-emerald-500 text-white font-black text-xl px-10 py-4 rounded-full transition-all overflow-hidden border-0 active:translate-y-1 active:shadow-none"
+                    className="relative bg-gradient-to-b from-emerald-400 via-emerald-500 to-emerald-600 hover:from-emerald-300 hover:via-emerald-400 hover:to-emerald-500 text-white font-black text-lg sm:text-xl px-12 sm:px-14 py-3.5 sm:py-4 rounded-full transition-all overflow-hidden border-0 active:translate-y-1 active:shadow-none"
                     style={{
-                      boxShadow: '0 5px 0 #047857, 0 8px 20px rgba(16,185,129,0.5), inset 0 2px 4px rgba(255,255,255,0.4)',
+                      boxShadow: '0 5px 0 #047857, 0 8px 25px rgba(16,185,129,0.6), inset 0 2px 4px rgba(255,255,255,0.45)',
                     }}
                   >
                     {/* Shine effect */}
-                    <div className="absolute top-0 left-0 right-0 h-1/2 bg-gradient-to-b from-white/35 to-transparent rounded-t-full" />
-                    <span className="relative z-10 tracking-wide">PLAY</span>
+                    <div className="absolute top-0 left-0 right-0 h-1/2 bg-gradient-to-b from-white/40 to-transparent rounded-t-full" />
+                    <span className="relative z-10 tracking-wide drop-shadow-sm">PLAY</span>
                   </Button>
                   
                   {/* Daily Challenge button - Golden yellow compact */}
                   <Button
                     onClick={() => setShowDailyChallenge(true)}
                     size="sm"
-                    className="relative bg-gradient-to-b from-yellow-400 via-amber-400 to-amber-500 hover:from-yellow-300 hover:via-amber-300 hover:to-amber-400 text-amber-900 font-bold text-sm px-6 py-2 rounded-full transition-all overflow-hidden border-0 active:translate-y-1 active:shadow-none"
+                    className="relative bg-gradient-to-b from-yellow-400 via-amber-400 to-amber-500 hover:from-yellow-300 hover:via-amber-300 hover:to-amber-400 text-amber-900 font-bold text-xs sm:text-sm px-5 sm:px-6 py-2 rounded-full transition-all overflow-hidden border-0 active:translate-y-1 active:shadow-none"
                     style={{
-                      boxShadow: '0 3px 0 #B45309, 0 5px 12px rgba(245,158,11,0.4), inset 0 2px 4px rgba(255,255,255,0.5)',
+                      boxShadow: '0 3px 0 #B45309, 0 5px 15px rgba(245,158,11,0.45), inset 0 2px 4px rgba(255,255,255,0.5)',
                     }}
                   >
-                    <div className="absolute top-0 left-0 right-0 h-1/2 bg-gradient-to-b from-white/40 to-transparent rounded-t-full" />
+                    <div className="absolute top-0 left-0 right-0 h-1/2 bg-gradient-to-b from-white/45 to-transparent rounded-t-full" />
                     <span className="relative z-10">Daily Challenge</span>
                   </Button>
                 </HeroBlockDisplay>

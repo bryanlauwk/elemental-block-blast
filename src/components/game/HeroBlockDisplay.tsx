@@ -1,6 +1,6 @@
 import { ReactNode } from 'react';
 
-// Neon block colors for the stacks - brighter, more vivid
+// Vivid neon block colors - mobile arcade style
 const BLOCK_COLORS = {
   neonBlue: { bg: '#3B9EFF', shadow: '#1565C0', highlight: '#90CAF9' },
   neonRed: { bg: '#FF4757', shadow: '#C0392B', highlight: '#FF8A80' },
@@ -11,58 +11,53 @@ const BLOCK_COLORS = {
   neonPink: { bg: '#FF4081', shadow: '#C51162', highlight: '#FF80AB' },
 };
 
-const BLOCK_SIZE = 44;
+// Responsive block size
+const BLOCK_SIZE_MOBILE = 36;
+const BLOCK_SIZE_DESKTOP = 44;
 
-// Single 3D glossy plastic block
+// Single 3D glossy plastic block with mobile optimization
 interface BlockProps {
   color: { bg: string; shadow: string; highlight: string };
   size?: number;
 }
 
-const Block = ({ color, size = BLOCK_SIZE }: BlockProps) => {
+const Block = ({ color, size = BLOCK_SIZE_MOBILE }: BlockProps) => {
   return (
     <div
-      className="relative overflow-hidden"
+      className="relative overflow-hidden shrink-0"
       style={{
         width: size,
         height: size,
         backgroundColor: color.bg,
         boxShadow: `
-          inset 4px 4px 10px ${color.highlight}90,
-          inset -3px -3px 8px rgba(0,0,0,0.3)
+          inset 3px 3px 8px ${color.highlight}90,
+          inset -2px -2px 6px rgba(0,0,0,0.35)
         `,
-        border: '1px solid rgba(255,255,255,0.4)',
-        borderRadius: '6px',
+        border: '1px solid rgba(255,255,255,0.35)',
+        borderRadius: '5px',
       }}
     >
       {/* Top gloss shine */}
       <div 
-        className="absolute top-1.5 left-1.5 w-4 h-4 rounded-full"
+        className="absolute top-1 left-1 w-3 h-3 rounded-full"
         style={{
-          background: 'radial-gradient(circle, rgba(255,255,255,0.8) 0%, transparent 70%)',
+          background: 'radial-gradient(circle, rgba(255,255,255,0.85) 0%, transparent 70%)',
         }}
       />
       {/* Gradient overlay */}
-      <div className="absolute top-0 left-0 right-0 h-1/2 bg-gradient-to-b from-white/30 to-transparent" />
-      <div className="absolute bottom-0 left-0 right-0 h-1/3 bg-gradient-to-t from-black/25 to-transparent" />
+      <div className="absolute top-0 left-0 right-0 h-1/2 bg-gradient-to-b from-white/35 to-transparent" />
+      <div className="absolute bottom-0 left-0 right-0 h-1/3 bg-gradient-to-t from-black/30 to-transparent" />
     </div>
   );
 };
 
-// Left block stack - solid staircase shape using CSS grid
-// Pattern: 4 cols, tallest on left (5 rows), descending to 2 rows on right
-const LeftBlockStack = () => {
-  // 4 columns x 5 rows grid, fill from bottom-up per column
+// Left block stack - mobile-first staircase
+const LeftBlockStack = ({ blockSize }: { blockSize: number }) => {
   const grid = [
-    // Row 0 (top) - only col 0 has block
     [BLOCK_COLORS.neonCyan, null, null, null],
-    // Row 1 - cols 0-1 have blocks
     [BLOCK_COLORS.neonRed, BLOCK_COLORS.neonCyan, null, null],
-    // Row 2 - cols 0-2 have blocks
     [BLOCK_COLORS.neonBlue, BLOCK_COLORS.neonRed, BLOCK_COLORS.neonGreen, null],
-    // Row 3 - all cols have blocks
     [BLOCK_COLORS.neonPurple, BLOCK_COLORS.neonBlue, BLOCK_COLORS.neonRed, BLOCK_COLORS.neonCyan],
-    // Row 4 (bottom) - all cols have blocks
     [BLOCK_COLORS.neonBlue, BLOCK_COLORS.neonGreen, BLOCK_COLORS.neonBlue, BLOCK_COLORS.neonRed],
   ];
 
@@ -70,15 +65,15 @@ const LeftBlockStack = () => {
     <div
       className="grid"
       style={{
-        gridTemplateColumns: `repeat(4, ${BLOCK_SIZE}px)`,
-        gridTemplateRows: `repeat(5, ${BLOCK_SIZE}px)`,
+        gridTemplateColumns: `repeat(4, ${blockSize}px)`,
+        gridTemplateRows: `repeat(5, ${blockSize}px)`,
         gap: 0,
       }}
     >
       {grid.flatMap((row, rowIdx) =>
         row.map((color, colIdx) => (
           <div key={`${rowIdx}-${colIdx}`}>
-            {color ? <Block color={color} /> : <div style={{ width: BLOCK_SIZE, height: BLOCK_SIZE }} />}
+            {color ? <Block color={color} size={blockSize} /> : <div style={{ width: blockSize, height: blockSize }} />}
           </div>
         ))
       )}
@@ -86,19 +81,13 @@ const LeftBlockStack = () => {
   );
 };
 
-// Right block stack - solid staircase shape (mirror of left)
-// Pattern: 4 cols, 2 rows on left ascending to 5 rows (tallest) on right
-const RightBlockStack = () => {
+// Right block stack - mirrored staircase
+const RightBlockStack = ({ blockSize }: { blockSize: number }) => {
   const grid = [
-    // Row 0 (top) - only col 3 has block
     [null, null, null, BLOCK_COLORS.neonGreen],
-    // Row 1 - cols 2-3 have blocks
     [null, null, BLOCK_COLORS.neonOrange, BLOCK_COLORS.neonGreen],
-    // Row 2 - cols 1-3 have blocks
     [null, BLOCK_COLORS.neonCyan, BLOCK_COLORS.neonRed, BLOCK_COLORS.neonOrange],
-    // Row 3 - all cols have blocks
     [BLOCK_COLORS.neonGreen, BLOCK_COLORS.neonOrange, BLOCK_COLORS.neonBlue, BLOCK_COLORS.neonRed],
-    // Row 4 (bottom) - all cols have blocks
     [BLOCK_COLORS.neonOrange, BLOCK_COLORS.neonRed, BLOCK_COLORS.neonGreen, BLOCK_COLORS.neonBlue],
   ];
 
@@ -106,15 +95,15 @@ const RightBlockStack = () => {
     <div
       className="grid"
       style={{
-        gridTemplateColumns: `repeat(4, ${BLOCK_SIZE}px)`,
-        gridTemplateRows: `repeat(5, ${BLOCK_SIZE}px)`,
+        gridTemplateColumns: `repeat(4, ${blockSize}px)`,
+        gridTemplateRows: `repeat(5, ${blockSize}px)`,
         gap: 0,
       }}
     >
       {grid.flatMap((row, rowIdx) =>
         row.map((color, colIdx) => (
           <div key={`${rowIdx}-${colIdx}`}>
-            {color ? <Block color={color} /> : <div style={{ width: BLOCK_SIZE, height: BLOCK_SIZE }} />}
+            {color ? <Block color={color} size={blockSize} /> : <div style={{ width: blockSize, height: blockSize }} />}
           </div>
         ))
       )}
@@ -122,41 +111,60 @@ const RightBlockStack = () => {
   );
 };
 
-// Center floating piece - L-shaped game block in neon red
-const CenterBlockPiece = () => {
-  // L-shape: 2 blocks tall, 2 blocks wide
-  const piece = [
-    [BLOCK_COLORS.neonRed, null],
-    [BLOCK_COLORS.neonRed, BLOCK_COLORS.neonRed],
-  ];
-
+// Center floating balloon with neon pink glow
+const CenterBalloon = () => {
   return (
-    <div className="absolute left-1/2 -translate-x-1/2 top-1/3 -translate-y-1/2 z-10">
-      {/* Radial glow behind piece */}
+    <div className="absolute left-1/2 -translate-x-1/2 top-[35%] -translate-y-1/2 z-10">
+      {/* Radial glow behind balloon */}
       <div
-        className="absolute -inset-8"
+        className="absolute -inset-10"
         style={{
-          background: 'radial-gradient(circle, rgba(255,71,87,0.5) 0%, rgba(255,71,87,0.2) 40%, transparent 70%)',
-          filter: 'blur(15px)',
+          background: 'radial-gradient(circle, rgba(236,72,153,0.6) 0%, rgba(236,72,153,0.25) 40%, transparent 70%)',
+          filter: 'blur(20px)',
         }}
       />
-      {/* The block piece */}
+      {/* Balloon shape */}
       <div
-        className="relative grid animate-bounce"
+        className="relative w-16 h-20 sm:w-20 sm:h-24 animate-bounce"
         style={{
-          gridTemplateColumns: `repeat(2, ${BLOCK_SIZE}px)`,
-          gridTemplateRows: `repeat(2, ${BLOCK_SIZE}px)`,
-          gap: 0,
-          animationDuration: '2s',
+          animationDuration: '2.5s',
         }}
       >
-        {piece.flatMap((row, rowIdx) =>
-          row.map((color, colIdx) => (
-            <div key={`${rowIdx}-${colIdx}`}>
-              {color ? <Block color={color} /> : <div style={{ width: BLOCK_SIZE, height: BLOCK_SIZE }} />}
-            </div>
-          ))
-        )}
+        {/* Main balloon body */}
+        <div
+          className="absolute inset-0 rounded-[50%_50%_50%_50%_/_60%_60%_40%_40%]"
+          style={{
+            background: 'linear-gradient(135deg, #F472B6 0%, #EC4899 40%, #DB2777 100%)',
+            boxShadow: `
+              inset 6px 6px 20px rgba(255,255,255,0.5),
+              inset -4px -4px 15px rgba(0,0,0,0.25),
+              0 8px 30px rgba(236,72,153,0.6)
+            `,
+            border: '2px solid rgba(255,255,255,0.3)',
+          }}
+        />
+        {/* Shine spot */}
+        <div
+          className="absolute top-3 left-3 w-5 h-5 sm:w-6 sm:h-6 rounded-full"
+          style={{
+            background: 'radial-gradient(circle, rgba(255,255,255,0.9) 0%, transparent 70%)',
+          }}
+        />
+        {/* Knot at bottom */}
+        <div
+          className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-3 h-3"
+          style={{
+            background: 'linear-gradient(135deg, #DB2777 0%, #9D174D 100%)',
+            clipPath: 'polygon(50% 100%, 0% 0%, 100% 0%)',
+          }}
+        />
+        {/* String */}
+        <div
+          className="absolute -bottom-4 left-1/2 -translate-x-1/2 w-0.5 h-5"
+          style={{
+            background: 'linear-gradient(180deg, #9D174D 0%, rgba(157,23,77,0.3) 100%)',
+          }}
+        />
       </div>
     </div>
   );
@@ -168,25 +176,34 @@ interface HeroBlockDisplayProps {
 
 export const HeroBlockDisplay = ({ children }: HeroBlockDisplayProps) => {
   return (
-    <div className="flex flex-col items-center">
-      {/* Main display with blocks and floating piece */}
-      <div className="relative h-[260px] w-[400px] sm:w-[440px]">
-        {/* Left stack - solid staircase */}
-        <div className="absolute left-0 bottom-0">
-          <LeftBlockStack />
+    <div className="flex flex-col items-center w-full">
+      {/* Main display - responsive sizing */}
+      <div 
+        className="relative w-full max-w-[340px] sm:max-w-[400px] md:max-w-[440px]"
+        style={{ height: '220px' }}
+      >
+        {/* Left stack */}
+        <div className="absolute left-0 bottom-0 hidden sm:block">
+          <LeftBlockStack blockSize={BLOCK_SIZE_DESKTOP} />
+        </div>
+        <div className="absolute left-0 bottom-0 sm:hidden">
+          <LeftBlockStack blockSize={BLOCK_SIZE_MOBILE} />
         </div>
 
-        {/* Center floating piece with glow */}
-        <CenterBlockPiece />
+        {/* Center floating balloon */}
+        <CenterBalloon />
 
-        {/* Right stack - solid staircase (mirrored) */}
-        <div className="absolute right-0 bottom-0">
-          <RightBlockStack />
+        {/* Right stack */}
+        <div className="absolute right-0 bottom-0 hidden sm:block">
+          <RightBlockStack blockSize={BLOCK_SIZE_DESKTOP} />
+        </div>
+        <div className="absolute right-0 bottom-0 sm:hidden">
+          <RightBlockStack blockSize={BLOCK_SIZE_MOBILE} />
         </div>
 
-        {/* CTA buttons slot - positioned in center bottom of staircase opening */}
+        {/* CTA buttons - positioned in center opening */}
         {children && (
-          <div className="absolute left-1/2 -translate-x-1/2 bottom-4 z-20 flex flex-col items-center gap-3">
+          <div className="absolute left-1/2 -translate-x-1/2 bottom-3 z-20 flex flex-col items-center gap-2.5">
             {children}
           </div>
         )}
