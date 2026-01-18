@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import {
   Cell,
   BlockBlastState,
@@ -12,6 +12,7 @@ import {
   GRID_HEIGHT,
 } from '@/game/types';
 import { playSound } from '@/game/sounds';
+import { SeededRandom, getDateSeed } from '@/game/seededRandom';
 
 const createEmptyGrid = (): Cell[][] => {
   return Array.from({ length: GRID_HEIGHT }, (_, y) =>
@@ -22,9 +23,10 @@ const createEmptyGrid = (): Cell[][] => {
   );
 };
 
-const getRandomElement = (): ElementType => {
+// Random element using optional seeded RNG
+const getRandomElement = (rng?: SeededRandom): ElementType => {
   const totalWeight = ELEMENT_WEIGHTS.reduce((sum, e) => sum + e.weight, 0);
-  let random = Math.random() * totalWeight;
+  let random = (rng ? rng.next() : Math.random()) * totalWeight;
   
   for (const { element, weight } of ELEMENT_WEIGHTS) {
     random -= weight;
@@ -35,7 +37,7 @@ const getRandomElement = (): ElementType => {
 };
 
 // Dynamic difficulty: adjusts shape weights based on current score
-const getRandomShape = (score: number = 0): Position[] => {
+const getRandomShape = (score: number = 0, rng?: SeededRandom): Position[] => {
   // Apply score-based modifiers to shape weights
   const modifiedWeights = SHAPE_WEIGHTS.map(({ shapeIndex, weight }) => {
     const shapeSize = BLOCK_SHAPES[shapeIndex].length;
@@ -59,7 +61,7 @@ const getRandomShape = (score: number = 0): Position[] => {
   });
   
   const totalWeight = modifiedWeights.reduce((sum, s) => sum + s.weight, 0);
-  let random = Math.random() * totalWeight;
+  let random = (rng ? rng.next() : Math.random()) * totalWeight;
   
   for (const { shapeIndex, weight } of modifiedWeights) {
     random -= weight;
@@ -70,22 +72,27 @@ const getRandomShape = (score: number = 0): Position[] => {
 };
 
 // Create piece with UNIFORM element type (all blocks same element)
-// Now accepts score for dynamic difficulty and comebackMode for easier pieces
-const createRandomPiece = (score: number = 0, comebackMode: boolean = false): DraggablePiece => {
+// Now accepts score for dynamic difficulty, comebackMode for easier pieces, and optional RNG for seeded mode
+const createRandomPiece = (score: number = 0, comebackMode: boolean = false, rng?: SeededRandom): DraggablePiece => {
   // Comeback mode: guarantee a small piece (1-2 blocks)
   let shape: Position[];
   if (comebackMode) {
     const smallShapeIndices = [0, 1, 2]; // Single, H2, V2
-    shape = BLOCK_SHAPES[smallShapeIndices[Math.floor(Math.random() * smallShapeIndices.length)]];
+    const idx = rng ? rng.nextInt(0, smallShapeIndices.length - 1) : Math.floor(Math.random() * smallShapeIndices.length);
+    shape = BLOCK_SHAPES[smallShapeIndices[idx]];
   } else {
-    shape = getRandomShape(score);
+    shape = getRandomShape(score, rng);
   }
   
-  const element = getRandomElement();
+  const element = getRandomElement(rng);
   const elements = shape.map(() => element);
   
+  const randomSuffix = rng 
+    ? rng.nextInt(100000, 999999).toString() 
+    : Math.random().toString(36).substr(2, 9);
+  
   return {
-    id: `piece-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+    id: `piece-${Date.now()}-${randomSuffix}`,
     shape,
     elements,
   };
@@ -127,7 +134,9 @@ export interface BlockBlastEngine {
   reactionEvents: ReactionEvent[];
   reactionPreviewSummary: ReactionPreviewSummary | null;
   particleTrigger: ParticleTrigger | null;
+  isDailyChallenge: boolean;
   startGame: () => void;
+  startDailyChallenge: () => void;
   selectPiece: (piece: DraggablePiece | null) => void;
   setDropPreview: (pos: Position | null) => void;
   canPlacePiece: (piece: DraggablePiece, pos: Position) => boolean;
@@ -155,6 +164,10 @@ export function useBlockBlastEngine(): BlockBlastEngine {
   const [reactionPreviewSummary, setReactionPreviewSummary] = useState<ReactionPreviewSummary | null>(null);
   const [particleTrigger, setParticleTrigger] = useState<ParticleTrigger | null>(null);
   const [failedAttempts, setFailedAttempts] = useState(0); // Track for comeback mechanic
+  const [isDailyChallenge, setIsDailyChallenge] = useState(false);
+  
+  // Seeded RNG for daily challenge mode
+  const seededRngRef = useRef<SeededRandom | null>(null);
   
   // Check if piece can be placed at position
   const canPlacePiece = useCallback((piece: DraggablePiece, pos: Position): boolean => {
@@ -485,10 +498,45 @@ export function useBlockBlastEngine(): BlockBlastEngine {
     return previews;
   }, [gameState.grid]);
 
-  // Start game
+  // Start regular game (random pieces)
   const startGame = useCallback(() => {
+    // Clear seeded RNG for regular mode
+    seededRngRef.current = null;
+    setIsDailyChallenge(false);
+    
     // Start with easy pieces (score 0)
     const initialPieces = [createRandomPiece(0), createRandomPiece(0), createRandomPiece(0)];
+    
+    setGameState({
+      grid: createEmptyGrid(),
+      availablePieces: initialPieces,
+      selectedPiece: null,
+      dropPreview: null,
+      score: 0,
+      combo: 0,
+      isGameOver: false,
+      lastLifeTick: Date.now(),
+    });
+    setReactionPreviews([]);
+    setReactionEvents([]);
+    setReactionPreviewSummary(null);
+    setFailedAttempts(0);
+  }, []);
+
+  // Start daily challenge (seeded pieces - same for everyone today)
+  const startDailyChallenge = useCallback(() => {
+    // Initialize seeded RNG with today's date
+    const seed = getDateSeed();
+    seededRngRef.current = new SeededRandom(seed);
+    setIsDailyChallenge(true);
+    
+    // Generate initial pieces using seeded RNG
+    const rng = seededRngRef.current;
+    const initialPieces = [
+      createRandomPiece(0, false, rng), 
+      createRandomPiece(0, false, rng), 
+      createRandomPiece(0, false, rng)
+    ];
     
     setGameState({
       grid: createEmptyGrid(),
@@ -612,12 +660,14 @@ export function useBlockBlastEngine(): BlockBlastEngine {
       
       // If all pieces used, generate new ones with dynamic difficulty
       // Check if comeback mode should be triggered (3+ failed attempts)
+      // Use seeded RNG if in daily challenge mode
       const needsComeback = failedAttempts >= 3;
+      const rng = seededRngRef.current;
       const newPieces = remainingPieces.length === 0 
         ? [
-            createRandomPiece(newScore, needsComeback), // First piece may be easier if comeback
-            createRandomPiece(newScore),
-            createRandomPiece(newScore)
+            createRandomPiece(newScore, needsComeback, rng || undefined), // First piece may be easier if comeback
+            createRandomPiece(newScore, false, rng || undefined),
+            createRandomPiece(newScore, false, rng || undefined)
           ]
         : remainingPieces;
       
@@ -656,7 +706,9 @@ export function useBlockBlastEngine(): BlockBlastEngine {
     reactionEvents,
     reactionPreviewSummary,
     particleTrigger,
+    isDailyChallenge,
     startGame,
+    startDailyChallenge,
     selectPiece,
     setDropPreview,
     canPlacePiece,

@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useBlockBlastEngine } from '@/hooks/useBlockBlastEngine';
 import { useHighScores } from '@/hooks/useHighScores';
 import { useGlobalLeaderboard } from '@/hooks/useGlobalLeaderboard';
+import { useDailyChallenge } from '@/hooks/useDailyChallenge';
 import { BlockBlastGrid } from '@/components/game/BlockBlastGrid';
 import { PieceTray } from '@/components/game/PieceTray';
 import { BlockBlastScoreboard } from '@/components/game/BlockBlastScoreboard';
@@ -10,6 +11,7 @@ import { ScorePopup } from '@/components/game/ScorePopup';
 import { ElementLegend } from '@/components/game/ElementLegend';
 import { LeaderboardModal } from '@/components/game/LeaderboardModal';
 import { PlayerNameModal } from '@/components/game/PlayerNameModal';
+import { DailyChallengeModal } from '@/components/game/DailyChallengeModal';
 import { KeyboardHints } from '@/components/game/KeyboardHints';
 import ReactionFeed from '@/components/game/ReactionFeed';
 import ReactionTutorial from '@/components/game/ReactionTutorial';
@@ -19,7 +21,7 @@ import BackgroundDoodles from '@/components/game/BackgroundDoodles';
 import GameTitle from '@/components/game/GameTitle';
 import HeroBlockDisplay from '@/components/game/HeroBlockDisplay';
 import { Button } from '@/components/ui/button';
-import { Trophy, Play, RotateCcw, HelpCircle, Zap } from 'lucide-react';
+import { Trophy, Play, RotateCcw, HelpCircle, Zap, Calendar } from 'lucide-react';
 import { Position } from '@/game/types';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { playSound } from '@/game/sounds';
@@ -34,7 +36,9 @@ const Index = () => {
     reactionEvents,
     reactionPreviewSummary,
     particleTrigger,
+    isDailyChallenge,
     startGame,
+    startDailyChallenge,
     selectPiece,
     setDropPreview,
     canPlacePiece,
@@ -43,17 +47,34 @@ const Index = () => {
 
   const { highScores, topScore, saveScore, clearScores } = useHighScores();
   const { submitScore, getStoredPlayerName, storePlayerName } = useGlobalLeaderboard();
+  const { submitDailyScore, getPlayerDailyScore } = useDailyChallenge();
   
   const hasGameEnded = useRef(false);
   const [showLeaderboard, setShowLeaderboard] = useState(false);
+  const [showDailyChallenge, setShowDailyChallenge] = useState(false);
   const [showPlayerNameModal, setShowPlayerNameModal] = useState(false);
   const [isSubmittingScore, setIsSubmittingScore] = useState(false);
   const [submittedPlayerName, setSubmittedPlayerName] = useState<string | null>(null);
   const [globalRank, setGlobalRank] = useState<number | null>(null);
+  const [playerDailyBest, setPlayerDailyBest] = useState<number | null>(null);
   const [tutorialComplete, setTutorialComplete] = useState(false);
   const [showReactionFeed, setShowReactionFeed] = useState(false);
   const [isNewHighScore, setIsNewHighScore] = useState(false);
   const isMobile = useIsMobile();
+
+  // Load player's daily best score when opening daily challenge modal
+  useEffect(() => {
+    const loadDailyBest = async () => {
+      const playerName = getStoredPlayerName();
+      if (playerName) {
+        const best = await getPlayerDailyScore(playerName);
+        setPlayerDailyBest(best);
+      }
+    };
+    if (showDailyChallenge) {
+      loadDailyBest();
+    }
+  }, [showDailyChallenge, getStoredPlayerName, getPlayerDailyScore]);
 
   // Save score when game ends and check for high score
   useEffect(() => {
@@ -66,7 +87,11 @@ const Index = () => {
       } else {
         playSound('gameOver');
       }
-      saveScore(gameState.score);
+      
+      // Save to local scores (for both regular and daily)
+      if (!isDailyChallenge) {
+        saveScore(gameState.score);
+      }
       
       // Show player name modal for score submission if score is decent
       if (gameState.score >= 100) {
@@ -79,24 +104,40 @@ const Index = () => {
       setSubmittedPlayerName(null);
       setGlobalRank(null);
     }
-  }, [gameState.isGameOver, gameState.score, saveScore, topScore]);
+  }, [gameState.isGameOver, gameState.score, saveScore, topScore, isDailyChallenge]);
 
   const handleSubmitScore = useCallback(async (playerName: string) => {
     setIsSubmittingScore(true);
     try {
       storePlayerName(playerName);
-      const result = await submitScore(playerName, gameState.score);
-      if (result.success) {
-        setSubmittedPlayerName(playerName);
-        setGlobalRank(result.rank || null);
-        setShowPlayerNameModal(false);
+      
+      if (isDailyChallenge) {
+        // Submit to daily challenge leaderboard
+        const result = await submitDailyScore(playerName, gameState.score);
+        if (result.success) {
+          setSubmittedPlayerName(playerName);
+          setGlobalRank(result.rank || null);
+          setShowPlayerNameModal(false);
+          // Update player's daily best
+          if (result.isNewBest) {
+            setPlayerDailyBest(gameState.score);
+          }
+        }
+      } else {
+        // Submit to global leaderboard
+        const result = await submitScore(playerName, gameState.score);
+        if (result.success) {
+          setSubmittedPlayerName(playerName);
+          setGlobalRank(result.rank || null);
+          setShowPlayerNameModal(false);
+        }
       }
     } catch (err) {
       console.error('Failed to submit score:', err);
     } finally {
       setIsSubmittingScore(false);
     }
-  }, [gameState.score, submitScore, storePlayerName]);
+  }, [gameState.score, isDailyChallenge, submitScore, submitDailyScore, storePlayerName]);
 
   const handleCellHover = useCallback((pos: Position) => {
     if (gameState.selectedPiece && canPlacePiece(gameState.selectedPiece, pos)) {
@@ -150,6 +191,15 @@ const Index = () => {
           </button>
         )}
         
+        {/* Daily Challenge button */}
+        <button
+          onClick={() => setShowDailyChallenge(true)}
+          className="p-2.5 rounded-full bg-gradient-to-br from-amber-500/20 to-orange-500/20 border border-amber-500/50 hover:from-amber-500/30 hover:to-orange-500/30 transition-colors"
+          title="Daily Challenge"
+        >
+          <Calendar className="w-5 h-5 text-amber-400" />
+        </button>
+        
         {/* Leaderboard button */}
         <button
           onClick={() => setShowLeaderboard(true)}
@@ -182,6 +232,15 @@ const Index = () => {
         isSubmitting={isSubmittingScore}
       />
 
+      {/* Daily Challenge Modal */}
+      <DailyChallengeModal
+        isOpen={showDailyChallenge}
+        onClose={() => setShowDailyChallenge(false)}
+        onStartChallenge={startDailyChallenge}
+        playerBestScore={playerDailyBest}
+        highlightPlayerName={getStoredPlayerName() || undefined}
+      />
+
       {/* Leaderboard Modal */}
       <LeaderboardModal
         isOpen={showLeaderboard}
@@ -201,22 +260,37 @@ const Index = () => {
             {!hasStarted ? (
               <GameTitle />
             ) : (
-              <motion.h1 
-                className="text-xl sm:text-2xl font-black tracking-tight text-center"
+              <motion.div 
+                className="text-center"
                 initial={{ opacity: 0, y: -20 }}
                 animate={{ opacity: 1, y: 0 }}
               >
-                <span className="bg-gradient-to-r from-game-score-start via-game-score-mid to-game-score-end bg-clip-text text-transparent">
-                  Elemental Blast
-                </span>
-              </motion.h1>
+                <h1 className="text-xl sm:text-2xl font-black tracking-tight">
+                  <span className="bg-gradient-to-r from-game-score-start via-game-score-mid to-game-score-end bg-clip-text text-transparent">
+                    Elemental Blast
+                  </span>
+                </h1>
+                {/* Daily challenge indicator */}
+                {isDailyChallenge && (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="mt-1"
+                  >
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-gradient-to-r from-amber-500/20 to-orange-500/20 border border-amber-500/40 rounded-full text-xs text-amber-400 font-medium">
+                      <Calendar className="w-3 h-3" />
+                      Daily Challenge
+                    </span>
+                  </motion.div>
+                )}
+              </motion.div>
             )}
 
             {/* Score - prominent, floating */}
             {hasStarted && (
               <BlockBlastScoreboard 
                 score={gameState.score} 
-                topScore={topScore}
+                topScore={isDailyChallenge ? (playerDailyBest || 0) : topScore}
                 compact
               />
             )}
@@ -235,22 +309,38 @@ const Index = () => {
                   Match elements • Clear lines • Chain reactions
                 </p>
                 
-                <motion.div
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.98 }}
-                >
-                  <Button
-                    onClick={startGame}
-                    size="lg"
-                    className="relative bg-gradient-to-b from-game-accent to-emerald-500 hover:from-emerald-400 hover:to-game-accent text-white font-bold text-xl px-12 py-8 rounded-2xl shadow-[0_8px_32px_rgba(34,197,94,0.4)] transition-all"
-                    style={{
-                      boxShadow: '0 8px 32px rgba(34,197,94,0.4), inset 0 2px 4px rgba(255,255,255,0.2)',
-                    }}
+                <div className="flex flex-col gap-3 items-center">
+                  <motion.div
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.98 }}
                   >
-                    <Play className="w-7 h-7 mr-2 fill-current" />
-                    PLAY
-                  </Button>
-                </motion.div>
+                    <Button
+                      onClick={startGame}
+                      size="lg"
+                      className="relative bg-gradient-to-b from-game-accent to-emerald-500 hover:from-emerald-400 hover:to-game-accent text-white font-bold text-xl px-12 py-8 rounded-2xl shadow-[0_8px_32px_rgba(34,197,94,0.4)] transition-all"
+                      style={{
+                        boxShadow: '0 8px 32px rgba(34,197,94,0.4), inset 0 2px 4px rgba(255,255,255,0.2)',
+                      }}
+                    >
+                      <Play className="w-7 h-7 mr-2 fill-current" />
+                      PLAY
+                    </Button>
+                  </motion.div>
+                  
+                  <motion.div
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    <Button
+                      onClick={() => setShowDailyChallenge(true)}
+                      variant="outline"
+                      className="border-amber-500/50 text-amber-400 hover:bg-amber-500/10 hover:border-amber-400"
+                    >
+                      <Calendar className="w-5 h-5 mr-2" />
+                      Daily Challenge
+                    </Button>
+                  </motion.div>
+                </div>
               </motion.div>
             )}
 
@@ -299,8 +389,22 @@ const Index = () => {
                         transition={{ delay: 0.1 }}
                         className="text-center"
                       >
+                        {/* Daily Challenge badge */}
+                        {isDailyChallenge && (
+                          <motion.div
+                            initial={{ opacity: 0, y: -10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className="mb-2"
+                          >
+                            <span className="inline-flex items-center gap-1 px-3 py-1 bg-gradient-to-r from-amber-500/20 to-orange-500/20 border border-amber-500/40 rounded-full text-sm text-amber-400 font-medium">
+                              <Calendar className="w-4 h-4" />
+                              Daily Challenge
+                            </span>
+                          </motion.div>
+                        )}
+                        
                         {/* High Score Celebration */}
-                        {isNewHighScore && (
+                        {isNewHighScore && !isDailyChallenge && (
                           <motion.div
                             initial={{ scale: 0, rotate: -10 }}
                             animate={{ scale: 1, rotate: 0 }}
@@ -314,12 +418,14 @@ const Index = () => {
                         )}
                         
                         <p className="text-3xl font-black text-white mb-2">
-                          {isNewHighScore ? 'Amazing!' : 'Game Over'}
+                          {isNewHighScore && !isDailyChallenge ? 'Amazing!' : 'Game Over'}
                         </p>
                         <p className={`text-4xl font-black bg-clip-text text-transparent mb-2 ${
-                          isNewHighScore 
+                          isNewHighScore && !isDailyChallenge
                             ? 'bg-gradient-to-r from-yellow-400 via-amber-500 to-yellow-400' 
-                            : 'bg-gradient-to-r from-game-score-start via-game-score-mid to-game-score-end'
+                            : isDailyChallenge
+                              ? 'bg-gradient-to-r from-amber-400 via-orange-400 to-amber-400'
+                              : 'bg-gradient-to-r from-game-score-start via-game-score-mid to-game-score-end'
                         }`}>
                           {gameState.score.toLocaleString()}
                         </p>
@@ -334,28 +440,32 @@ const Index = () => {
                           >
                             <span className="inline-block px-3 py-1 bg-game-accent/20 border border-game-accent/40 rounded-full text-sm">
                               <Trophy className="w-4 h-4 inline-block mr-1 text-yellow-400" />
-                              <span className="text-white font-medium">Global Rank: #{globalRank}</span>
+                              <span className="text-white font-medium">
+                                {isDailyChallenge ? "Today's Rank" : 'Global Rank'}: #{globalRank}
+                              </span>
                             </span>
                           </motion.div>
                         )}
                         
-                        {/* Social proof - percentile ranking */}
-                        <motion.p
-                          initial={{ opacity: 0, y: 5 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ delay: 0.3 }}
-                          className="text-sm text-game-text-muted mb-4"
-                        >
-                          {gameState.score >= 5000 
-                            ? "🔥 Top 5% of players!" 
-                            : gameState.score >= 2000 
-                              ? "⭐ Top 25% of players!"
-                              : gameState.score >= 1000 
-                                ? "👍 Top 50% of players!"
-                                : gameState.score >= 500 
-                                  ? "Top 75% of players"
-                                  : "Keep practicing!"}
-                        </motion.p>
+                        {/* Social proof - percentile ranking (only for regular mode) */}
+                        {!isDailyChallenge && (
+                          <motion.p
+                            initial={{ opacity: 0, y: 5 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.3 }}
+                            className="text-sm text-game-text-muted mb-4"
+                          >
+                            {gameState.score >= 5000 
+                              ? "🔥 Top 5% of players!" 
+                              : gameState.score >= 2000 
+                                ? "⭐ Top 25% of players!"
+                                : gameState.score >= 1000 
+                                  ? "👍 Top 50% of players!"
+                                  : gameState.score >= 500 
+                                    ? "Top 75% of players"
+                                    : "Keep practicing!"}
+                          </motion.p>
+                        )}
                         
                         {/* Submit score button if not already submitted */}
                         {!submittedPlayerName && gameState.score >= 100 && (
@@ -369,13 +479,25 @@ const Index = () => {
                           </Button>
                         )}
                         
-                        <Button
-                          onClick={startGame}
-                          className="bg-gradient-to-r from-game-accent to-emerald-400 hover:from-emerald-400 hover:to-game-accent text-black font-bold px-6 py-5 rounded-xl"
-                        >
-                          <RotateCcw className="w-4 h-4 mr-2" />
-                          Play Again
-                        </Button>
+                        <div className="flex flex-col gap-2">
+                          <Button
+                            onClick={isDailyChallenge ? startDailyChallenge : startGame}
+                            className="bg-gradient-to-r from-game-accent to-emerald-400 hover:from-emerald-400 hover:to-game-accent text-black font-bold px-6 py-5 rounded-xl"
+                          >
+                            <RotateCcw className="w-4 h-4 mr-2" />
+                            Play Again
+                          </Button>
+                          
+                          {isDailyChallenge && (
+                            <Button
+                              onClick={startGame}
+                              variant="ghost"
+                              className="text-game-text-muted hover:text-white"
+                            >
+                              Play Regular Mode
+                            </Button>
+                          )}
+                        </div>
                       </motion.div>
                     </motion.div>
                   )}
