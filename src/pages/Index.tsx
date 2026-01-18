@@ -18,7 +18,7 @@ import { KeyboardHints } from '@/components/game/KeyboardHints';
 import ReactionFeed from '@/components/game/ReactionFeed';
 import ReactionTutorial from '@/components/game/ReactionTutorial';
 import ReactionParticles from '@/components/game/ReactionParticles';
-import BackgroundDoodles from '@/components/game/BackgroundDoodles';
+
 import GameTitle from '@/components/game/GameTitle';
 import HeroBlockDisplay from '@/components/game/HeroBlockDisplay';
 import { Button } from '@/components/ui/button';
@@ -172,19 +172,16 @@ const Index = () => {
   return (
     <div className="min-h-screen text-white flex flex-col relative overflow-hidden"
       style={{
-        background: 'radial-gradient(ellipse 100% 70% at 50% 30%, hsl(225 70% 18%) 0%, hsl(230 80% 8%) 50%, hsl(235 100% 4%) 100%)',
+        background: 'radial-gradient(ellipse 120% 80% at 50% 20%, hsl(225 70% 15%) 0%, hsl(230 85% 6%) 50%, hsl(235 100% 3%) 100%)',
       }}
     >
-      {/* Simple radial glow in center */}
+      {/* Subtle spotlight glow behind hero area */}
       <div 
         className="absolute inset-0 pointer-events-none"
         style={{
-          background: 'radial-gradient(circle at 50% 40%, rgba(99,102,241,0.15) 0%, transparent 50%)',
+          background: 'radial-gradient(ellipse 60% 40% at 50% 45%, rgba(99,102,241,0.12) 0%, transparent 60%)',
         }}
       />
-
-      {/* Background decorations */}
-      <BackgroundDoodles />
 
       {/* Tutorial overlay - shows on first game */}
       {!tutorialComplete && (
@@ -290,92 +287,83 @@ const Index = () => {
         highlightPlayerName={submittedPlayerName || undefined}
       />
 
-      {/* Main content wrapper - mobile-first centering */}
-      <main className="flex-1 flex items-center justify-center px-3 py-4 pt-20 sm:pt-24">
-        <div className="flex gap-6 items-start max-w-4xl w-full justify-center">
+      {/* Main content wrapper - proper spacing zones */}
+      <main className="flex-1 flex flex-col items-center justify-between px-4 py-6 pt-20 sm:pt-24 min-h-[calc(100vh-80px)]">
+        <div className="flex gap-6 items-start max-w-4xl w-full justify-center flex-1">
           {/* Main game column */}
-          <div className="flex flex-col items-center gap-3 sm:gap-5 w-full max-w-[400px]">
-            {/* Title - Bold 3D style for start screen, minimal when playing */}
-            {!hasStarted ? (
-              <GameTitle />
-            ) : (
-              <motion.div 
-                className="text-center"
-                initial={{ opacity: 0, y: -20 }}
-                animate={{ opacity: 1, y: 0 }}
-              >
-                <h1 className="text-xl sm:text-2xl font-black tracking-tight">
-                  <span className="bg-gradient-to-r from-game-score-start via-game-score-mid to-game-score-end bg-clip-text text-transparent">
-                    Elemental Blast
-                  </span>
-                </h1>
-                {/* Daily challenge indicator */}
-                {isDailyChallenge && (
-                  <motion.div
-                    initial={{ opacity: 0, scale: 0.8 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    className="mt-1"
-                  >
-                    <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-gradient-to-r from-amber-500/20 to-orange-500/20 border border-amber-500/40 rounded-full text-xs text-amber-400 font-medium">
-                      <Calendar className="w-3 h-3" />
-                      Daily Challenge
-                    </span>
-                  </motion.div>
-                )}
-              </motion.div>
-            )}
-
-            {/* Score - prominent, floating */}
-            {hasStarted && (
-              <BlockBlastScoreboard 
-                score={gameState.score} 
-                topScore={isDailyChallenge ? (playerDailyBest || 0) : topScore}
-                compact
-              />
-            )}
-
-            {/* Start screen */}
+          <div className="flex flex-col items-center w-full max-w-[400px] h-full">
+            {/* Start screen - landing page */}
             {!hasStarted && (
-              <div className="flex flex-col items-center gap-2 w-full">
-                {/* Hero blocks display with CTA buttons inside */}
+              <div className="flex flex-col items-center justify-center flex-1 gap-10 sm:gap-14 md:gap-16 py-4">
+                {/* Title Section */}
+                <GameTitle />
+                
+                {/* Hero Section with CTA */}
                 <HeroBlockDisplay>
                   {/* Play button - HUGE vibrant green arcade style */}
                   <Button
                     onClick={startGame}
                     size="lg"
-                    className="relative bg-gradient-to-b from-emerald-400 via-emerald-500 to-emerald-600 hover:from-emerald-300 hover:via-emerald-400 hover:to-emerald-500 text-white font-black text-xl sm:text-2xl md:text-3xl px-14 sm:px-18 md:px-20 py-4 sm:py-5 md:py-6 rounded-full transition-all overflow-hidden border-0 active:translate-y-1 active:shadow-none"
+                    className="relative bg-gradient-to-b from-emerald-400 via-emerald-500 to-emerald-600 hover:from-emerald-300 hover:via-emerald-400 hover:to-emerald-500 text-white font-black text-2xl sm:text-3xl md:text-4xl px-16 sm:px-20 md:px-24 py-5 sm:py-6 md:py-7 rounded-full transition-all overflow-hidden border-0 active:translate-y-1 active:shadow-none"
                     style={{
-                      boxShadow: '0 6px 0 #047857, 0 10px 30px rgba(16,185,129,0.5), inset 0 2px 6px rgba(255,255,255,0.5)',
+                      boxShadow: '0 8px 0 #047857, 0 12px 40px rgba(16,185,129,0.5), inset 0 3px 8px rgba(255,255,255,0.5)',
                       animation: 'pulse-glow 2s ease-in-out infinite',
                     }}
                   >
                     {/* Shine effect */}
-                    <div className="absolute top-0 left-0 right-0 h-1/2 bg-gradient-to-b from-white/45 to-transparent rounded-t-full" />
-                    <span className="relative z-10 tracking-wider drop-shadow-md">PLAY</span>
+                    <div className="absolute top-0 left-0 right-0 h-1/2 bg-gradient-to-b from-white/40 to-transparent rounded-t-full" />
+                    <span className="relative z-10 tracking-widest drop-shadow-lg">PLAY</span>
                   </Button>
                   
-                  {/* Daily Challenge button - Golden yellow subtle */}
-                  <Button
+                  {/* Daily Challenge button - subtle text link style */}
+                  <button
                     onClick={() => setShowDailyChallenge(true)}
-                    size="sm"
-                    className="relative bg-gradient-to-b from-amber-400 via-amber-500 to-amber-600 hover:from-amber-300 hover:via-amber-400 hover:to-amber-500 text-amber-950 font-bold text-xs sm:text-sm px-6 sm:px-8 py-2.5 rounded-full transition-all overflow-hidden border-0 active:translate-y-1 active:shadow-none"
-                    style={{
-                      boxShadow: '0 4px 0 #B45309, 0 6px 18px rgba(245,158,11,0.4), inset 0 2px 4px rgba(255,255,255,0.5)',
-                    }}
+                    className="flex items-center gap-2 text-amber-400/80 hover:text-amber-300 font-medium text-sm sm:text-base transition-colors mt-2"
                   >
-                    <div className="absolute top-0 left-0 right-0 h-1/2 bg-gradient-to-b from-white/50 to-transparent rounded-t-full" />
-                    <span className="relative z-10 flex items-center gap-1.5">
-                      <Calendar className="w-3.5 h-3.5" />
-                      Daily Challenge
-                    </span>
-                  </Button>
+                    <Calendar className="w-4 h-4" />
+                    <span>Daily Challenge</span>
+                  </button>
                 </HeroBlockDisplay>
               </div>
             )}
-
-            {/* Game Grid */}
+            
+            {/* Game screen - when playing */}
             {hasStarted && (
-              <div className="relative">
+              <>
+                <motion.div 
+                  className="text-center"
+                  initial={{ opacity: 0, y: -20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                >
+                  <h1 className="text-xl sm:text-2xl font-black tracking-tight">
+                    <span className="bg-gradient-to-r from-game-score-start via-game-score-mid to-game-score-end bg-clip-text text-transparent">
+                      Elemental Blast
+                    </span>
+                  </h1>
+                  {/* Daily challenge indicator */}
+                  {isDailyChallenge && (
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.8 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      className="mt-1"
+                    >
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-gradient-to-r from-amber-500/20 to-orange-500/20 border border-amber-500/40 rounded-full text-xs text-amber-400 font-medium">
+                        <Calendar className="w-3 h-3" />
+                        Daily Challenge
+                      </span>
+                    </motion.div>
+                  )}
+                </motion.div>
+
+                {/* Score - prominent, floating */}
+                <BlockBlastScoreboard 
+                  score={gameState.score} 
+                  topScore={isDailyChallenge ? (playerDailyBest || 0) : topScore}
+                  compact
+                />
+
+                {/* Game Grid */}
+                <div className="relative">
                 <BlockBlastGrid
                   grid={gameState.grid}
                   selectedPiece={gameState.selectedPiece}
@@ -546,9 +534,8 @@ const Index = () => {
                   )}
                 </AnimatePresence>
               </div>
+              </>
             )}
-
-            {/* Piece Tray */}
             {hasStarted && !gameState.isGameOver && (
               <PieceTray
                 pieces={gameState.availablePieces}

@@ -1,62 +1,64 @@
 import { motion } from 'framer-motion';
-import { Crown } from 'lucide-react';
+import { Flame, Droplets, TreeDeciduous, Mountain, Wind } from 'lucide-react';
 
-// Full rainbow colors for ELEMENTAL BLAST - each letter unique
-const allLetterColors = [
-  // ELEMENTAL
-  { bg: '#FF4D4D', shadow: '#991F1F' }, // E - Bright Red
-  { bg: '#FF8C42', shadow: '#994D1F' }, // L - Orange
-  { bg: '#FFD93D', shadow: '#997A1F' }, // E - Yellow
-  { bg: '#6BCB77', shadow: '#2F6B3A' }, // M - Green
-  { bg: '#4DD4E1', shadow: '#1F7A85' }, // E - Cyan
-  { bg: '#4EA8DE', shadow: '#1F5C85' }, // N - Sky Blue
-  { bg: '#7B68EE', shadow: '#3D2E99' }, // T - Purple
-  { bg: '#DA70D6', shadow: '#7A3077' }, // A - Orchid
-  { bg: '#FF69B4', shadow: '#993366' }, // L - Hot Pink
-  // BLAST
-  { bg: '#00CED1', shadow: '#006B6B' }, // B - Dark Cyan
-  { bg: '#32CD32', shadow: '#1A6B1A' }, // L - Lime Green  
-  { bg: '#FFD700', shadow: '#8B7500' }, // A - Gold
-  { bg: '#FF6347', shadow: '#8B2500' }, // S - Tomato
-  { bg: '#FF4D4D', shadow: '#991F1F' }, // T - Red
+// Cohesive color palette for ELEMENTAL - cyan to purple gradient flow
+const elementalColors = [
+  { bg: '#00E5FF', shadow: '#0097A7' }, // E - Bright Cyan
+  { bg: '#00D4E8', shadow: '#0088A0' }, // L - Cyan
+  { bg: '#00C4D0', shadow: '#007A88' }, // E - Teal Cyan
+  { bg: '#6366F1', shadow: '#4338CA' }, // M - Indigo
+  { bg: '#8B5CF6', shadow: '#6D28D9' }, // E - Violet
+  { bg: '#A855F7', shadow: '#7C3AED' }, // N - Purple
+  { bg: '#C084FC', shadow: '#9333EA' }, // T - Light Purple
+  { bg: '#D946EF', shadow: '#A21CAF' }, // A - Fuchsia
+  { bg: '#EC4899', shadow: '#BE185D' }, // L - Pink
 ];
 
-// Element icons with premium 3D styling matching reference
+// BLAST - icy white with strong cyan shadow
+const blastColors = [
+  { bg: '#FFFFFF', shadow: '#0891B2' }, // B
+  { bg: '#FFFFFF', shadow: '#0891B2' }, // L
+  { bg: '#FFFFFF', shadow: '#0891B2' }, // A
+  { bg: '#FFFFFF', shadow: '#0891B2' }, // S
+  { bg: '#FFFFFF', shadow: '#0891B2' }, // T
+];
+
+// Element icons using Lucide with professional styling
 const elementIcons = [
   { 
-    emoji: '🔥', 
+    Icon: Flame, 
     name: 'Fire',
-    bgGradient: 'linear-gradient(135deg, #FF6B35 0%, #F7931E 50%, #FF4500 100%)',
-    shadowColor: '#8B2500',
-    glowColor: 'rgba(255, 107, 53, 0.6)'
+    bgGradient: 'linear-gradient(145deg, #FF6B35 0%, #F7931E 50%, #E85D04 100%)',
+    shadowColor: '#9D2A04',
+    iconColor: '#FFFFFF'
   },
   { 
-    emoji: '💧', 
+    Icon: Droplets, 
     name: 'Water',
-    bgGradient: 'linear-gradient(135deg, #00D4FF 0%, #0099CC 50%, #0066AA 100%)',
-    shadowColor: '#003366',
-    glowColor: 'rgba(0, 212, 255, 0.6)'
+    bgGradient: 'linear-gradient(145deg, #00B4D8 0%, #0096C7 50%, #0077B6 100%)',
+    shadowColor: '#023E8A',
+    iconColor: '#FFFFFF'
   },
   { 
-    emoji: '🪵', 
+    Icon: TreeDeciduous, 
     name: 'Wood',
-    bgGradient: 'linear-gradient(135deg, #8B6914 0%, #6B4423 50%, #4A3015 100%)',
-    shadowColor: '#2D1810',
-    glowColor: 'rgba(139, 105, 20, 0.5)'
+    bgGradient: 'linear-gradient(145deg, #8B5A2B 0%, #6B4423 50%, #5D3A1A 100%)',
+    shadowColor: '#3D2314',
+    iconColor: '#C4A574'
   },
   { 
-    emoji: '🪨', 
+    Icon: Mountain, 
     name: 'Stone',
-    bgGradient: 'linear-gradient(135deg, #9E8B7D 0%, #7A6B5D 50%, #5C4D40 100%)',
-    shadowColor: '#3D3530',
-    glowColor: 'rgba(158, 139, 125, 0.5)'
+    bgGradient: 'linear-gradient(145deg, #8D8D8D 0%, #6B6B6B 50%, #4A4A4A 100%)',
+    shadowColor: '#2D2D2D',
+    iconColor: '#D4D4D4'
   },
   { 
-    emoji: '🎈', 
+    Icon: Wind, 
     name: 'Helium',
-    bgGradient: 'linear-gradient(135deg, #98E8A8 0%, #5DC76F 50%, #3DAA4F 100%)',
-    shadowColor: '#1A6B2A',
-    glowColor: 'rgba(93, 199, 111, 0.6)'
+    bgGradient: 'linear-gradient(145deg, #84D98A 0%, #4CAF50 50%, #2E7D32 100%)',
+    shadowColor: '#1B5E20',
+    iconColor: '#E8F5E9'
   },
 ];
 
@@ -68,107 +70,106 @@ interface BlockLetterProps {
 }
 
 const BlockLetter = ({ letter, color, index, isSecondWord }: BlockLetterProps) => {
-  // Slight random rotation for playful feel
-  const rotation = (index % 2 === 0 ? 1 : -1) * (1 + (index % 3));
-  
   return (
     <motion.span
-      initial={{ opacity: 0, y: 20, scale: 0.8 }}
+      initial={{ opacity: 0, y: 30, scale: 0.5 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       transition={{ 
-        delay: index * 0.03,
+        delay: index * 0.04,
         type: 'spring',
-        stiffness: 400,
+        stiffness: 300,
         damping: 15
       }}
-      className={`relative inline-block font-black ${
+      className={`relative inline-block font-black tracking-tight ${
         isSecondWord 
-          ? 'text-[2.8rem] sm:text-[3.5rem] md:text-[4.5rem]' 
-          : 'text-[2.2rem] sm:text-[2.8rem] md:text-[3.5rem]'
+          ? 'text-[3rem] sm:text-[4rem] md:text-[5.5rem]' 
+          : 'text-[1.8rem] sm:text-[2.4rem] md:text-[3.2rem]'
       }`}
       style={{
-        fontFamily: "'Fredoka One', 'Comic Sans MS', cursive",
+        fontFamily: "'Fredoka One', 'Arial Black', sans-serif",
         color: color.bg,
-        transform: `rotate(${rotation}deg)`,
-        textShadow: `
-          2px 2px 0 ${color.shadow},
-          3px 3px 0 ${color.shadow},
-          4px 4px 0 ${color.shadow},
-          5px 5px 0 ${color.shadow},
-          ${isSecondWord ? '6px 6px 0' : '5px 5px 0'} ${color.shadow},
-          ${isSecondWord ? '7px 7px 0' : '6px 6px 0'} rgba(0,0,0,0.3),
-          0 0 30px ${color.bg}60
-        `,
-        WebkitTextStroke: '1px rgba(0,0,0,0.15)',
-        letterSpacing: '-0.02em',
+        textShadow: isSecondWord 
+          ? `
+            3px 3px 0 ${color.shadow},
+            5px 5px 0 ${color.shadow},
+            7px 7px 0 ${color.shadow},
+            9px 9px 0 ${color.shadow},
+            10px 10px 0 rgba(0,0,0,0.4),
+            0 0 40px ${color.shadow}80
+          `
+          : `
+            2px 2px 0 ${color.shadow},
+            3px 3px 0 ${color.shadow},
+            4px 4px 0 ${color.shadow},
+            5px 5px 0 rgba(0,0,0,0.3),
+            0 0 25px ${color.bg}50
+          `,
+        WebkitTextStroke: isSecondWord ? '2px rgba(0,0,0,0.1)' : '1px rgba(0,0,0,0.1)',
+        letterSpacing: isSecondWord ? '0.02em' : '0.04em',
         lineHeight: 1,
       }}
     >
-      {/* Gloss highlight overlay */}
-      <span
-        className="absolute inset-0 pointer-events-none"
-        style={{
-          background: 'linear-gradient(180deg, rgba(255,255,255,0.5) 0%, rgba(255,255,255,0.15) 40%, transparent 50%)',
-          WebkitBackgroundClip: 'text',
-          backgroundClip: 'text',
-        }}
-      />
       {letter}
     </motion.span>
   );
 };
 
 interface ElementIconProps {
-  icon: typeof elementIcons[0];
+  element: typeof elementIcons[0];
   index: number;
 }
 
-const ElementIcon = ({ icon, index }: ElementIconProps) => {
+const ElementIcon = ({ element, index }: ElementIconProps) => {
+  const { Icon } = element;
+  
   return (
     <motion.div
-      initial={{ opacity: 0, scale: 0, y: 20 }}
-      animate={{ opacity: 1, scale: 1, y: 0 }}
+      initial={{ opacity: 0, scale: 0 }}
+      animate={{ opacity: 1, scale: 1 }}
       transition={{ 
-        delay: 0.5 + index * 0.08,
+        delay: 0.6 + index * 0.1,
         type: 'spring',
-        stiffness: 300,
+        stiffness: 250,
         damping: 15
       }}
-      whileHover={{ scale: 1.1, y: -4 }}
+      whileHover={{ scale: 1.12, y: -6 }}
       whileTap={{ scale: 0.95 }}
-      className="relative cursor-pointer"
+      className="relative cursor-pointer group"
     >
-      {/* Outer glow */}
-      <div 
-        className="absolute inset-0 rounded-xl blur-md opacity-70"
-        style={{ background: icon.glowColor }}
-      />
-      
       {/* Main icon container */}
       <div
-        className="relative w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 rounded-xl flex items-center justify-center"
+        className="relative w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 rounded-xl flex items-center justify-center transition-shadow duration-200"
         style={{
-          background: icon.bgGradient,
+          background: element.bgGradient,
           boxShadow: `
-            0 4px 0 ${icon.shadowColor},
-            0 6px 0 rgba(0,0,0,0.3),
-            inset 0 2px 4px rgba(255,255,255,0.3),
-            0 8px 20px rgba(0,0,0,0.3)
+            0 5px 0 ${element.shadowColor},
+            0 7px 0 rgba(0,0,0,0.3),
+            inset 0 2px 6px rgba(255,255,255,0.35),
+            0 10px 25px rgba(0,0,0,0.25)
           `,
-          border: '2px solid rgba(255,255,255,0.2)',
+          border: '2px solid rgba(255,255,255,0.25)',
         }}
       >
-        {/* Top shine */}
+        {/* Top shine bar */}
         <div 
-          className="absolute top-0 left-1 right-1 h-1/3 rounded-t-lg pointer-events-none"
+          className="absolute top-1 left-2 right-2 h-3 rounded-full pointer-events-none"
           style={{
-            background: 'linear-gradient(180deg, rgba(255,255,255,0.4) 0%, transparent 100%)',
+            background: 'linear-gradient(180deg, rgba(255,255,255,0.5) 0%, transparent 100%)',
           }}
         />
         
-        {/* Emoji */}
-        <span className="text-2xl sm:text-3xl md:text-4xl drop-shadow-lg select-none">
-          {icon.emoji}
+        {/* Lucide Icon */}
+        <Icon 
+          className="w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 drop-shadow-lg relative z-10"
+          style={{ color: element.iconColor }}
+          strokeWidth={2.5}
+        />
+      </div>
+
+      {/* Tooltip on hover */}
+      <div className="absolute -bottom-7 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none">
+        <span className="text-[10px] sm:text-xs font-semibold text-white/80 whitespace-nowrap">
+          {element.name}
         </span>
       </div>
     </motion.div>
@@ -181,40 +182,17 @@ export const GameTitle = () => {
 
   return (
     <motion.div 
-      className="flex flex-col items-center gap-2 relative px-2"
+      className="flex flex-col items-center gap-1 relative px-4"
       initial={{ scale: 0.9, opacity: 0 }}
       animate={{ scale: 1, opacity: 1 }}
-      transition={{ duration: 0.4, ease: 'easeOut' }}
+      transition={{ duration: 0.5, ease: 'easeOut' }}
     >
-      {/* Crown icon above title */}
-      <motion.div
-        initial={{ opacity: 0, y: -20, scale: 0.5 }}
-        animate={{ opacity: 1, y: 0, scale: 1 }}
-        transition={{ delay: 0.2, type: 'spring', stiffness: 300 }}
-        className="relative mb-1"
-      >
-        {/* Crown glow */}
-        <div 
-          className="absolute inset-0 blur-lg"
-          style={{ background: 'rgba(255, 200, 0, 0.5)' }}
-        />
-        <Crown 
-          className="relative w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16" 
-          style={{
-            color: '#FFD700',
-            filter: 'drop-shadow(0 3px 0 #B8860B) drop-shadow(0 5px 0 rgba(0,0,0,0.3))',
-          }}
-          fill="#FFD700"
-          strokeWidth={1.5}
-        />
-      </motion.div>
-
       {/* Glow behind title */}
       <div 
         className="absolute inset-0 -z-10"
         style={{
-          background: 'radial-gradient(ellipse 80% 60% at 50% 50%, rgba(99,102,241,0.3) 0%, transparent 70%)',
-          filter: 'blur(30px)',
+          background: 'radial-gradient(ellipse 100% 80% at 50% 50%, rgba(99,102,241,0.25) 0%, transparent 60%)',
+          filter: 'blur(40px)',
         }}
       />
       
@@ -224,34 +202,34 @@ export const GameTitle = () => {
           <BlockLetter
             key={`w1-${i}`}
             letter={letter}
-            color={allLetterColors[i]}
+            color={elementalColors[i]}
             index={i}
           />
         ))}
       </div>
 
-      {/* Second word - BLAST - larger and bolder */}
-      <div className="flex items-center justify-center -mt-2 sm:-mt-4">
+      {/* Second word - BLAST - larger, bolder, icy white */}
+      <div className="flex items-center justify-center -mt-1 sm:-mt-2 md:-mt-3">
         {word2.split('').map((letter, i) => (
           <BlockLetter 
             key={`w2-${i}`} 
             letter={letter} 
-            color={allLetterColors[9 + i]} 
+            color={blastColors[i]} 
             index={9 + i}
             isSecondWord
           />
         ))}
       </div>
 
-      {/* Element Icons Row - USP Showcase */}
+      {/* Element Icons Row - USP Showcase with proper spacing */}
       <motion.div 
-        className="flex items-center justify-center gap-2 sm:gap-3 mt-3 sm:mt-4"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.4 }}
+        className="flex items-center justify-center gap-3 sm:gap-4 md:gap-5 mt-6 sm:mt-8 md:mt-10"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.5 }}
       >
-        {elementIcons.map((icon, index) => (
-          <ElementIcon key={icon.name} icon={icon} index={index} />
+        {elementIcons.map((element, index) => (
+          <ElementIcon key={element.name} element={element} index={index} />
         ))}
       </motion.div>
     </motion.div>
