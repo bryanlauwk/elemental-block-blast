@@ -1,79 +1,65 @@
 import { motion } from 'framer-motion';
 import { Crown } from 'lucide-react';
 
-// Solid, vibrant colors for 3D block letters - Block Blast style
-const letterStyles = [
-  { bg: '#FF6B4A', shadow: '#CC4A2E' }, // Orange-red
-  { bg: '#4ECDC4', shadow: '#3BA59E' }, // Cyan
-  { bg: '#FF69B4', shadow: '#CC4A8F' }, // Pink
-  { bg: '#FFE66D', shadow: '#CCB84A' }, // Yellow
-  { bg: '#4ADE80', shadow: '#38B866' }, // Green
-  { bg: '#A855F7', shadow: '#8644C5' }, // Purple
-  { bg: '#3B82F6', shadow: '#2E68C5' }, // Blue
-  { bg: '#EF4444', shadow: '#BF3636' }, // Red
-  { bg: '#2DD4BF', shadow: '#24AA99' }, // Teal
+// Vibrant colors matching the reference - each letter gets a unique color
+const letterColors = [
+  { bg: '#EF4444', shadow: '#B91C1C' }, // E - Red
+  { bg: '#F97316', shadow: '#C2410C' }, // L - Orange
+  { bg: '#22C55E', shadow: '#15803D' }, // E - Green
+  { bg: '#3B82F6', shadow: '#1D4ED8' }, // M - Blue
+  { bg: '#8B5CF6', shadow: '#6D28D9' }, // E - Purple
+  { bg: '#EC4899', shadow: '#BE185D' }, // N - Pink
+  { bg: '#14B8A6', shadow: '#0D9488' }, // T - Teal
+  { bg: '#F59E0B', shadow: '#B45309' }, // A - Amber
+  { bg: '#6366F1', shadow: '#4338CA' }, // L - Indigo
+];
+
+const blastColors = [
+  { bg: '#3B82F6', shadow: '#1D4ED8' }, // B - Blue
+  { bg: '#06B6D4', shadow: '#0891B2' }, // L - Cyan
+  { bg: '#22D3EE', shadow: '#06B6D4' }, // A - Light Cyan
+  { bg: '#67E8F9', shadow: '#22D3EE' }, // S - Lighter Cyan
+  { bg: '#A5F3FC', shadow: '#67E8F9' }, // T - Lightest Cyan
 ];
 
 interface BlockLetterProps {
   letter: string;
-  index: number;
-  totalDelay: number;
+  color: { bg: string; shadow: string };
+  delay: number;
   size: 'normal' | 'large';
-  hasCrown?: boolean;
 }
 
-const BlockLetter = ({ letter, index, totalDelay, size, hasCrown }: BlockLetterProps) => {
-  const style = letterStyles[index % letterStyles.length];
-  const fontSize = size === 'large' ? 'text-6xl sm:text-7xl md:text-8xl' : 'text-4xl sm:text-5xl md:text-6xl';
-  const shadowOffset = size === 'large' ? 6 : 4;
+const BlockLetter = ({ letter, color, delay, size }: BlockLetterProps) => {
+  const fontSize = size === 'large' ? 'text-5xl sm:text-6xl md:text-7xl' : 'text-3xl sm:text-4xl md:text-5xl';
+  const shadowOffset = size === 'large' ? 5 : 4;
   
   return (
     <motion.span
       className={`${fontSize} font-black relative inline-block`}
       style={{
-        color: style.bg,
+        color: color.bg,
         textShadow: `
-          ${shadowOffset}px ${shadowOffset}px 0 ${style.shadow},
-          ${shadowOffset * 1.6}px ${shadowOffset * 1.6}px 0 rgba(0,0,0,0.4),
-          0 0 30px ${style.bg}50
+          0 ${shadowOffset}px 0 ${color.shadow},
+          0 ${shadowOffset + 2}px 4px rgba(0,0,0,0.3),
+          0 0 20px ${color.bg}40
         `,
-        WebkitTextStroke: '1.5px rgba(0,0,0,0.25)',
-        letterSpacing: '0.02em',
+        WebkitTextStroke: '1px rgba(0,0,0,0.15)',
+        letterSpacing: '-0.02em',
       }}
-      initial={{ opacity: 0, y: -60, scale: 0.4, rotateX: -90 }}
-      animate={{ 
-        opacity: 1, 
-        y: 0, 
-        scale: 1,
-        rotateX: 0,
-      }}
+      initial={{ opacity: 0, y: -40, scale: 0.5 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
       transition={{ 
-        delay: totalDelay + index * 0.06,
+        delay,
         type: 'spring',
-        stiffness: 280,
-        damping: 14,
+        stiffness: 300,
+        damping: 15,
       }}
       whileHover={{
-        scale: 1.2,
-        y: -8,
-        transition: { duration: 0.12 }
+        scale: 1.1,
+        y: -4,
+        transition: { duration: 0.1 }
       }}
     >
-      {/* Crown on special letter */}
-      {hasCrown && (
-        <motion.div
-          className="absolute -top-5 sm:-top-6 md:-top-8 left-1/2 -translate-x-1/2"
-          initial={{ opacity: 0, scale: 0, y: 10 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          transition={{ delay: totalDelay + 0.5, type: 'spring', stiffness: 300 }}
-        >
-          <Crown 
-            className="w-5 h-5 sm:w-6 sm:h-6 md:w-8 md:h-8 text-yellow-400 drop-shadow-lg" 
-            fill="#FBBF24"
-            strokeWidth={1.5}
-          />
-        </motion.div>
-      )}
       {letter}
     </motion.span>
   );
@@ -86,49 +72,47 @@ export const GameTitle = () => {
   return (
     <motion.div 
       className="flex flex-col items-center gap-0 relative"
-      animate={{
-        y: [0, -4, 0],
-      }}
-      transition={{
-        duration: 3,
-        repeat: Infinity,
-        ease: 'easeInOut',
-      }}
     >
-      {/* Subtle glow behind title */}
+      {/* Crown above title */}
       <motion.div
-        className="absolute inset-0 blur-3xl -z-10"
-        style={{
-          background: 'radial-gradient(ellipse at center, rgba(59, 130, 246, 0.25), transparent 60%)',
-        }}
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.5, duration: 1 }}
-      />
+        className="mb-1"
+        initial={{ opacity: 0, scale: 0, y: 20 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        transition={{ delay: 0.2, type: 'spring', stiffness: 300 }}
+      >
+        <Crown 
+          className="w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14" 
+          fill="#FBBF24"
+          stroke="#F59E0B"
+          strokeWidth={1.5}
+          style={{
+            filter: 'drop-shadow(0 3px 4px rgba(0,0,0,0.3))',
+          }}
+        />
+      </motion.div>
 
-      {/* First word */}
-      <div className="flex items-center justify-center tracking-tight">
+      {/* First word - ELEMENTAL */}
+      <div className="flex items-center justify-center">
         {word1.split('').map((letter, i) => (
           <BlockLetter
             key={`w1-${i}`}
             letter={letter}
-            index={i}
-            totalDelay={0}
+            color={letterColors[i % letterColors.length]}
+            delay={0.1 + i * 0.04}
             size="normal"
           />
         ))}
       </div>
 
-      {/* Second word - larger with crown on A */}
-      <div className="flex items-center justify-center tracking-tight -mt-2 sm:-mt-3">
+      {/* Second word - BLAST with gradient blue tones */}
+      <div className="flex items-center justify-center -mt-1 sm:-mt-2">
         {word2.split('').map((letter, i) => (
           <BlockLetter
             key={`w2-${i}`}
             letter={letter}
-            index={i + 4}
-            totalDelay={0.3}
+            color={blastColors[i % blastColors.length]}
+            delay={0.4 + i * 0.05}
             size="large"
-            hasCrown={letter === 'A'}
           />
         ))}
       </div>
