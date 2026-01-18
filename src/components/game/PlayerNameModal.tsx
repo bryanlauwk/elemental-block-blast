@@ -30,6 +30,15 @@ export function PlayerNameModal({
     }
   }, [isOpen, defaultName]);
 
+  // Sanitize player name: allow only alphanumeric, spaces, underscores, hyphens
+  const sanitizePlayerName = useCallback((name: string): string => {
+    // Remove any HTML-like characters and control characters for XSS defense-in-depth
+    return name
+      .replace(/[<>'"&\\]/g, '') // Remove HTML-sensitive characters
+      .replace(/[\x00-\x1F\x7F]/g, '') // Remove control characters
+      .trim();
+  }, []);
+
   const validateName = useCallback((name: string): boolean => {
     const trimmed = name.trim();
     if (trimmed.length < 1) {
@@ -40,6 +49,12 @@ export function PlayerNameModal({
       setError('Name must be 20 characters or less');
       return false;
     }
+    // Check for valid characters only (alphanumeric, spaces, common punctuation)
+    const validNamePattern = /^[a-zA-Z0-9\s_\-!?.]+$/;
+    if (!validNamePattern.test(trimmed)) {
+      setError('Name can only contain letters, numbers, spaces, and basic punctuation');
+      return false;
+    }
     setError(null);
     return true;
   }, []);
@@ -47,10 +62,11 @@ export function PlayerNameModal({
   const handleSubmit = useCallback(async () => {
     if (isSubmitting) return;
     
-    if (!validateName(playerName)) return;
+    const sanitized = sanitizePlayerName(playerName);
+    if (!validateName(sanitized)) return;
     
-    await onSubmit(playerName.trim());
-  }, [playerName, validateName, onSubmit, isSubmitting]);
+    await onSubmit(sanitized);
+  }, [playerName, sanitizePlayerName, validateName, onSubmit, isSubmitting]);
 
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !isSubmitting) {
