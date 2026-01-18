@@ -438,7 +438,7 @@ const Index = () => {
                 >
                   <h1 className="text-xl sm:text-2xl font-black tracking-tight">
                     <span className="bg-gradient-to-r from-game-score-start via-game-score-mid to-game-score-end bg-clip-text text-transparent">
-                      Elemental Blast
+                      Elemental Block Blast
                     </span>
                   </h1>
                   {/* Daily challenge indicator */}

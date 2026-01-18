@@ -14,6 +14,15 @@ const elementalColors = [
   { bg: '#F012BE', shadow: '#A0007A' }, // L - Magenta
 ];
 
+// Orange/Gold gradient for BLOCK - warm arcade tones
+const blockColors = [
+  { bg: '#FF9500', shadow: '#CC6600' }, // B - Orange
+  { bg: '#FFB347', shadow: '#CC8800' }, // L - Light Orange
+  { bg: '#FFC125', shadow: '#B8860B' }, // O - Gold
+  { bg: '#FFD700', shadow: '#CC9900' }, // C - Yellow Gold
+  { bg: '#FFDF00', shadow: '#CCAA00' }, // K - Bright Gold
+];
+
 // Vibrant cyan/teal gradient for BLAST
 const blastColors = [
   { bg: '#00E5FF', shadow: '#006994' }, // B - Bright Cyan
@@ -64,6 +73,7 @@ const elementIcons = [
 
 // Wild letter rotations for dynamic, hand-drawn arcade feel
 const elementalRotations = [3, -2, 2.5, -3, 1.5, -2, 3, -1.5, 2];
+const blockRotations = [-1.5, 2, -2, 1.5, -1];
 const blastRotations = [-2, 3, -2.5, 2, -3];
 
 interface BlockLetterProps {
@@ -224,7 +234,8 @@ const ElementIcon = ({ element, index }: ElementIconProps) => {
 
 export const GameTitle = () => {
   const word1 = 'ELEMENTAL';
-  const word2 = 'BLAST';
+  const word2 = 'BLOCK';
+  const word3 = 'BLAST';
 
   return (
     <motion.div 
@@ -260,7 +271,7 @@ export const GameTitle = () => {
         />
         
         {/* Title words stacked - WILD typography */}
-        <div className="flex flex-col items-center -space-y-2 sm:-space-y-4 md:-space-y-6 lg:-space-y-8">
+        <div className="flex flex-col items-center -space-y-1 sm:-space-y-2 md:-space-y-3 lg:-space-y-4">
           {/* First word - ELEMENTAL (Rainbow) with crown on A */}
           <div className="flex items-center justify-center">
             {word1.split('').map((letter, i) => (
@@ -275,7 +286,21 @@ export const GameTitle = () => {
             ))}
           </div>
 
-          {/* Second word - BLAST (Cyan/Teal) - MASSIVE with pulsing glow */}
+          {/* Second word - BLOCK (Orange/Gold) */}
+          <div className="flex items-center justify-center">
+            {word2.split('').map((letter, i) => (
+              <BlockLetter 
+                key={`w2-${i}`} 
+                letter={letter} 
+                color={blockColors[i]} 
+                index={9 + i}
+                isSecondWord
+                rotation={blockRotations[i]}
+              />
+            ))}
+          </div>
+
+          {/* Third word - BLAST (Cyan/Teal) - MASSIVE with pulsing glow */}
           <motion.div 
             className="flex items-center justify-center"
             animate={{ 
@@ -283,12 +308,12 @@ export const GameTitle = () => {
             }}
             transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
           >
-            {word2.split('').map((letter, i) => (
+            {word3.split('').map((letter, i) => (
               <BlockLetter 
-                key={`w2-${i}`} 
+                key={`w3-${i}`} 
                 letter={letter} 
                 color={blastColors[i]} 
-                index={9 + i}
+                index={14 + i}
                 isSecondWord
                 rotation={blastRotations[i]}
               />
