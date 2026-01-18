@@ -1,12 +1,15 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { useEffect, useState, useRef, useCallback } from 'react';
+import ReactionProducts from './ReactionProducts';
+
+type ElementStatus = 'wandering' | 'approaching' | 'reacting' | 'transforming' | 'respawning';
 
 interface ElementState {
   id: string;
   emoji: string;
   gradient: string;
   glowColor: string;
-  size: number;
+  baseSize: number;
   x: number;
   y: number;
   targetX: number;
@@ -14,54 +17,71 @@ interface ElementState {
   vx: number;
   vy: number;
   zone: 'left' | 'right';
+  status: ElementStatus;
+  opacity: number;
+  scale: number;
+  scaleX: number;
+  scaleY: number;
+  rotation: number;
   lastReactionTime: number;
+  respawnTimer: number;
+  invulnerable: boolean;
 }
 
-interface Reaction {
+interface ReactionProduct {
   id: string;
+  type: 'steam' | 'sparks' | 'ash' | 'explosion' | 'bubbles' | 'fizz' | 'dissolve';
   x: number;
   y: number;
-  type: 'steam' | 'sparks' | 'fizz' | 'dissolve' | 'bubbles' | 'pop';
-  emoji: string;
-  particles: { angle: number; speed: number; size: number; delay: number }[];
   timestamp: number;
+  elements: string[];
 }
 
-// Element reaction rules
-const REACTION_RULES: Record<string, { partner: string; type: Reaction['type']; emoji: string }[]> = {
+// Enhanced reaction rules with product types
+const REACTION_RULES: Record<string, { partner: string; productType: ReactionProduct['type']; emoji: string }[]> = {
   fire: [
-    { partner: 'water', type: 'steam', emoji: '💨' },
-    { partner: 'wood', type: 'sparks', emoji: '✨' },
-    { partner: 'helium', type: 'pop', emoji: '💥' },
+    { partner: 'water', productType: 'steam', emoji: '💨' },
+    { partner: 'wood', productType: 'sparks', emoji: '🔥' },
+    { partner: 'helium', productType: 'explosion', emoji: '💥' },
   ],
   water: [
-    { partner: 'fire', type: 'steam', emoji: '💨' },
-    { partner: 'helium', type: 'bubbles', emoji: '🫧' },
+    { partner: 'fire', productType: 'steam', emoji: '💨' },
+    { partner: 'helium', productType: 'bubbles', emoji: '🫧' },
   ],
   wood: [
-    { partner: 'fire', type: 'sparks', emoji: '🔥' },
-    { partner: 'acid', type: 'dissolve', emoji: '💀' },
+    { partner: 'fire', productType: 'sparks', emoji: '🔥' },
+    { partner: 'acid', productType: 'dissolve', emoji: '💀' },
   ],
   acid: [
-    { partner: 'stone', type: 'fizz', emoji: '🧪' },
-    { partner: 'wood', type: 'dissolve', emoji: '☠️' },
+    { partner: 'stone', productType: 'fizz', emoji: '🧪' },
+    { partner: 'wood', productType: 'dissolve', emoji: '☠️' },
   ],
   stone: [
-    { partner: 'acid', type: 'fizz', emoji: '💚' },
+    { partner: 'acid', productType: 'fizz', emoji: '💚' },
   ],
   helium: [
-    { partner: 'fire', type: 'pop', emoji: '💥' },
-    { partner: 'water', type: 'bubbles', emoji: '🫧' },
+    { partner: 'fire', productType: 'explosion', emoji: '💥' },
+    { partner: 'water', productType: 'bubbles', emoji: '🫧' },
   ],
 };
 
-const initialElements: Omit<ElementState, 'x' | 'y' | 'targetX' | 'targetY' | 'vx' | 'vy' | 'lastReactionTime'>[] = [
+// Element weights for physics (heavier = slower)
+const ELEMENT_WEIGHTS: Record<string, number> = {
+  fire: 0.6,
+  water: 0.8,
+  wood: 1.0,
+  stone: 1.5,
+  acid: 0.7,
+  helium: 0.3,
+};
+
+const initialElements: Omit<ElementState, 'x' | 'y' | 'targetX' | 'targetY' | 'vx' | 'vy' | 'lastReactionTime' | 'status' | 'opacity' | 'scale' | 'scaleX' | 'scaleY' | 'rotation' | 'respawnTimer' | 'invulnerable'>[] = [
   { 
     id: 'fire', 
     emoji: '🔥', 
     gradient: 'from-orange-400 via-orange-500 to-red-600',
     glowColor: 'rgba(251, 146, 60, 0.7)',
-    size: 64,
+    baseSize: 64,
     zone: 'left',
   },
   { 
@@ -69,7 +89,7 @@ const initialElements: Omit<ElementState, 'x' | 'y' | 'targetX' | 'targetY' | 'v
     emoji: '💧', 
     gradient: 'from-cyan-300 via-blue-400 to-blue-600',
     glowColor: 'rgba(34, 211, 238, 0.7)',
-    size: 56,
+    baseSize: 56,
     zone: 'left',
   },
   { 
@@ -77,7 +97,7 @@ const initialElements: Omit<ElementState, 'x' | 'y' | 'targetX' | 'targetY' | 'v
     emoji: '🪵', 
     gradient: 'from-amber-500 via-amber-600 to-amber-800',
     glowColor: 'rgba(217, 119, 6, 0.7)',
-    size: 58,
+    baseSize: 58,
     zone: 'left',
   },
   { 
@@ -85,7 +105,7 @@ const initialElements: Omit<ElementState, 'x' | 'y' | 'targetX' | 'targetY' | 'v
     emoji: '🪨', 
     gradient: 'from-gray-300 via-gray-400 to-gray-600',
     glowColor: 'rgba(156, 163, 175, 0.7)',
-    size: 60,
+    baseSize: 60,
     zone: 'right',
   },
   { 
@@ -93,7 +113,7 @@ const initialElements: Omit<ElementState, 'x' | 'y' | 'targetX' | 'targetY' | 'v
     emoji: '🧪', 
     gradient: 'from-green-300 via-green-400 to-emerald-600',
     glowColor: 'rgba(74, 222, 128, 0.7)',
-    size: 58,
+    baseSize: 58,
     zone: 'right',
   },
   { 
@@ -101,15 +121,16 @@ const initialElements: Omit<ElementState, 'x' | 'y' | 'targetX' | 'targetY' | 'v
     emoji: '🎈', 
     gradient: 'from-pink-300 via-pink-400 to-pink-600',
     glowColor: 'rgba(244, 114, 182, 0.7)',
-    size: 54,
+    baseSize: 54,
     zone: 'right',
   },
 ];
 
-const REACTION_RADIUS = 80;
-const REACTION_COOLDOWN = 4000;
-const SPEED = 0.3;
-const TARGET_THRESHOLD = 20;
+const REACTION_RADIUS = 70;
+const REACTION_COOLDOWN = 5000;
+const TRANSFORM_DURATION = 800;
+const RESPAWN_DELAY = 2000;
+const INVULNERABILITY_DURATION = 1500;
 
 interface ElementMascotsProps {
   isPlaying?: boolean;
@@ -118,32 +139,73 @@ interface ElementMascotsProps {
 export const ElementMascots = ({ isPlaying = false }: ElementMascotsProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [elements, setElements] = useState<ElementState[]>([]);
-  const [reactions, setReactions] = useState<Reaction[]>([]);
-  const [reactingPairs, setReactingPairs] = useState<Set<string>>(new Set());
+  const [reactionProducts, setReactionProducts] = useState<ReactionProduct[]>([]);
   const animationRef = useRef<number>();
+  const timeRef = useRef(0);
 
-  // Initialize elements with random positions
+  // Get spawn position at screen edge
+  const getEdgeSpawnPosition = useCallback((zone: 'left' | 'right') => {
+    const container = containerRef.current;
+    if (!container) return { x: 0, y: 0 };
+    
+    const { width, height } = container.getBoundingClientRect();
+    const edge = Math.floor(Math.random() * 4); // 0: top, 1: right, 2: bottom, 3: left
+    
+    let x: number, y: number;
+    
+    if (edge === 0) { // top
+      x = zone === 'left' ? Math.random() * width * 0.3 : width * 0.7 + Math.random() * width * 0.3;
+      y = -50;
+    } else if (edge === 1) { // right
+      x = zone === 'left' ? width * 0.25 : width + 50;
+      y = height * 0.1 + Math.random() * height * 0.5;
+    } else if (edge === 2) { // bottom
+      x = zone === 'left' ? Math.random() * width * 0.3 : width * 0.7 + Math.random() * width * 0.3;
+      y = height + 50;
+    } else { // left
+      x = zone === 'left' ? -50 : width * 0.75;
+      y = height * 0.1 + Math.random() * height * 0.5;
+    }
+    
+    return { x, y };
+  }, []);
+
+  // Get random target within zone (with occasional cross-zone adventure)
+  const getNewTarget = useCallback((zone: 'left' | 'right', allowCrossZone = false) => {
+    const container = containerRef.current;
+    if (!container) return { x: 0, y: 0 };
+    
+    const { width, height } = container.getBoundingClientRect();
+    
+    // 15% chance to venture toward center
+    const crossZone = allowCrossZone && Math.random() < 0.15;
+    
+    let minX: number, maxX: number;
+    if (crossZone) {
+      minX = width * 0.35;
+      maxX = width * 0.65;
+    } else {
+      minX = zone === 'left' ? width * 0.02 : width * 0.75;
+      maxX = zone === 'left' ? width * 0.28 : width * 0.95;
+    }
+    
+    const minY = height * 0.08;
+    const maxY = height * 0.68;
+    
+    return {
+      x: minX + Math.random() * (maxX - minX),
+      y: minY + Math.random() * (maxY - minY),
+    };
+  }, []);
+
+  // Initialize elements
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
 
-    const { width, height } = container.getBoundingClientRect();
-    
-    const getRandomPosition = (zone: 'left' | 'right') => {
-      const minX = zone === 'left' ? width * 0.02 : width * 0.75;
-      const maxX = zone === 'left' ? width * 0.22 : width * 0.95;
-      const minY = height * 0.1;
-      const maxY = height * 0.65;
-      
-      return {
-        x: minX + Math.random() * (maxX - minX),
-        y: minY + Math.random() * (maxY - minY),
-      };
-    };
-
     const initializedElements = initialElements.map(el => {
-      const pos = getRandomPosition(el.zone);
-      const target = getRandomPosition(el.zone);
+      const pos = getNewTarget(el.zone);
+      const target = getNewTarget(el.zone);
       return {
         ...el,
         x: pos.x,
@@ -152,128 +214,149 @@ export const ElementMascots = ({ isPlaying = false }: ElementMascotsProps) => {
         targetY: target.y,
         vx: 0,
         vy: 0,
+        status: 'wandering' as ElementStatus,
+        opacity: 1,
+        scale: 1,
+        scaleX: 1,
+        scaleY: 1,
+        rotation: 0,
         lastReactionTime: 0,
+        respawnTimer: 0,
+        invulnerable: false,
       };
     });
 
     setElements(initializedElements);
-  }, []);
+  }, [getNewTarget]);
 
-  // Get new random target within zone
-  const getNewTarget = useCallback((zone: 'left' | 'right') => {
-    const container = containerRef.current;
-    if (!container) return { x: 0, y: 0 };
-    
-    const { width, height } = container.getBoundingClientRect();
-    const minX = zone === 'left' ? width * 0.02 : width * 0.75;
-    const maxX = zone === 'left' ? width * 0.22 : width * 0.95;
-    const minY = height * 0.1;
-    const maxY = height * 0.65;
-    
-    return {
-      x: minX + Math.random() * (maxX - minX),
-      y: minY + Math.random() * (maxY - minY),
-    };
-  }, []);
-
-  // Check for reactions between elements
-  const checkReactions = useCallback((els: ElementState[]) => {
+  // Trigger reaction between two elements
+  const triggerReaction = useCallback((el1: ElementState, el2: ElementState, rule: { productType: ReactionProduct['type']; emoji: string }) => {
     const now = Date.now();
-    const newReactions: Reaction[] = [];
-    const newReactingPairs = new Set<string>();
+    const midX = (el1.x + el2.x) / 2;
+    const midY = (el1.y + el2.y) / 2;
 
-    for (let i = 0; i < els.length; i++) {
-      for (let j = i + 1; j < els.length; j++) {
-        const el1 = els[i];
-        const el2 = els[j];
-        
-        const dx = el2.x - el1.x;
-        const dy = el2.y - el1.y;
-        const distance = Math.sqrt(dx * dx + dy * dy);
+    // Create reaction product
+    const product: ReactionProduct = {
+      id: `${el1.id}-${el2.id}-${now}`,
+      type: rule.productType,
+      x: midX,
+      y: midY,
+      timestamp: now,
+      elements: [el1.id, el2.id],
+    };
 
-        if (distance < REACTION_RADIUS) {
-          const pairKey = [el1.id, el2.id].sort().join('-');
-          
-          // Check if this pair can react and hasn't recently
-          const canReact = 
-            now - el1.lastReactionTime > REACTION_COOLDOWN &&
-            now - el2.lastReactionTime > REACTION_COOLDOWN;
+    setReactionProducts(prev => [...prev, product]);
 
-          if (canReact) {
-            // Find if these elements can react
-            const rules = REACTION_RULES[el1.id] || [];
-            const reaction = rules.find(r => r.partner === el2.id);
-            
-            if (reaction) {
-              // Create reaction at midpoint
-              const midX = (el1.x + el2.x) / 2;
-              const midY = (el1.y + el2.y) / 2;
-
-              const particles = Array.from({ length: 8 }, (_, idx) => ({
-                angle: (Math.PI * 2 * idx) / 8 + Math.random() * 0.5,
-                speed: 30 + Math.random() * 40,
-                size: 16 + Math.random() * 12,
-                delay: Math.random() * 0.15,
-              }));
-
-              newReactions.push({
-                id: `${pairKey}-${now}`,
-                x: midX,
-                y: midY,
-                type: reaction.type,
-                emoji: reaction.emoji,
-                particles,
-                timestamp: now,
-              });
-
-              // Mark elements as recently reacted
-              el1.lastReactionTime = now;
-              el2.lastReactionTime = now;
-
-              // Push elements away from each other
-              const pushForce = 3;
-              const angle = Math.atan2(dy, dx);
-              el1.vx -= Math.cos(angle) * pushForce;
-              el1.vy -= Math.sin(angle) * pushForce;
-              el2.vx += Math.cos(angle) * pushForce;
-              el2.vy += Math.sin(angle) * pushForce;
-
-              newReactingPairs.add(pairKey);
-            }
-          }
-        }
+    // Update element states to transforming
+    setElements(prev => prev.map(el => {
+      if (el.id === el1.id || el.id === el2.id) {
+        return {
+          ...el,
+          status: 'transforming' as ElementStatus,
+          lastReactionTime: now,
+        };
       }
-    }
+      return el;
+    }));
 
-    if (newReactions.length > 0) {
-      setReactions(prev => [...prev, ...newReactions]);
-      setReactingPairs(newReactingPairs);
-      
-      // Clear reacting pairs after animation
-      setTimeout(() => setReactingPairs(new Set()), 500);
-    }
+    // Schedule respawn
+    setTimeout(() => {
+      setElements(prev => prev.map(el => {
+        if (el.id === el1.id || el.id === el2.id) {
+          const spawnPos = getEdgeSpawnPosition(el.zone);
+          const target = getNewTarget(el.zone);
+          return {
+            ...el,
+            x: spawnPos.x,
+            y: spawnPos.y,
+            targetX: target.x,
+            targetY: target.y,
+            vx: 0,
+            vy: 0,
+            status: 'respawning' as ElementStatus,
+            opacity: 0,
+            scale: 0,
+            invulnerable: true,
+            respawnTimer: Date.now(),
+          };
+        }
+        return el;
+      }));
+    }, TRANSFORM_DURATION);
 
-    // Clean up old reactions
-    setReactions(prev => prev.filter(r => now - r.timestamp < 1500));
+    // Complete respawn animation
+    setTimeout(() => {
+      setElements(prev => prev.map(el => {
+        if ((el.id === el1.id || el.id === el2.id) && el.status === 'respawning') {
+          return {
+            ...el,
+            status: 'wandering' as ElementStatus,
+            opacity: 1,
+            scale: 1,
+          };
+        }
+        return el;
+      }));
+    }, TRANSFORM_DURATION + 500);
 
-    return els;
-  }, []);
+    // Remove invulnerability
+    setTimeout(() => {
+      setElements(prev => prev.map(el => {
+        if (el.id === el1.id || el.id === el2.id) {
+          return { ...el, invulnerable: false };
+        }
+        return el;
+      }));
+    }, TRANSFORM_DURATION + 500 + INVULNERABILITY_DURATION);
+  }, [getEdgeSpawnPosition, getNewTarget]);
 
-  // Animation loop
+  // Main animation loop
   useEffect(() => {
     if (isPlaying || elements.length === 0) return;
 
-    const animate = () => {
+    const animate = (timestamp: number) => {
+      const delta = timestamp - timeRef.current;
+      timeRef.current = timestamp;
+      const now = Date.now();
+
       setElements(prevElements => {
         const newElements = prevElements.map(el => {
-          // Calculate direction to target
+          // Skip elements that are transforming
+          if (el.status === 'transforming') {
+            // Shrink and fade animation
+            const timeSinceReaction = now - el.lastReactionTime;
+            const progress = Math.min(timeSinceReaction / TRANSFORM_DURATION, 1);
+            
+            return {
+              ...el,
+              opacity: 1 - progress,
+              scale: 1 - progress * 0.8,
+              rotation: el.rotation + 10,
+            };
+          }
+
+          // Skip respawning elements (handled by scheduled state updates)
+          if (el.status === 'respawning') {
+            return el;
+          }
+
+          // Physics-based movement
+          const weight = ELEMENT_WEIGHTS[el.id] || 1;
+          const baseSpeed = 0.08 / weight;
+          
+          // Wandering behavior with slight randomness
           const dx = el.targetX - el.x;
           const dy = el.targetY - el.y;
           const distance = Math.sqrt(dx * dx + dy * dy);
 
-          // If close to target, pick new target
-          if (distance < TARGET_THRESHOLD) {
-            const newTarget = getNewTarget(el.zone);
+          // Boid-like wandering: add slight random steering
+          const wanderStrength = 0.02;
+          const wanderX = (Math.random() - 0.5) * wanderStrength;
+          const wanderY = (Math.random() - 0.5) * wanderStrength;
+
+          // Pick new target if close enough
+          if (distance < 30) {
+            const newTarget = getNewTarget(el.zone, true);
             return {
               ...el,
               targetX: newTarget.x,
@@ -281,25 +364,54 @@ export const ElementMascots = ({ isPlaying = false }: ElementMascotsProps) => {
             };
           }
 
-          // Move towards target with velocity
+          // Calculate steering toward target
           const dirX = dx / distance;
           const dirY = dy / distance;
 
-          // Apply movement
-          let newVx = el.vx + dirX * SPEED * 0.1;
-          let newVy = el.vy + dirY * SPEED * 0.1;
+          // Apply forces with spring-like behavior
+          const springStrength = 0.002;
+          let newVx = el.vx + (dirX * baseSpeed + wanderX) + dx * springStrength;
+          let newVy = el.vy + (dirY * baseSpeed + wanderY) + dy * springStrength;
+
+          // Special behaviors per element
+          if (el.id === 'helium') {
+            // Helium bobs upward and floats more
+            newVy -= 0.01;
+            newVx += Math.sin(timestamp / 500) * 0.005;
+          } else if (el.id === 'stone') {
+            // Stone has more inertia
+            newVx *= 0.98;
+            newVy *= 0.98;
+          } else if (el.id === 'fire') {
+            // Fire flickers with slight jitter
+            newVx += (Math.random() - 0.5) * 0.03;
+            newVy += (Math.random() - 0.5) * 0.03;
+          }
 
           // Apply friction
-          newVx *= 0.95;
-          newVy *= 0.95;
+          const friction = 0.92;
+          newVx *= friction;
+          newVy *= friction;
 
-          // Limit velocity
-          const maxSpeed = SPEED * 2;
+          // Limit max velocity
+          const maxSpeed = 2.5 / weight;
           const currentSpeed = Math.sqrt(newVx * newVx + newVy * newVy);
           if (currentSpeed > maxSpeed) {
             newVx = (newVx / currentSpeed) * maxSpeed;
             newVy = (newVy / currentSpeed) * maxSpeed;
           }
+
+          // Squash and stretch based on velocity
+          const velocityMagnitude = Math.sqrt(newVx * newVx + newVy * newVy);
+          const stretchFactor = Math.min(velocityMagnitude * 0.15, 0.2);
+          const angle = Math.atan2(newVy, newVx);
+          
+          // Calculate squash/stretch in direction of movement
+          const scaleX = 1 + stretchFactor;
+          const scaleY = 1 - stretchFactor * 0.5;
+
+          // Breathing animation when slow
+          const breathe = velocityMagnitude < 0.5 ? Math.sin(timestamp / 800) * 0.05 : 0;
 
           return {
             ...el,
@@ -307,12 +419,48 @@ export const ElementMascots = ({ isPlaying = false }: ElementMascotsProps) => {
             y: el.y + newVy,
             vx: newVx,
             vy: newVy,
+            scaleX: scaleX + breathe,
+            scaleY: scaleY + breathe,
+            rotation: angle * (180 / Math.PI) * 0.1,
           };
         });
 
-        // Check for reactions
-        return checkReactions(newElements);
+        // Check for reactions between elements
+        for (let i = 0; i < newElements.length; i++) {
+          for (let j = i + 1; j < newElements.length; j++) {
+            const el1 = newElements[i];
+            const el2 = newElements[j];
+
+            // Skip if either element is not wandering or is invulnerable
+            if (el1.status !== 'wandering' || el2.status !== 'wandering') continue;
+            if (el1.invulnerable || el2.invulnerable) continue;
+
+            // Check cooldown
+            if (now - el1.lastReactionTime < REACTION_COOLDOWN) continue;
+            if (now - el2.lastReactionTime < REACTION_COOLDOWN) continue;
+
+            const dx = el2.x - el1.x;
+            const dy = el2.y - el1.y;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+
+            if (distance < REACTION_RADIUS) {
+              // Find reaction rule
+              const rules = REACTION_RULES[el1.id] || [];
+              const rule = rules.find(r => r.partner === el2.id);
+
+              if (rule) {
+                triggerReaction(el1, el2, rule);
+                break;
+              }
+            }
+          }
+        }
+
+        return newElements;
       });
+
+      // Clean up old reaction products
+      setReactionProducts(prev => prev.filter(p => now - p.timestamp < 3000));
 
       animationRef.current = requestAnimationFrame(animate);
     };
@@ -324,222 +472,206 @@ export const ElementMascots = ({ isPlaying = false }: ElementMascotsProps) => {
         cancelAnimationFrame(animationRef.current);
       }
     };
-  }, [isPlaying, elements.length, getNewTarget, checkReactions]);
-
-  const isReacting = (elementId: string) => {
-    return Array.from(reactingPairs).some(pair => pair.includes(elementId));
-  };
+  }, [isPlaying, elements.length, getNewTarget, triggerReaction]);
 
   return (
     <div ref={containerRef} className="absolute inset-0 pointer-events-none overflow-hidden">
       {/* Element mascots */}
-      {elements.map((el) => {
-        const reacting = isReacting(el.id);
-        
-        return (
-          <motion.div
-            key={el.id}
-            className="absolute pointer-events-none"
-            style={{
-              left: el.x - el.size / 2,
-              top: el.y - el.size / 2,
-              width: el.size,
-              height: el.size,
-            }}
-            initial={{ opacity: 0, scale: 0 }}
-            animate={{ 
-              opacity: isPlaying ? 0 : 1, 
-              scale: isPlaying ? 0 : reacting ? 1.3 : 1,
-            }}
-            transition={{
-              opacity: { duration: 0.4 },
-              scale: { duration: 0.3, type: 'spring', stiffness: 300 },
-            }}
-          >
-            {/* Outer glow ring */}
-            <motion.div 
-              className="absolute inset-[-8px] rounded-full"
-              style={{ 
-                background: `radial-gradient(circle, ${el.glowColor}, transparent 70%)`,
-                filter: 'blur(8px)',
-              }}
-              animate={{
-                scale: reacting ? [1, 1.5, 1] : [1, 1.2, 1],
-                opacity: reacting ? [0.8, 1, 0.8] : [0.5, 0.8, 0.5],
-              }}
-              transition={{
-                duration: reacting ? 0.3 : 2,
-                repeat: reacting ? 0 : Infinity,
-                ease: 'easeInOut',
-              }}
-            />
+      <AnimatePresence>
+        {elements.map((el) => {
+          const size = el.baseSize * el.scale;
+          const isTransforming = el.status === 'transforming';
+          const isRespawning = el.status === 'respawning';
+          const showInvulnerableShimmer = el.invulnerable && el.status === 'wandering';
 
-            {/* Inner glow effect */}
-            <div 
-              className="absolute inset-0 rounded-full blur-lg opacity-70"
-              style={{ backgroundColor: el.glowColor }}
-            />
-            
-            {/* Badge container */}
-            <motion.div 
-              className={`relative w-full h-full rounded-full bg-gradient-to-br ${el.gradient} flex items-center justify-center shadow-xl border-3 border-white/30`}
+          return (
+            <motion.div
+              key={el.id}
+              className="absolute pointer-events-none"
               style={{
-                boxShadow: `0 4px 20px ${el.glowColor}, inset 0 2px 10px rgba(255,255,255,0.3)`,
+                left: el.x - size / 2,
+                top: el.y - size / 2,
+                width: size,
+                height: size,
+                opacity: el.opacity,
               }}
-              animate={{
-                rotate: [0, 5, -5, 0],
+              initial={{ opacity: 0, scale: 0 }}
+              animate={{ 
+                opacity: isPlaying ? 0 : el.opacity,
+                scale: isPlaying ? 0 : el.scale,
+                scaleX: el.scaleX,
+                scaleY: el.scaleY,
               }}
               transition={{
-                duration: 3,
-                repeat: Infinity,
-                ease: 'easeInOut',
+                opacity: { duration: 0.3 },
+                scale: { duration: 0.4, type: 'spring', stiffness: 200 },
               }}
             >
-              {/* Inner highlight */}
-              <div className="absolute inset-1.5 rounded-full bg-gradient-to-br from-white/40 to-transparent" />
-              
-              {/* Shine effect */}
-              <motion.div
-                className="absolute inset-0 rounded-full overflow-hidden"
-              >
+              {/* Invulnerability shimmer */}
+              {showInvulnerableShimmer && (
                 <motion.div
-                  className="absolute w-full h-1/2 bg-gradient-to-b from-white/30 to-transparent"
-                  animate={{
-                    y: ['-100%', '200%'],
+                  className="absolute inset-[-12px] rounded-full"
+                  style={{
+                    background: `conic-gradient(from 0deg, transparent, ${el.glowColor}, transparent, ${el.glowColor}, transparent)`,
                   }}
-                  transition={{
-                    duration: 3,
-                    repeat: Infinity,
-                    repeatDelay: 2,
-                  }}
+                  animate={{ rotate: 360 }}
+                  transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
                 />
-              </motion.div>
-              
-              {/* Emoji */}
-              <motion.span 
-                className="relative text-center select-none z-10"
-                style={{ fontSize: el.size * 0.5 }}
+              )}
+
+              {/* Outer glow ring */}
+              <motion.div 
+                className="absolute inset-[-10px] rounded-full"
+                style={{ 
+                  background: `radial-gradient(circle, ${el.glowColor}, transparent 70%)`,
+                  filter: 'blur(10px)',
+                }}
                 animate={{
-                  scale: reacting ? [1, 1.3, 1] : [1, 1.1, 1],
+                  scale: isTransforming ? [1, 2, 0] : [1, 1.3, 1],
+                  opacity: isTransforming ? [0.8, 1, 0] : [0.6, 0.9, 0.6],
                 }}
                 transition={{
-                  duration: reacting ? 0.3 : 1.5,
-                  repeat: reacting ? 0 : Infinity,
+                  duration: isTransforming ? 0.8 : 2.5,
+                  repeat: isTransforming ? 0 : Infinity,
+                  ease: 'easeInOut',
+                }}
+              />
+
+              {/* Transformation particles */}
+              {isTransforming && (
+                <>
+                  {[...Array(8)].map((_, i) => (
+                    <motion.div
+                      key={i}
+                      className="absolute rounded-full"
+                      style={{
+                        width: 8,
+                        height: 8,
+                        backgroundColor: el.glowColor,
+                        left: '50%',
+                        top: '50%',
+                      }}
+                      initial={{ x: -4, y: -4, scale: 1, opacity: 1 }}
+                      animate={{
+                        x: Math.cos((i / 8) * Math.PI * 2) * 60 - 4,
+                        y: Math.sin((i / 8) * Math.PI * 2) * 60 - 30 - 4,
+                        scale: 0,
+                        opacity: 0,
+                      }}
+                      transition={{ duration: 0.8, ease: 'easeOut', delay: i * 0.05 }}
+                    />
+                  ))}
+                </>
+              )}
+
+              {/* Inner glow effect */}
+              <motion.div 
+                className="absolute inset-0 rounded-full blur-lg"
+                style={{ 
+                  backgroundColor: el.glowColor,
+                  opacity: isTransforming ? 0.9 : 0.7,
+                }}
+                animate={isTransforming ? { scale: [1, 1.5, 0] } : {}}
+                transition={{ duration: 0.8 }}
+              />
+              
+              {/* Badge container */}
+              <motion.div 
+                className={`relative w-full h-full rounded-full bg-gradient-to-br ${el.gradient} flex items-center justify-center shadow-xl border-2 border-white/30`}
+                style={{
+                  boxShadow: `0 4px 20px ${el.glowColor}, inset 0 2px 10px rgba(255,255,255,0.3)`,
+                  transform: `rotate(${el.rotation}deg)`,
+                }}
+                animate={isRespawning ? {
+                  scale: [0, 1.3, 1],
+                  rotate: [180, -10, 0],
+                } : {
+                  rotate: [0, 3, -3, 0],
+                }}
+                transition={isRespawning ? {
+                  duration: 0.5,
+                  ease: 'backOut',
+                } : {
+                  duration: 4,
+                  repeat: Infinity,
                   ease: 'easeInOut',
                 }}
               >
-                {el.emoji}
-              </motion.span>
-            </motion.div>
-
-            {/* Particle trail */}
-            {[...Array(3)].map((_, i) => (
-              <motion.div
-                key={i}
-                className="absolute rounded-full"
-                style={{
-                  width: 6 - i * 1.5,
-                  height: 6 - i * 1.5,
-                  backgroundColor: el.glowColor,
-                  left: '50%',
-                  bottom: -10 - i * 8,
-                  marginLeft: -(3 - i * 0.75),
-                }}
-                animate={{
-                  opacity: [0.8, 0.3, 0.8],
-                  scale: [1, 0.8, 1],
-                  y: [0, 5, 0],
-                }}
-                transition={{
-                  duration: 1.5,
-                  repeat: Infinity,
-                  delay: i * 0.2,
-                }}
-              />
-            ))}
-          </motion.div>
-        );
-      })}
-
-      {/* Reaction effects */}
-      <AnimatePresence>
-        {reactions.map((reaction) => (
-          <div
-            key={reaction.id}
-            className="absolute"
-            style={{
-              left: reaction.x,
-              top: reaction.y,
-            }}
-          >
-            {/* Central burst */}
-            <motion.div
-              className="absolute"
-              style={{
-                left: -20,
-                top: -20,
-                fontSize: 40,
-              }}
-              initial={{ scale: 0, opacity: 1 }}
-              animate={{ scale: [0, 1.5, 1], opacity: [1, 1, 0] }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.6 }}
-            >
-              {reaction.emoji}
-            </motion.div>
-
-            {/* Particle burst */}
-            {reaction.particles.map((particle, idx) => {
-              const endX = Math.cos(particle.angle) * particle.speed;
-              const endY = Math.sin(particle.angle) * particle.speed - 15;
-
-              return (
-                <motion.div
-                  key={idx}
-                  className="absolute"
-                  style={{
-                    fontSize: particle.size,
-                    left: -particle.size / 2,
-                    top: -particle.size / 2,
+                {/* Inner highlight */}
+                <div className="absolute inset-1.5 rounded-full bg-gradient-to-br from-white/40 to-transparent" />
+                
+                {/* Shine effect */}
+                <motion.div className="absolute inset-0 rounded-full overflow-hidden">
+                  <motion.div
+                    className="absolute w-full h-1/2 bg-gradient-to-b from-white/30 to-transparent"
+                    animate={{ y: ['-100%', '200%'] }}
+                    transition={{
+                      duration: 3,
+                      repeat: Infinity,
+                      repeatDelay: 2,
+                    }}
+                  />
+                </motion.div>
+                
+                {/* Emoji */}
+                <motion.span 
+                  className="relative text-center select-none z-10"
+                  style={{ fontSize: size * 0.5 }}
+                  animate={isTransforming ? {
+                    scale: [1, 0],
+                    rotate: [0, 180],
+                  } : isRespawning ? {
+                    scale: [0, 1.2, 1],
+                  } : {
+                    scale: [1, 1.08, 1],
                   }}
-                  initial={{ x: 0, y: 0, scale: 0, opacity: 1 }}
-                  animate={{
-                    x: endX,
-                    y: endY,
-                    scale: [0, 1.2, 0.8],
-                    opacity: [1, 1, 0],
-                    rotate: reaction.type === 'dissolve' ? [0, 180] : [0, 45],
-                  }}
-                  exit={{ opacity: 0 }}
-                  transition={{
-                    duration: 0.8 + Math.random() * 0.3,
-                    delay: particle.delay,
-                    ease: 'easeOut',
+                  transition={isTransforming || isRespawning ? {
+                    duration: 0.5,
+                  } : {
+                    duration: 2,
+                    repeat: Infinity,
+                    ease: 'easeInOut',
                   }}
                 >
-                  {reaction.emoji}
-                </motion.div>
-              );
-            })}
+                  {el.emoji}
+                </motion.span>
+              </motion.div>
 
-            {/* Glow ring */}
-            <motion.div
-              className="absolute rounded-full"
-              style={{
-                width: 100,
-                height: 100,
-                left: -50,
-                top: -50,
-                background: 'radial-gradient(circle, rgba(255,255,255,0.5), transparent 70%)',
-              }}
-              initial={{ scale: 0, opacity: 0.8 }}
-              animate={{ scale: [0, 2], opacity: [0.8, 0] }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.5 }}
-            />
-          </div>
-        ))}
+              {/* Velocity trail particles */}
+              {el.status === 'wandering' && Math.sqrt(el.vx * el.vx + el.vy * el.vy) > 0.8 && (
+                [...Array(3)].map((_, i) => (
+                  <motion.div
+                    key={i}
+                    className="absolute rounded-full"
+                    style={{
+                      width: 6 - i * 1.5,
+                      height: 6 - i * 1.5,
+                      backgroundColor: el.glowColor,
+                      left: '50%',
+                      top: '50%',
+                      marginLeft: -(3 - i * 0.75),
+                      marginTop: -(3 - i * 0.75),
+                    }}
+                    animate={{
+                      x: -el.vx * (i + 1) * 8,
+                      y: -el.vy * (i + 1) * 8,
+                      opacity: [0.8, 0.3],
+                      scale: [1, 0.5],
+                    }}
+                    transition={{
+                      duration: 0.3,
+                      delay: i * 0.05,
+                    }}
+                  />
+                ))
+              )}
+            </motion.div>
+          );
+        })}
       </AnimatePresence>
+
+      {/* Reaction products (steam, explosions, etc.) */}
+      <ReactionProducts products={reactionProducts} />
     </div>
   );
 };
