@@ -14,6 +14,30 @@ export type Database = {
   }
   public: {
     Tables: {
+      daily_challenge_scores: {
+        Row: {
+          challenge_date: string
+          created_at: string
+          id: string
+          player_name: string
+          score: number
+        }
+        Insert: {
+          challenge_date?: string
+          created_at?: string
+          id?: string
+          player_name: string
+          score: number
+        }
+        Update: {
+          challenge_date?: string
+          created_at?: string
+          id?: string
+          player_name?: string
+          score?: number
+        }
+        Relationships: []
+      }
       leaderboard: {
         Row: {
           created_at: string
