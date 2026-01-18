@@ -55,15 +55,15 @@ const BlockLetter = ({ letter, color, index }: BlockLetterProps) => {
 const BlastLetter = ({ letter, index }: { letter: string; index: number }) => {
   return (
     <span
-      className="text-5xl sm:text-6xl md:text-7xl font-black relative inline-block"
+      className="text-6xl sm:text-7xl md:text-8xl font-black relative inline-block"
       style={{
         fontFamily: "'Fredoka One', cursive",
-        background: 'linear-gradient(180deg, #B3E5FC 0%, #4FC3F7 30%, #29B6F6 60%, #0288D1 100%)',
+        background: 'linear-gradient(180deg, #E0F7FA 0%, #4FC3F7 25%, #29B6F6 50%, #0288D1 75%, #01579B 100%)',
         WebkitBackgroundClip: 'text',
         backgroundClip: 'text',
         WebkitTextFillColor: 'transparent',
-        filter: 'drop-shadow(0 4px 0 #01579B) drop-shadow(0 6px 12px rgba(2, 136, 209, 0.5))',
-        letterSpacing: '0.02em',
+        filter: 'drop-shadow(0 5px 0 #01579B) drop-shadow(0 8px 15px rgba(2, 136, 209, 0.7))',
+        letterSpacing: '0.03em',
       }}
     >
       {letter}
