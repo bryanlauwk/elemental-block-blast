@@ -8,17 +8,18 @@ const ELEMENTS = [
 ];
 
 // Block colors for the stacks
-const BLOCK_COLORS = [
-  { bg: '#3B82F6', shadow: '#1D4ED8' }, // Blue
-  { bg: '#EF4444', shadow: '#B91C1C' }, // Red
-  { bg: '#06B6D4', shadow: '#0891B2' }, // Cyan
-  { bg: '#22C55E', shadow: '#15803D' }, // Green
-  { bg: '#F97316', shadow: '#C2410C' }, // Orange
-  { bg: '#8B5CF6', shadow: '#6D28D9' }, // Purple
-  { bg: '#EC4899', shadow: '#BE185D' }, // Pink
-];
+const BLOCK_COLORS = {
+  blue: { bg: '#3B82F6', shadow: '#1D4ED8' },
+  red: { bg: '#EF4444', shadow: '#B91C1C' },
+  cyan: { bg: '#06B6D4', shadow: '#0891B2' },
+  green: { bg: '#22C55E', shadow: '#15803D' },
+  orange: { bg: '#F97316', shadow: '#C2410C' },
+  purple: { bg: '#8B5CF6', shadow: '#6D28D9' },
+  pink: { bg: '#EC4899', shadow: '#BE185D' },
+};
 
-const BLOCK_SIZE = 48;
+const BLOCK_SIZE = 44;
+const GAP = 2;
 
 // Element icons row - static
 const ElementIconsRow = () => {
@@ -71,26 +72,30 @@ const Block = ({ color, size = BLOCK_SIZE }: BlockProps) => {
   );
 };
 
-// Left block stack - matching reference
+// Left block stack - matching reference exactly
 const LeftBlockStack = () => {
+  // From the reference image, left stack arrangement:
+  // Top: Cyan
+  // Row 2: Red, Cyan
+  // Row 3: Red, Blue
+  // Row 4 (bottom): Blue, Blue, Cyan
   const blocks = [
-    // Bottom row
-    { color: BLOCK_COLORS[0], x: 0, y: 3 },
-    { color: BLOCK_COLORS[0], x: 1, y: 3 },
-    { color: BLOCK_COLORS[2], x: 2, y: 3 },
-    // Second row
-    { color: BLOCK_COLORS[1], x: 0, y: 2 },
-    { color: BLOCK_COLORS[0], x: 1, y: 2 },
-    // Third row
-    { color: BLOCK_COLORS[1], x: 0, y: 1 },
-    { color: BLOCK_COLORS[2], x: 1, y: 1 },
-    // Top
-    { color: BLOCK_COLORS[2], x: 0, y: 0 },
+    // Bottom row (y=3)
+    { color: BLOCK_COLORS.blue, x: 0, y: 3 },
+    { color: BLOCK_COLORS.blue, x: 1, y: 3 },
+    { color: BLOCK_COLORS.cyan, x: 2, y: 3 },
+    // Row 2 (y=2)
+    { color: BLOCK_COLORS.red, x: 0, y: 2 },
+    { color: BLOCK_COLORS.blue, x: 1, y: 2 },
+    // Row 3 (y=1)
+    { color: BLOCK_COLORS.red, x: 0, y: 1 },
+    { color: BLOCK_COLORS.cyan, x: 1, y: 1 },
+    // Top (y=0)
+    { color: BLOCK_COLORS.cyan, x: 0, y: 0 },
   ];
 
-  const gap = 2;
-  const width = 3 * (BLOCK_SIZE + gap);
-  const height = 4 * (BLOCK_SIZE + gap);
+  const width = 3 * (BLOCK_SIZE + GAP);
+  const height = 4 * (BLOCK_SIZE + GAP);
 
   return (
     <div className="relative" style={{ width, height }}>
@@ -99,8 +104,8 @@ const LeftBlockStack = () => {
           key={i}
           className="absolute"
           style={{
-            left: block.x * (BLOCK_SIZE + gap),
-            top: block.y * (BLOCK_SIZE + gap),
+            left: block.x * (BLOCK_SIZE + GAP),
+            top: block.y * (BLOCK_SIZE + GAP),
           }}
         >
           <Block color={block.color} />
@@ -110,26 +115,30 @@ const LeftBlockStack = () => {
   );
 };
 
-// Right block stack - matching reference
+// Right block stack - matching reference exactly
 const RightBlockStack = () => {
+  // From the reference image, right stack arrangement:
+  // Top: Green
+  // Row 2: Green, Green  
+  // Row 3: Orange, Orange
+  // Row 4 (bottom): Cyan, Orange, Orange
   const blocks = [
-    // Bottom row
-    { color: BLOCK_COLORS[2], x: 0, y: 3 },
-    { color: BLOCK_COLORS[4], x: 1, y: 3 },
-    { color: BLOCK_COLORS[4], x: 2, y: 3 },
-    // Second row
-    { color: BLOCK_COLORS[4], x: 1, y: 2 },
-    { color: BLOCK_COLORS[4], x: 2, y: 2 },
-    // Third row
-    { color: BLOCK_COLORS[3], x: 1, y: 1 },
-    { color: BLOCK_COLORS[3], x: 2, y: 1 },
-    // Top
-    { color: BLOCK_COLORS[3], x: 2, y: 0 },
+    // Bottom row (y=3)
+    { color: BLOCK_COLORS.cyan, x: 0, y: 3 },
+    { color: BLOCK_COLORS.orange, x: 1, y: 3 },
+    { color: BLOCK_COLORS.orange, x: 2, y: 3 },
+    // Row 2 (y=2)
+    { color: BLOCK_COLORS.orange, x: 1, y: 2 },
+    { color: BLOCK_COLORS.orange, x: 2, y: 2 },
+    // Row 3 (y=1)
+    { color: BLOCK_COLORS.green, x: 1, y: 1 },
+    { color: BLOCK_COLORS.green, x: 2, y: 1 },
+    // Top (y=0)
+    { color: BLOCK_COLORS.green, x: 2, y: 0 },
   ];
 
-  const gap = 2;
-  const width = 3 * (BLOCK_SIZE + gap);
-  const height = 4 * (BLOCK_SIZE + gap);
+  const width = 3 * (BLOCK_SIZE + GAP);
+  const height = 4 * (BLOCK_SIZE + GAP);
 
   return (
     <div className="relative" style={{ width, height }}>
@@ -138,13 +147,97 @@ const RightBlockStack = () => {
           key={i}
           className="absolute"
           style={{
-            left: block.x * (BLOCK_SIZE + gap),
-            top: block.y * (BLOCK_SIZE + gap),
+            left: block.x * (BLOCK_SIZE + GAP),
+            top: block.y * (BLOCK_SIZE + GAP),
           }}
         >
           <Block color={block.color} />
         </div>
       ))}
+    </div>
+  );
+};
+
+// Center balloon with glow - matching reference
+const CenterBalloon = () => {
+  return (
+    <div className="absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2 z-10 flex flex-col items-center">
+      {/* Glow behind balloon */}
+      <div
+        className="absolute w-28 h-28 -top-2"
+        style={{
+          background: 'radial-gradient(circle, rgba(236, 72, 153, 0.5) 0%, rgba(168, 85, 247, 0.3) 40%, transparent 70%)',
+          filter: 'blur(12px)',
+        }}
+      />
+      
+      {/* Balloon */}
+      <div
+        className="relative w-16 h-20 rounded-full"
+        style={{
+          background: 'linear-gradient(145deg, #F472B6 0%, #EC4899 30%, #DB2777 70%, #BE185D 100%)',
+          boxShadow: `
+            0 6px 0 #9D174D,
+            0 10px 20px rgba(236, 72, 153, 0.4),
+            inset 4px 4px 12px rgba(255,255,255,0.4),
+            inset -3px -3px 8px rgba(0,0,0,0.1)
+          `,
+          borderRadius: '50% 50% 50% 50% / 55% 55% 45% 45%',
+        }}
+      >
+        {/* Shine */}
+        <div
+          className="absolute top-2 left-3 w-5 h-6 rounded-full"
+          style={{
+            background: 'linear-gradient(145deg, rgba(255,255,255,0.6), transparent)',
+            transform: 'rotate(-20deg)',
+          }}
+        />
+      </div>
+      
+      {/* String */}
+      <div
+        className="w-0.5 h-8 mt-1"
+        style={{
+          background: 'linear-gradient(to bottom, #DB2777, #9D174D)',
+        }}
+      />
+    </div>
+  );
+};
+
+// Bottom floor blocks - extending horizontally
+const BottomFloorBlocks = () => {
+  // Floor blocks matching the reference - cyan, purple, blue blocks at bottom
+  const leftBlocks = [
+    { color: BLOCK_COLORS.cyan, x: 0 },
+    { color: BLOCK_COLORS.purple, x: 1 },
+  ];
+  
+  const rightBlocks = [
+    { color: BLOCK_COLORS.cyan, x: 0 },
+    { color: BLOCK_COLORS.cyan, x: 1 },
+  ];
+
+  return (
+    <div className="absolute bottom-0 left-1/2 -translate-x-1/2 flex items-end gap-24">
+      {/* Left floor section */}
+      <div className="flex">
+        {leftBlocks.map((block, i) => (
+          <div key={`left-${i}`} style={{ marginRight: GAP }}>
+            <Block color={block.color} />
+          </div>
+        ))}
+      </div>
+      
+      {/* Right floor section */}
+      <div className="flex">
+        {rightBlocks.map((block, i) => (
+          <div key={`right-${i}`} style={{ marginRight: GAP }}>
+            <Block color={block.color} />
+          </div>
+        ))}
+      </div>
     </div>
   );
 };
@@ -153,31 +246,31 @@ const RightBlockStack = () => {
 const PerspectiveFloor = () => {
   return (
     <div
-      className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[400px] h-20 pointer-events-none"
+      className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[500px] h-32 pointer-events-none"
       style={{
-        perspective: '200px',
+        perspective: '300px',
       }}
     >
       <div
         className="w-full h-full"
         style={{
           background: `
-            linear-gradient(90deg, rgba(59, 130, 246, 0.3) 1px, transparent 1px),
-            linear-gradient(rgba(59, 130, 246, 0.3) 1px, transparent 1px)
+            linear-gradient(90deg, rgba(59, 130, 246, 0.25) 1px, transparent 1px),
+            linear-gradient(rgba(59, 130, 246, 0.25) 1px, transparent 1px)
           `,
-          backgroundSize: '30px 30px',
-          transform: 'rotateX(60deg)',
+          backgroundSize: '35px 35px',
+          transform: 'rotateX(65deg)',
           transformOrigin: 'center top',
-          maskImage: 'linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.8) 30%, rgba(0,0,0,0.4) 100%)',
-          WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.8) 30%, rgba(0,0,0,0.4) 100%)',
+          maskImage: 'linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.6) 20%, rgba(0,0,0,0.3) 100%)',
+          WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.6) 20%, rgba(0,0,0,0.3) 100%)',
         }}
       />
       {/* Floor glow */}
       <div
-        className="absolute top-0 left-1/2 -translate-x-1/2 w-40 h-8"
+        className="absolute top-4 left-1/2 -translate-x-1/2 w-48 h-12"
         style={{
-          background: 'radial-gradient(ellipse, rgba(59, 130, 246, 0.4) 0%, transparent 70%)',
-          filter: 'blur(8px)',
+          background: 'radial-gradient(ellipse, rgba(59, 130, 246, 0.5) 0%, transparent 70%)',
+          filter: 'blur(12px)',
         }}
       />
     </div>
@@ -190,16 +283,26 @@ export const HeroBlockDisplay = () => {
       {/* Element icons row */}
       <ElementIconsRow />
 
-      {/* Main display with blocks - no balloon */}
-      <div className="relative flex items-end justify-center gap-8 sm:gap-12 mt-2">
+      {/* Main display with blocks and balloon */}
+      <div className="relative h-[220px] w-[350px] sm:w-[400px]">
         {/* Perspective floor */}
         <PerspectiveFloor />
 
-        {/* Left stack */}
-        <LeftBlockStack />
+        {/* Left stack - positioned left */}
+        <div className="absolute left-0 bottom-12">
+          <LeftBlockStack />
+        </div>
 
-        {/* Right stack */}
-        <RightBlockStack />
+        {/* Center balloon */}
+        <CenterBalloon />
+
+        {/* Right stack - positioned right */}
+        <div className="absolute right-0 bottom-12">
+          <RightBlockStack />
+        </div>
+
+        {/* Bottom floor blocks */}
+        <BottomFloorBlocks />
       </div>
     </div>
   );
