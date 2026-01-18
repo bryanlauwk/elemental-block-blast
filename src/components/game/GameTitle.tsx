@@ -62,56 +62,66 @@ const elementIcons = [
   },
 ];
 
+// Wild letter rotations for dynamic, hand-drawn arcade feel
+const elementalRotations = [3, -2, 2.5, -3, 1.5, -2, 3, -1.5, 2];
+const blastRotations = [-2, 3, -2.5, 2, -3];
+
 interface BlockLetterProps {
   letter: string;
   color: { bg: string; shadow: string };
   index: number;
   isSecondWord?: boolean;
   hasCrown?: boolean;
+  rotation?: number;
 }
 
-const BlockLetter = ({ letter, color, index, isSecondWord, hasCrown }: BlockLetterProps) => {
+const BlockLetter = ({ letter, color, index, isSecondWord, hasCrown, rotation = 0 }: BlockLetterProps) => {
   return (
     <motion.span
-      initial={{ opacity: 0, y: 30, scale: 0.5, rotateX: -90 }}
-      animate={{ opacity: 1, y: 0, scale: 1, rotateX: 0 }}
+      initial={{ opacity: 0, y: 40, scale: 0.3, rotateX: -90, rotateZ: rotation * 2 }}
+      animate={{ opacity: 1, y: 0, scale: 1, rotateX: 0, rotateZ: rotation }}
       transition={{ 
-        delay: index * 0.05,
+        delay: index * 0.04,
         type: 'spring',
-        stiffness: 300,
-        damping: 15
+        stiffness: 350,
+        damping: 12
       }}
       whileHover={{ 
-        scale: 1.1, 
-        y: -5,
-        transition: { duration: 0.2 }
+        scale: 1.15, 
+        y: -8,
+        rotateZ: rotation * 1.5,
+        transition: { duration: 0.15 }
       }}
-      className={`relative inline-block font-black tracking-tight cursor-default select-none ${
+      className={`relative inline-block font-black cursor-default select-none ${
         isSecondWord 
-          ? 'text-[2.2rem] sm:text-[3rem] md:text-[4rem] lg:text-[5rem]' 
-          : 'text-[1.4rem] sm:text-[1.8rem] md:text-[2.2rem] lg:text-[2.8rem]'
+          ? 'text-[3rem] sm:text-[4rem] md:text-[5.5rem] lg:text-[7rem]' 
+          : 'text-[2rem] sm:text-[2.6rem] md:text-[3.5rem] lg:text-[4.5rem]'
       }`}
       style={{
-        fontFamily: "'Fredoka One', 'Arial Black', sans-serif",
+        fontFamily: "'Bangers', 'Impact', 'Arial Black', sans-serif",
+        fontStyle: 'italic',
         color: color.bg,
+        transform: `rotate(${rotation}deg)`,
         textShadow: isSecondWord 
           ? `
-            0 2px 0 rgba(255,255,255,0.4),
-            3px 3px 0 ${color.shadow},
-            5px 5px 0 ${color.shadow},
-            7px 7px 0 rgba(0,0,0,0.3),
-            9px 9px 12px rgba(0,0,0,0.4),
-            0 0 50px ${color.bg}60
+            0 3px 0 rgba(255,255,255,0.5),
+            4px 4px 0 ${color.shadow},
+            6px 6px 0 ${color.shadow},
+            8px 8px 0 ${color.shadow},
+            10px 10px 0 rgba(0,0,0,0.4),
+            12px 12px 20px rgba(0,0,0,0.5),
+            0 0 60px ${color.bg}70,
+            0 0 100px ${color.bg}40
           `
           : `
-            0 1px 0 rgba(255,255,255,0.5),
-            2px 2px 0 ${color.shadow},
+            0 2px 0 rgba(255,255,255,0.5),
             3px 3px 0 ${color.shadow},
-            4px 4px 8px rgba(0,0,0,0.3),
-            0 0 25px ${color.bg}40
+            5px 5px 0 ${color.shadow},
+            6px 6px 10px rgba(0,0,0,0.4),
+            0 0 40px ${color.bg}50
           `,
-        WebkitTextStroke: isSecondWord ? '1.5px rgba(0,0,0,0.15)' : '1px rgba(0,0,0,0.15)',
-        letterSpacing: '0.02em',
+        WebkitTextStroke: isSecondWord ? '2px rgba(0,0,0,0.2)' : '1.5px rgba(0,0,0,0.15)',
+        letterSpacing: isSecondWord ? '0.05em' : '0.03em',
         lineHeight: 1,
       }}
     >
@@ -119,25 +129,25 @@ const BlockLetter = ({ letter, color, index, isSecondWord, hasCrown }: BlockLett
       {/* Crown integrated on the letter */}
       {hasCrown && (
         <motion.div
-          className="absolute -top-2.5 sm:-top-3 md:-top-4 lg:-top-5 left-1/2 -translate-x-1/2"
+          className="absolute -top-3 sm:-top-4 md:-top-6 lg:-top-8 left-1/2 -translate-x-1/2"
           initial={{ opacity: 0, scale: 0, rotate: -20 }}
           animate={{ opacity: 1, scale: 1, rotate: 0 }}
           transition={{ delay: 0.5, type: 'spring', stiffness: 200, damping: 12 }}
         >
           <motion.div
-            animate={{ y: [0, -2, 0], rotate: [0, 3, -3, 0] }}
-            transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
+            animate={{ y: [0, -3, 0], rotate: [0, 5, -5, 0] }}
+            transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
           >
             <Crown 
-              className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 lg:w-7 lg:h-7"
+              className="w-5 h-5 sm:w-6 sm:h-6 md:w-8 md:h-8 lg:w-10 lg:h-10"
               strokeWidth={2.5}
               style={{
                 color: '#FFD700',
                 filter: `
-                  drop-shadow(0 1px 0 #CC7700)
-                  drop-shadow(0 2px 0 #AA5500)
-                  drop-shadow(0 3px 0 rgba(0,0,0,0.3))
-                  drop-shadow(0 0 12px rgba(255,215,0,0.6))
+                  drop-shadow(0 2px 0 #CC7700)
+                  drop-shadow(0 3px 0 #AA5500)
+                  drop-shadow(0 4px 0 rgba(0,0,0,0.4))
+                  drop-shadow(0 0 20px rgba(255,215,0,0.8))
                 `,
               }}
             />
@@ -249,8 +259,8 @@ export const GameTitle = () => {
           }}
         />
         
-        {/* Title words stacked tightly */}
-        <div className="flex flex-col items-center -space-y-1 sm:-space-y-2 md:-space-y-3 lg:-space-y-4">
+        {/* Title words stacked - WILD typography */}
+        <div className="flex flex-col items-center -space-y-2 sm:-space-y-4 md:-space-y-6 lg:-space-y-8">
           {/* First word - ELEMENTAL (Rainbow) with crown on A */}
           <div className="flex items-center justify-center">
             {word1.split('').map((letter, i) => (
@@ -260,12 +270,19 @@ export const GameTitle = () => {
                 color={elementalColors[i]}
                 index={i}
                 hasCrown={i === 7} // Crown on "A"
+                rotation={elementalRotations[i]}
               />
             ))}
           </div>
 
-          {/* Second word - BLAST (Cyan/Teal) - tucked under ELEMENTAL */}
-          <div className="flex items-center justify-center">
+          {/* Second word - BLAST (Cyan/Teal) - MASSIVE with pulsing glow */}
+          <motion.div 
+            className="flex items-center justify-center"
+            animate={{ 
+              filter: ['drop-shadow(0 0 30px rgba(0,229,255,0.4))', 'drop-shadow(0 0 50px rgba(0,229,255,0.7))', 'drop-shadow(0 0 30px rgba(0,229,255,0.4))']
+            }}
+            transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+          >
             {word2.split('').map((letter, i) => (
               <BlockLetter 
                 key={`w2-${i}`} 
@@ -273,9 +290,10 @@ export const GameTitle = () => {
                 color={blastColors[i]} 
                 index={9 + i}
                 isSecondWord
+                rotation={blastRotations[i]}
               />
             ))}
-          </div>
+          </motion.div>
         </div>
 
         {/* Element Icons Row - tighter spacing, part of logo */}
