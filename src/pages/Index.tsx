@@ -273,13 +273,32 @@ const Index = () => {
                         <p className="text-3xl font-black text-white mb-2">
                           {isNewHighScore ? 'Amazing!' : 'Game Over'}
                         </p>
-                        <p className={`text-4xl font-black bg-clip-text text-transparent mb-4 ${
+                        <p className={`text-4xl font-black bg-clip-text text-transparent mb-2 ${
                           isNewHighScore 
                             ? 'bg-gradient-to-r from-yellow-400 via-amber-500 to-yellow-400' 
                             : 'bg-gradient-to-r from-game-score-start via-game-score-mid to-game-score-end'
                         }`}>
                           {gameState.score.toLocaleString()}
                         </p>
+                        
+                        {/* Social proof - percentile ranking */}
+                        <motion.p
+                          initial={{ opacity: 0, y: 5 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: 0.3 }}
+                          className="text-sm text-game-text-muted mb-4"
+                        >
+                          {gameState.score >= 5000 
+                            ? "🔥 Top 5% of players!" 
+                            : gameState.score >= 2000 
+                              ? "⭐ Top 25% of players!"
+                              : gameState.score >= 1000 
+                                ? "👍 Top 50% of players!"
+                                : gameState.score >= 500 
+                                  ? "Top 75% of players"
+                                  : "Keep practicing!"}
+                        </motion.p>
+                        
                         <Button
                           onClick={startGame}
                           className="bg-gradient-to-r from-game-accent to-emerald-400 hover:from-emerald-400 hover:to-game-accent text-black font-bold px-6 py-5 rounded-xl"
