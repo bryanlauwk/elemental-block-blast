@@ -1,4 +1,5 @@
 import { motion } from 'framer-motion';
+import { Crown } from 'lucide-react';
 
 // Full rainbow colors for ELEMENTAL BLAST - each letter unique
 const allLetterColors = [
@@ -18,6 +19,45 @@ const allLetterColors = [
   { bg: '#FFD700', shadow: '#8B7500' }, // A - Gold
   { bg: '#FF6347', shadow: '#8B2500' }, // S - Tomato
   { bg: '#FF4D4D', shadow: '#991F1F' }, // T - Red
+];
+
+// Element icons with premium 3D styling matching reference
+const elementIcons = [
+  { 
+    emoji: '🔥', 
+    name: 'Fire',
+    bgGradient: 'linear-gradient(135deg, #FF6B35 0%, #F7931E 50%, #FF4500 100%)',
+    shadowColor: '#8B2500',
+    glowColor: 'rgba(255, 107, 53, 0.6)'
+  },
+  { 
+    emoji: '💧', 
+    name: 'Water',
+    bgGradient: 'linear-gradient(135deg, #00D4FF 0%, #0099CC 50%, #0066AA 100%)',
+    shadowColor: '#003366',
+    glowColor: 'rgba(0, 212, 255, 0.6)'
+  },
+  { 
+    emoji: '🪵', 
+    name: 'Wood',
+    bgGradient: 'linear-gradient(135deg, #8B6914 0%, #6B4423 50%, #4A3015 100%)',
+    shadowColor: '#2D1810',
+    glowColor: 'rgba(139, 105, 20, 0.5)'
+  },
+  { 
+    emoji: '🪨', 
+    name: 'Stone',
+    bgGradient: 'linear-gradient(135deg, #9E8B7D 0%, #7A6B5D 50%, #5C4D40 100%)',
+    shadowColor: '#3D3530',
+    glowColor: 'rgba(158, 139, 125, 0.5)'
+  },
+  { 
+    emoji: '🎈', 
+    name: 'Helium',
+    bgGradient: 'linear-gradient(135deg, #98E8A8 0%, #5DC76F 50%, #3DAA4F 100%)',
+    shadowColor: '#1A6B2A',
+    glowColor: 'rgba(93, 199, 111, 0.6)'
+  },
 ];
 
 interface BlockLetterProps {
@@ -78,17 +118,97 @@ const BlockLetter = ({ letter, color, index, isSecondWord }: BlockLetterProps) =
   );
 };
 
+interface ElementIconProps {
+  icon: typeof elementIcons[0];
+  index: number;
+}
+
+const ElementIcon = ({ icon, index }: ElementIconProps) => {
+  return (
+    <motion.div
+      initial={{ opacity: 0, scale: 0, y: 20 }}
+      animate={{ opacity: 1, scale: 1, y: 0 }}
+      transition={{ 
+        delay: 0.5 + index * 0.08,
+        type: 'spring',
+        stiffness: 300,
+        damping: 15
+      }}
+      whileHover={{ scale: 1.1, y: -4 }}
+      whileTap={{ scale: 0.95 }}
+      className="relative cursor-pointer"
+    >
+      {/* Outer glow */}
+      <div 
+        className="absolute inset-0 rounded-xl blur-md opacity-70"
+        style={{ background: icon.glowColor }}
+      />
+      
+      {/* Main icon container */}
+      <div
+        className="relative w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 rounded-xl flex items-center justify-center"
+        style={{
+          background: icon.bgGradient,
+          boxShadow: `
+            0 4px 0 ${icon.shadowColor},
+            0 6px 0 rgba(0,0,0,0.3),
+            inset 0 2px 4px rgba(255,255,255,0.3),
+            0 8px 20px rgba(0,0,0,0.3)
+          `,
+          border: '2px solid rgba(255,255,255,0.2)',
+        }}
+      >
+        {/* Top shine */}
+        <div 
+          className="absolute top-0 left-1 right-1 h-1/3 rounded-t-lg pointer-events-none"
+          style={{
+            background: 'linear-gradient(180deg, rgba(255,255,255,0.4) 0%, transparent 100%)',
+          }}
+        />
+        
+        {/* Emoji */}
+        <span className="text-2xl sm:text-3xl md:text-4xl drop-shadow-lg select-none">
+          {icon.emoji}
+        </span>
+      </div>
+    </motion.div>
+  );
+};
+
 export const GameTitle = () => {
   const word1 = 'ELEMENTAL';
   const word2 = 'BLAST';
 
   return (
     <motion.div 
-      className="flex flex-col items-center gap-0 relative px-2"
+      className="flex flex-col items-center gap-2 relative px-2"
       initial={{ scale: 0.9, opacity: 0 }}
       animate={{ scale: 1, opacity: 1 }}
       transition={{ duration: 0.4, ease: 'easeOut' }}
     >
+      {/* Crown icon above title */}
+      <motion.div
+        initial={{ opacity: 0, y: -20, scale: 0.5 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ delay: 0.2, type: 'spring', stiffness: 300 }}
+        className="relative mb-1"
+      >
+        {/* Crown glow */}
+        <div 
+          className="absolute inset-0 blur-lg"
+          style={{ background: 'rgba(255, 200, 0, 0.5)' }}
+        />
+        <Crown 
+          className="relative w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16" 
+          style={{
+            color: '#FFD700',
+            filter: 'drop-shadow(0 3px 0 #B8860B) drop-shadow(0 5px 0 rgba(0,0,0,0.3))',
+          }}
+          fill="#FFD700"
+          strokeWidth={1.5}
+        />
+      </motion.div>
+
       {/* Glow behind title */}
       <div 
         className="absolute inset-0 -z-10"
@@ -122,6 +242,18 @@ export const GameTitle = () => {
           />
         ))}
       </div>
+
+      {/* Element Icons Row - USP Showcase */}
+      <motion.div 
+        className="flex items-center justify-center gap-2 sm:gap-3 mt-3 sm:mt-4"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.4 }}
+      >
+        {elementIcons.map((icon, index) => (
+          <ElementIcon key={icon.name} icon={icon} index={index} />
+        ))}
+      </motion.div>
     </motion.div>
   );
 };
