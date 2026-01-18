@@ -12,6 +12,7 @@ import { ElementLegend } from '@/components/game/ElementLegend';
 import { LeaderboardModal } from '@/components/game/LeaderboardModal';
 import { PlayerNameModal } from '@/components/game/PlayerNameModal';
 import { DailyChallengeModal } from '@/components/game/DailyChallengeModal';
+import { ShareButtons } from '@/components/game/ShareButtons';
 import { KeyboardHints } from '@/components/game/KeyboardHints';
 import ReactionFeed from '@/components/game/ReactionFeed';
 import ReactionTutorial from '@/components/game/ReactionTutorial';
@@ -466,6 +467,20 @@ const Index = () => {
                                     : "Keep practicing!"}
                           </motion.p>
                         )}
+                        
+                        {/* Share buttons */}
+                        <motion.div
+                          initial={{ opacity: 0, y: 5 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: 0.4 }}
+                          className="mb-4"
+                        >
+                          <ShareButtons 
+                            score={gameState.score} 
+                            isDailyChallenge={isDailyChallenge}
+                            rank={globalRank}
+                          />
+                        </motion.div>
                         
                         {/* Submit score button if not already submitted */}
                         {!submittedPlayerName && gameState.score >= 100 && (
