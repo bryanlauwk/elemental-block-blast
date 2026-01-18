@@ -304,64 +304,57 @@ const Index = () => {
             {/* Start screen */}
             {!hasStarted && (
               <motion.div
-                className="flex flex-col items-center gap-12 pt-4"
+                className="flex flex-col items-center gap-6"
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
               >
-                {/* Hero blocks display - now below title with proper spacing */}
+                {/* Hero blocks display */}
                 <HeroBlockDisplay />
                 
-                {/* Clean tagline */}
-                <motion.p 
-                  className="text-white/50 text-lg text-center max-w-sm font-medium"
-                  initial={{ opacity: 0, y: 10 }}
+                {/* Play button - Block Blast style green */}
+                <motion.div
+                  className="relative"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.6 }}
+                  transition={{ delay: 0.8 }}
                 >
-                  Match elements • Clear lines • Chain reactions
-                </motion.p>
+                  <Button
+                    onClick={startGame}
+                    size="lg"
+                    className="relative bg-gradient-to-b from-emerald-400 to-emerald-600 hover:from-emerald-300 hover:to-emerald-500 text-white font-black text-3xl px-16 py-8 rounded-2xl transition-all overflow-hidden border-0"
+                    style={{
+                      boxShadow: '0 6px 0 #16a34a, 0 10px 30px rgba(34,197,94,0.4), inset 0 3px 6px rgba(255,255,255,0.35)',
+                    }}
+                  >
+                    {/* Shine effect */}
+                    <div className="absolute top-0 left-0 right-0 h-1/3 bg-gradient-to-b from-white/35 to-transparent rounded-t-2xl" />
+                    <span className="relative z-10 tracking-wide">PLAY</span>
+                  </Button>
+                </motion.div>
                 
-                <div className="flex flex-col gap-4 items-center">
-                  {/* Clean play button */}
-                  <motion.div
-                    className="relative"
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
+                {/* Daily Challenge button - yellow/amber style */}
+                <motion.div
+                  className="relative"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.9 }}
+                >
+                  <Button
+                    onClick={() => setShowDailyChallenge(true)}
+                    size="lg"
+                    className="relative bg-gradient-to-b from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-amber-900 font-bold text-lg px-8 py-5 rounded-xl transition-all overflow-hidden border-0"
+                    style={{
+                      boxShadow: '0 4px 0 #B45309, 0 8px 20px rgba(245,158,11,0.3), inset 0 2px 4px rgba(255,255,255,0.35)',
+                    }}
                   >
-                    <Button
-                      onClick={startGame}
-                      size="lg"
-                      className="relative bg-gradient-to-b from-emerald-400 to-emerald-600 hover:from-emerald-300 hover:to-emerald-500 text-white font-black text-2xl px-14 py-10 rounded-2xl transition-all overflow-hidden"
-                      style={{
-                        boxShadow: '0 6px 0 #16a34a, 0 10px 30px rgba(34,197,94,0.4), inset 0 2px 4px rgba(255,255,255,0.3)',
-                      }}
-                    >
-                      {/* Shine effect */}
-                      <div className="absolute top-0 left-0 right-0 h-1/3 bg-gradient-to-b from-white/30 to-transparent rounded-t-2xl" />
-                      <Play className="w-8 h-8 mr-3 fill-current relative z-10" />
-                      <span className="relative z-10">PLAY</span>
-                    </Button>
-                  </motion.div>
-                  
-                  {/* Daily Challenge button - cleaner */}
-                  <motion.div
-                    className="relative"
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.6 }}
-                  >
-                    <Button
-                      onClick={() => setShowDailyChallenge(true)}
-                      variant="outline"
-                      className="border-2 border-amber-400/50 text-amber-300 hover:bg-amber-500/20 hover:border-amber-300 font-bold px-6 py-5"
-                    >
-                      <Calendar className="w-5 h-5 mr-2" />
-                      Daily Challenge
-                    </Button>
-                  </motion.div>
-                </div>
+                    <div className="absolute top-0 left-0 right-0 h-1/3 bg-gradient-to-b from-white/30 to-transparent rounded-t-xl" />
+                    <span className="relative z-10">Daily Challenge</span>
+                  </Button>
+                </motion.div>
               </motion.div>
             )}
 
