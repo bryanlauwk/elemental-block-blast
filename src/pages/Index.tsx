@@ -172,22 +172,50 @@ const Index = () => {
   return (
     <div className="min-h-screen text-white flex flex-col relative overflow-hidden"
       style={{
-        background: 'radial-gradient(ellipse 120% 80% at 50% 50%, hsl(220 75% 28%) 0%, hsl(225 80% 18%) 40%, hsl(230 100% 2%) 100%)',
+        background: 'radial-gradient(ellipse 120% 80% at 50% 50%, hsl(220 60% 15%) 0%, hsl(225 70% 8%) 40%, hsl(230 100% 2%) 100%)',
       }}
     >
-      {/* Grid overlay - wall effect */}
+      {/* Grid overlay - wall effect with neon cyan glow */}
       <div 
         className="absolute inset-0 pointer-events-none"
         style={{
           background: `
-            linear-gradient(90deg, rgba(34, 211, 238, 0.08) 1px, transparent 1px),
-            linear-gradient(rgba(34, 211, 238, 0.08) 1px, transparent 1px)
+            linear-gradient(90deg, rgba(34, 211, 238, 0.18) 1px, transparent 1px),
+            linear-gradient(rgba(34, 211, 238, 0.18) 1px, transparent 1px)
           `,
           backgroundSize: '60px 60px',
-          maskImage: 'linear-gradient(to bottom, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.2) 70%, transparent 85%)',
-          WebkitMaskImage: 'linear-gradient(to bottom, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.2) 70%, transparent 85%)',
+          maskImage: 'linear-gradient(to bottom, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.3) 60%, transparent 80%)',
+          WebkitMaskImage: 'linear-gradient(to bottom, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.3) 60%, transparent 80%)',
+          filter: 'drop-shadow(0 0 4px rgba(34, 211, 238, 0.5))',
         }}
       />
+      
+      {/* Perspective floor grid - 3D effect */}
+      <div 
+        className="absolute bottom-0 left-0 right-0 pointer-events-none"
+        style={{
+          height: '40%',
+          perspective: '800px',
+          perspectiveOrigin: 'center bottom',
+        }}
+      >
+        <div
+          style={{
+            width: '100%',
+            height: '100%',
+            background: `
+              linear-gradient(90deg, rgba(34, 211, 238, 0.25) 1px, transparent 1px),
+              linear-gradient(rgba(34, 211, 238, 0.25) 1px, transparent 1px)
+            `,
+            backgroundSize: '60px 60px',
+            transform: 'rotateX(60deg)',
+            transformOrigin: 'center bottom',
+            maskImage: 'linear-gradient(to top, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.2) 50%, transparent 80%)',
+            WebkitMaskImage: 'linear-gradient(to top, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.2) 50%, transparent 80%)',
+            filter: 'drop-shadow(0 0 8px rgba(34, 211, 238, 0.6))',
+          }}
+        />
+      </div>
 
       {/* Background decorations */}
       <BackgroundDoodles />
@@ -346,14 +374,14 @@ const Index = () => {
                 {/* Hero blocks display */}
                 <HeroBlockDisplay />
                 
-                {/* Play button - Block Blast style massive green 3D button */}
+                {/* Play button - Vibrant lime green with 3D pressable look */}
                 <div className="relative group">
                   <Button
                     onClick={startGame}
                     size="lg"
-                    className="relative bg-gradient-to-b from-emerald-400 via-emerald-500 to-emerald-600 hover:from-emerald-300 hover:via-emerald-400 hover:to-emerald-500 text-white font-black text-3xl sm:text-4xl px-20 sm:px-24 py-8 sm:py-10 rounded-2xl transition-all overflow-hidden border-0 active:translate-y-1 active:shadow-none flex items-center gap-3"
+                    className="relative bg-gradient-to-b from-lime-400 via-lime-500 to-lime-600 hover:from-lime-300 hover:via-lime-400 hover:to-lime-500 text-white font-black text-3xl sm:text-4xl px-20 sm:px-24 py-8 sm:py-10 rounded-2xl transition-all overflow-hidden border-0 active:translate-y-1 active:shadow-none flex items-center gap-3"
                     style={{
-                      boxShadow: '0 8px 0 #15803D, 0 12px 30px rgba(34,197,94,0.5), inset 0 4px 8px rgba(255,255,255,0.4)',
+                      boxShadow: '0 8px 0 #3F6212, 0 12px 30px rgba(132,204,22,0.5), inset 0 4px 8px rgba(255,255,255,0.4)',
                     }}
                   >
                     {/* Play triangle icon */}
@@ -364,18 +392,18 @@ const Index = () => {
                   </Button>
                 </div>
                 
-                {/* Daily Challenge button - White/cream with orange text */}
+                {/* Daily Challenge button - Golden yellow with dark orange 3D edge */}
                 <div className="relative group">
                   <Button
                     onClick={() => setShowDailyChallenge(true)}
                     size="lg"
-                    className="relative bg-gradient-to-b from-white via-gray-50 to-gray-100 hover:from-gray-50 hover:via-gray-100 hover:to-gray-200 text-amber-600 font-bold text-lg px-10 py-6 rounded-xl transition-all overflow-hidden border-0 active:translate-y-1 active:shadow-none flex items-center gap-2"
+                    className="relative bg-gradient-to-b from-yellow-400 via-amber-400 to-amber-500 hover:from-yellow-300 hover:via-amber-300 hover:to-amber-400 text-amber-900 font-bold text-lg px-10 py-6 rounded-xl transition-all overflow-hidden border-0 active:translate-y-1 active:shadow-none flex items-center gap-2"
                     style={{
-                      boxShadow: '0 4px 0 #D1D5DB, 0 8px 20px rgba(0,0,0,0.15), inset 0 2px 4px rgba(255,255,255,0.8)',
+                      boxShadow: '0 4px 0 #B45309, 0 8px 20px rgba(245,158,11,0.4), inset 0 2px 4px rgba(255,255,255,0.6)',
                     }}
                   >
-                    <Calendar className="w-5 h-5 text-amber-500 relative z-10" />
-                    <div className="absolute top-0 left-0 right-0 h-1/3 bg-gradient-to-b from-white/60 to-transparent rounded-t-xl" />
+                    <Calendar className="w-5 h-5 text-amber-800 relative z-10" />
+                    <div className="absolute top-0 left-0 right-0 h-1/3 bg-gradient-to-b from-white/50 to-transparent rounded-t-xl" />
                     <span className="relative z-10">Daily Challenge</span>
                   </Button>
                 </div>
