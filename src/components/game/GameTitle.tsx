@@ -1,56 +1,43 @@
 import { Crown } from 'lucide-react';
 
-// Exact colors from reference - each letter gets a unique vibrant color
+// Colors: Red, Blue, Green, Orange pattern repeating
 const letterColors = [
-  { bg: '#EF4444', shadow: '#B91C1C', glow: '#EF4444' }, // E - Red
-  { bg: '#3B82F6', shadow: '#1D4ED8', glow: '#3B82F6' }, // L - Blue
-  { bg: '#22C55E', shadow: '#15803D', glow: '#22C55E' }, // E - Green
-  { bg: '#F97316', shadow: '#C2410C', glow: '#F97316' }, // M - Orange
-  { bg: '#8B5CF6', shadow: '#6D28D9', glow: '#8B5CF6' }, // E - Purple
-  { bg: '#EAB308', shadow: '#A16207', glow: '#EAB308' }, // N - Yellow
-  { bg: '#06B6D4', shadow: '#0891B2', glow: '#06B6D4' }, // T - Cyan
-  { bg: '#EC4899', shadow: '#BE185D', glow: '#EC4899' }, // A - Pink
-  { bg: '#EF4444', shadow: '#B91C1C', glow: '#EF4444' }, // L - Red
+  { bg: '#EF4444', shadow: '#7F1D1D' }, // E - Red
+  { bg: '#3B82F6', shadow: '#1E3A8A' }, // L - Blue
+  { bg: '#22C55E', shadow: '#14532D' }, // E - Green
+  { bg: '#F97316', shadow: '#7C2D12' }, // M - Orange
+  { bg: '#EF4444', shadow: '#7F1D1D' }, // E - Red
+  { bg: '#3B82F6', shadow: '#1E3A8A' }, // N - Blue
+  { bg: '#22C55E', shadow: '#14532D' }, // T - Green
+  { bg: '#F97316', shadow: '#7C2D12' }, // A - Orange
+  { bg: '#EF4444', shadow: '#7F1D1D' }, // L - Red
 ];
 
 interface BlockLetterProps {
   letter: string;
-  color: { bg: string; shadow: string; glow: string };
-  size: 'normal' | 'large';
+  color: { bg: string; shadow: string };
   index: number;
 }
 
-const BlockLetter = ({ letter, color, size, index }: BlockLetterProps) => {
-  const fontSize = size === 'large' ? 'text-5xl sm:text-6xl md:text-7xl' : 'text-3xl sm:text-4xl md:text-5xl';
-  const shadowOffset = size === 'large' ? 5 : 4;
-  
+const BlockLetter = ({ letter, color, index }: BlockLetterProps) => {
   return (
     <span
-      className={`${fontSize} font-black relative inline-block`}
+      className="text-4xl sm:text-5xl md:text-6xl font-black relative inline-block"
       style={{
-        fontFamily: "'Fredoka One', 'Nunito', 'Baloo 2', sans-serif",
+        fontFamily: "'Fredoka One', cursive",
         color: color.bg,
         textShadow: `
-          0 ${shadowOffset}px 0 ${color.shadow},
-          0 ${shadowOffset + 2}px 4px rgba(0,0,0,0.4),
-          0 0 25px ${color.glow}60,
-          0 0 50px ${color.glow}30
+          3px 3px 0 ${color.shadow},
+          4px 4px 0 ${color.shadow},
+          5px 5px 0 ${color.shadow},
+          6px 6px 0 ${color.shadow},
+          7px 7px 8px rgba(0,0,0,0.6),
+          0 0 20px rgba(0,0,0,0.3)
         `,
-        WebkitTextStroke: '1.5px rgba(255,255,255,0.4)',
-        letterSpacing: '-0.02em',
-        transform: `rotate(${(index % 3 - 1) * 2}deg)`,
+        WebkitTextStroke: '1px rgba(0,0,0,0.3)',
+        letterSpacing: '0.02em',
       }}
     >
-      {/* White gloss highlight on each letter */}
-      <span
-        className="absolute inset-0 pointer-events-none"
-        style={{
-          background: 'linear-gradient(145deg, rgba(255,255,255,0.5) 0%, rgba(255,255,255,0.2) 30%, transparent 50%)',
-          WebkitBackgroundClip: 'text',
-          backgroundClip: 'text',
-          opacity: 0.6,
-        }}
-      />
       {letter}
     </span>
   );
@@ -105,7 +92,6 @@ export const GameTitle = () => {
             key={`w1-${i}`}
             letter={letter}
             color={letterColors[i % letterColors.length]}
-            size="normal"
             index={i}
           />
         ))}
