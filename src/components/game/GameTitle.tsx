@@ -1,16 +1,16 @@
 import { Crown } from 'lucide-react';
 
-// Colors: Red, Blue, Green, Orange pattern repeating
+// Rainbow colors for ELEMENTAL - Red, Orange, Yellow, Green, Cyan, Blue, Purple, Violet, Pink
 const letterColors = [
   { bg: '#EF4444', shadow: '#7F1D1D' }, // E - Red
-  { bg: '#3B82F6', shadow: '#1E3A8A' }, // L - Blue
-  { bg: '#22C55E', shadow: '#14532D' }, // E - Green
-  { bg: '#F97316', shadow: '#7C2D12' }, // M - Orange
-  { bg: '#EF4444', shadow: '#7F1D1D' }, // E - Red
+  { bg: '#F97316', shadow: '#7C2D12' }, // L - Orange
+  { bg: '#EAB308', shadow: '#713F12' }, // E - Yellow
+  { bg: '#22C55E', shadow: '#14532D' }, // M - Green
+  { bg: '#06B6D4', shadow: '#164E63' }, // E - Cyan
   { bg: '#3B82F6', shadow: '#1E3A8A' }, // N - Blue
-  { bg: '#22C55E', shadow: '#14532D' }, // T - Green
-  { bg: '#F97316', shadow: '#7C2D12' }, // A - Orange
-  { bg: '#EF4444', shadow: '#7F1D1D' }, // L - Red
+  { bg: '#8B5CF6', shadow: '#4C1D95' }, // T - Purple
+  { bg: '#A855F7', shadow: '#581C87' }, // A - Violet
+  { bg: '#EC4899', shadow: '#831843' }, // L - Pink
 ];
 
 interface BlockLetterProps {
@@ -27,37 +27,43 @@ const BlockLetter = ({ letter, color, index }: BlockLetterProps) => {
         fontFamily: "'Fredoka One', cursive",
         color: color.bg,
         textShadow: `
+          2px 2px 0 ${color.shadow},
           3px 3px 0 ${color.shadow},
           4px 4px 0 ${color.shadow},
           5px 5px 0 ${color.shadow},
-          6px 6px 0 ${color.shadow},
-          7px 7px 8px rgba(0,0,0,0.6),
-          0 0 20px rgba(0,0,0,0.3)
+          6px 6px 10px rgba(0,0,0,0.5)
         `,
-        WebkitTextStroke: '1px rgba(0,0,0,0.3)',
-        letterSpacing: '0.02em',
+        WebkitTextStroke: '1px rgba(0,0,0,0.2)',
+        letterSpacing: '0.01em',
       }}
     >
+      {/* Gloss highlight on each letter */}
+      <span
+        className="absolute inset-0 pointer-events-none overflow-hidden"
+        style={{
+          background: 'linear-gradient(180deg, rgba(255,255,255,0.5) 0%, rgba(255,255,255,0.2) 40%, transparent 50%)',
+          WebkitBackgroundClip: 'text',
+          backgroundClip: 'text',
+        }}
+      />
       {letter}
     </span>
   );
 };
 
-// BLAST uses ice blue gradient
+// BLAST uses ice blue gradient with strong shadow
 const BlastLetter = ({ letter, index }: { letter: string; index: number }) => {
   return (
     <span
-      className="text-5xl sm:text-6xl md:text-7xl font-black relative inline-block italic"
+      className="text-5xl sm:text-6xl md:text-7xl font-black relative inline-block"
       style={{
-        fontFamily: "'Fredoka One', 'Nunito', 'Baloo 2', sans-serif",
-        background: 'linear-gradient(180deg, #E0F7FF 0%, #67E8F9 30%, #22D3EE 70%, #0891B2 100%)',
+        fontFamily: "'Fredoka One', cursive",
+        background: 'linear-gradient(180deg, #B3E5FC 0%, #4FC3F7 30%, #29B6F6 60%, #0288D1 100%)',
         WebkitBackgroundClip: 'text',
         backgroundClip: 'text',
         WebkitTextFillColor: 'transparent',
-        textShadow: 'none',
-        filter: 'drop-shadow(0 5px 0 #0369A1) drop-shadow(0 8px 15px rgba(6, 182, 212, 0.5))',
-        letterSpacing: '-0.01em',
-        transform: `skewX(-5deg)`,
+        filter: 'drop-shadow(0 4px 0 #01579B) drop-shadow(0 6px 12px rgba(2, 136, 209, 0.5))',
+        letterSpacing: '0.02em',
       }}
     >
       {letter}
@@ -71,22 +77,21 @@ export const GameTitle = () => {
 
   return (
     <div className="flex flex-col items-center gap-0 relative">
-      {/* Crown positioned on top of the title */}
-      <div className="relative mb-0">
+      {/* Crown positioned on top center */}
+      <div className="relative mb-1 z-10">
         <Crown 
-          className="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16" 
-          fill="#FBBF24"
-          stroke="#B45309"
+          className="w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14" 
+          fill="#FFC107"
+          stroke="#FF8F00"
           strokeWidth={1.5}
           style={{
-            filter: 'drop-shadow(0 4px 6px rgba(0,0,0,0.4)) drop-shadow(0 0 15px rgba(251, 191, 36, 0.5))',
-            transform: 'rotate(-5deg)',
+            filter: 'drop-shadow(0 3px 4px rgba(0,0,0,0.4)) drop-shadow(0 0 12px rgba(255, 193, 7, 0.6))',
           }}
         />
       </div>
 
-      {/* First word - ELEMENTAL with colorful bubble letters */}
-      <div className="flex items-center justify-center -mt-1">
+      {/* First word - ELEMENTAL with rainbow bubble letters */}
+      <div className="flex items-center justify-center -mt-2">
         {word1.split('').map((letter, i) => (
           <BlockLetter
             key={`w1-${i}`}
@@ -97,8 +102,8 @@ export const GameTitle = () => {
         ))}
       </div>
 
-      {/* Second word - BLAST with ice blue gradient, italic */}
-      <div className="flex items-center justify-center -mt-2 sm:-mt-3">
+      {/* Second word - BLAST with ice blue gradient */}
+      <div className="flex items-center justify-center -mt-1 sm:-mt-2">
         {word2.split('').map((letter, i) => (
           <BlastLetter key={`w2-${i}`} letter={letter} index={i} />
         ))}
