@@ -304,19 +304,19 @@ const Index = () => {
             {/* Start screen */}
             {!hasStarted && (
               <motion.div
-                className="flex flex-col items-center gap-8"
+                className="flex flex-col items-center gap-12 pt-4"
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
               >
-                {/* Hero blocks display */}
+                {/* Hero blocks display - now below title with proper spacing */}
                 <HeroBlockDisplay />
                 
                 {/* Clean tagline */}
                 <motion.p 
-                  className="text-white/60 text-base text-center max-w-xs font-medium"
+                  className="text-white/50 text-lg text-center max-w-sm font-medium"
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.5 }}
+                  transition={{ delay: 0.6 }}
                 >
                   Match elements • Clear lines • Chain reactions
                 </motion.p>

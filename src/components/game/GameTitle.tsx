@@ -1,4 +1,5 @@
 import { motion } from 'framer-motion';
+import { Crown } from 'lucide-react';
 
 // Solid, vibrant colors for 3D block letters - Block Blast style
 const letterStyles = [
@@ -18,12 +19,13 @@ interface BlockLetterProps {
   index: number;
   totalDelay: number;
   size: 'normal' | 'large';
+  hasCrown?: boolean;
 }
 
-const BlockLetter = ({ letter, index, totalDelay, size }: BlockLetterProps) => {
+const BlockLetter = ({ letter, index, totalDelay, size, hasCrown }: BlockLetterProps) => {
   const style = letterStyles[index % letterStyles.length];
-  const fontSize = size === 'large' ? 'text-5xl sm:text-6xl md:text-7xl' : 'text-4xl sm:text-5xl md:text-6xl';
-  const shadowOffset = size === 'large' ? 5 : 4;
+  const fontSize = size === 'large' ? 'text-6xl sm:text-7xl md:text-8xl' : 'text-4xl sm:text-5xl md:text-6xl';
+  const shadowOffset = size === 'large' ? 6 : 4;
   
   return (
     <motion.span
@@ -32,12 +34,13 @@ const BlockLetter = ({ letter, index, totalDelay, size }: BlockLetterProps) => {
         color: style.bg,
         textShadow: `
           ${shadowOffset}px ${shadowOffset}px 0 ${style.shadow},
-          ${shadowOffset * 1.5}px ${shadowOffset * 1.5}px 0 rgba(0,0,0,0.3),
-          0 0 20px ${style.bg}40
+          ${shadowOffset * 1.6}px ${shadowOffset * 1.6}px 0 rgba(0,0,0,0.4),
+          0 0 30px ${style.bg}50
         `,
-        WebkitTextStroke: '1px rgba(0,0,0,0.2)',
+        WebkitTextStroke: '1.5px rgba(0,0,0,0.25)',
+        letterSpacing: '0.02em',
       }}
-      initial={{ opacity: 0, y: -50, scale: 0.5, rotateX: -90 }}
+      initial={{ opacity: 0, y: -60, scale: 0.4, rotateX: -90 }}
       animate={{ 
         opacity: 1, 
         y: 0, 
@@ -45,17 +48,32 @@ const BlockLetter = ({ letter, index, totalDelay, size }: BlockLetterProps) => {
         rotateX: 0,
       }}
       transition={{ 
-        delay: totalDelay + index * 0.05,
+        delay: totalDelay + index * 0.06,
         type: 'spring',
-        stiffness: 300,
-        damping: 15,
+        stiffness: 280,
+        damping: 14,
       }}
       whileHover={{
-        scale: 1.15,
-        y: -5,
-        transition: { duration: 0.15 }
+        scale: 1.2,
+        y: -8,
+        transition: { duration: 0.12 }
       }}
     >
+      {/* Crown on special letter */}
+      {hasCrown && (
+        <motion.div
+          className="absolute -top-5 sm:-top-6 md:-top-8 left-1/2 -translate-x-1/2"
+          initial={{ opacity: 0, scale: 0, y: 10 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          transition={{ delay: totalDelay + 0.5, type: 'spring', stiffness: 300 }}
+        >
+          <Crown 
+            className="w-5 h-5 sm:w-6 sm:h-6 md:w-8 md:h-8 text-yellow-400 drop-shadow-lg" 
+            fill="#FBBF24"
+            strokeWidth={1.5}
+          />
+        </motion.div>
+      )}
       {letter}
     </motion.span>
   );
@@ -66,12 +84,22 @@ export const GameTitle = () => {
   const word2 = 'BLAST';
 
   return (
-    <div className="flex flex-col items-center gap-1 relative">
+    <motion.div 
+      className="flex flex-col items-center gap-0 relative"
+      animate={{
+        y: [0, -4, 0],
+      }}
+      transition={{
+        duration: 3,
+        repeat: Infinity,
+        ease: 'easeInOut',
+      }}
+    >
       {/* Subtle glow behind title */}
       <motion.div
         className="absolute inset-0 blur-3xl -z-10"
         style={{
-          background: 'radial-gradient(ellipse at center, rgba(59, 130, 246, 0.2), transparent 60%)',
+          background: 'radial-gradient(ellipse at center, rgba(59, 130, 246, 0.25), transparent 60%)',
         }}
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -91,8 +119,8 @@ export const GameTitle = () => {
         ))}
       </div>
 
-      {/* Second word - larger with more emphasis */}
-      <div className="flex items-center justify-center tracking-tight -mt-1">
+      {/* Second word - larger with crown on A */}
+      <div className="flex items-center justify-center tracking-tight -mt-2 sm:-mt-3">
         {word2.split('').map((letter, i) => (
           <BlockLetter
             key={`w2-${i}`}
@@ -100,10 +128,11 @@ export const GameTitle = () => {
             index={i + 4}
             totalDelay={0.3}
             size="large"
+            hasCrown={letter === 'A'}
           />
         ))}
       </div>
-    </div>
+    </motion.div>
   );
 };
 
