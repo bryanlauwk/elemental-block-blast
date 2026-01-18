@@ -303,23 +303,12 @@ const Index = () => {
 
             {/* Start screen */}
             {!hasStarted && (
-              <motion.div
-                className="flex flex-col items-center gap-6"
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-              >
+              <div className="flex flex-col items-center gap-6">
                 {/* Hero blocks display */}
                 <HeroBlockDisplay />
                 
                 {/* Play button - Block Blast style green */}
-                <motion.div
-                  className="relative"
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.8 }}
-                >
+                <div className="relative">
                   <Button
                     onClick={startGame}
                     size="lg"
@@ -332,17 +321,10 @@ const Index = () => {
                     <div className="absolute top-0 left-0 right-0 h-1/3 bg-gradient-to-b from-white/35 to-transparent rounded-t-2xl" />
                     <span className="relative z-10 tracking-wide">PLAY</span>
                   </Button>
-                </motion.div>
+                </div>
                 
                 {/* Daily Challenge button - yellow/amber style */}
-                <motion.div
-                  className="relative"
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.9 }}
-                >
+                <div className="relative">
                   <Button
                     onClick={() => setShowDailyChallenge(true)}
                     size="lg"
@@ -354,8 +336,8 @@ const Index = () => {
                     <div className="absolute top-0 left-0 right-0 h-1/3 bg-gradient-to-b from-white/30 to-transparent rounded-t-xl" />
                     <span className="relative z-10">Daily Challenge</span>
                   </Button>
-                </motion.div>
-              </motion.div>
+                </div>
+              </div>
             )}
 
             {/* Game Grid */}
