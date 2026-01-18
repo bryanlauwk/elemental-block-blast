@@ -212,18 +212,18 @@ const Index = () => {
   return (
     <div className="min-h-[100dvh] text-white flex flex-col relative overflow-hidden"
       style={{
-        background: 'radial-gradient(ellipse 120% 80% at 50% 20%, hsl(225 70% 15%) 0%, hsl(230 85% 6%) 50%, hsl(235 100% 3%) 100%)',
+        background: 'radial-gradient(ellipse 120% 80% at 50% 20%, hsl(220 75% 45%) 0%, hsl(225 80% 32%) 40%, hsl(230 85% 22%) 100%)',
       }}
     >
-      {/* Grid pattern overlay - arcade style */}
+      {/* Grid pattern overlay - arcade style with white lines */}
       <div 
         className="absolute inset-0 pointer-events-none"
         style={{
           backgroundImage: `
-            linear-gradient(rgba(0,180,255,0.06) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(0,180,255,0.06) 1px, transparent 1px)
+            linear-gradient(rgba(255,255,255,0.15) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(255,255,255,0.15) 1px, transparent 1px)
           `,
-          backgroundSize: '30px 30px',
+          backgroundSize: '40px 40px',
         }}
       />
       
@@ -231,7 +231,7 @@ const Index = () => {
       <div 
         className="absolute inset-0 pointer-events-none"
         style={{
-          background: 'radial-gradient(ellipse 60% 40% at 50% 45%, rgba(99,102,241,0.12) 0%, transparent 60%)',
+          background: 'radial-gradient(ellipse 70% 50% at 50% 35%, rgba(100,150,255,0.25) 0%, transparent 70%)',
         }}
       />
 
