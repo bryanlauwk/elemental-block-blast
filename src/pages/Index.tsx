@@ -370,40 +370,36 @@ const Index = () => {
 
             {/* Start screen */}
             {!hasStarted && (
-              <div className="flex flex-col items-center gap-6">
-                {/* Hero blocks display */}
-                <HeroBlockDisplay />
-                
-                {/* Play button - Compact vibrant green with 3D pressable look */}
-                <div className="relative group">
+              <div className="flex flex-col items-center gap-4">
+                {/* Hero blocks display with CTA buttons inside */}
+                <HeroBlockDisplay>
+                  {/* Play button - Compact vibrant green with 3D pressable look */}
                   <Button
                     onClick={startGame}
                     size="lg"
-                    className="relative bg-gradient-to-b from-emerald-400 via-emerald-500 to-emerald-600 hover:from-emerald-300 hover:via-emerald-400 hover:to-emerald-500 text-white font-black text-2xl px-12 py-5 rounded-full transition-all overflow-hidden border-0 active:translate-y-1 active:shadow-none"
+                    className="relative bg-gradient-to-b from-emerald-400 via-emerald-500 to-emerald-600 hover:from-emerald-300 hover:via-emerald-400 hover:to-emerald-500 text-white font-black text-xl px-10 py-4 rounded-full transition-all overflow-hidden border-0 active:translate-y-1 active:shadow-none"
                     style={{
-                      boxShadow: '0 6px 0 #047857, 0 10px 25px rgba(16,185,129,0.5), inset 0 3px 6px rgba(255,255,255,0.4)',
+                      boxShadow: '0 5px 0 #047857, 0 8px 20px rgba(16,185,129,0.5), inset 0 2px 4px rgba(255,255,255,0.4)',
                     }}
                   >
                     {/* Shine effect */}
                     <div className="absolute top-0 left-0 right-0 h-1/2 bg-gradient-to-b from-white/35 to-transparent rounded-t-full" />
                     <span className="relative z-10 tracking-wide">PLAY</span>
                   </Button>
-                </div>
-                
-                {/* Daily Challenge button - Golden yellow compact */}
-                <div className="relative group">
+                  
+                  {/* Daily Challenge button - Golden yellow compact */}
                   <Button
                     onClick={() => setShowDailyChallenge(true)}
-                    size="default"
-                    className="relative bg-gradient-to-b from-yellow-400 via-amber-400 to-amber-500 hover:from-yellow-300 hover:via-amber-300 hover:to-amber-400 text-amber-900 font-bold text-base px-8 py-4 rounded-full transition-all overflow-hidden border-0 active:translate-y-1 active:shadow-none"
+                    size="sm"
+                    className="relative bg-gradient-to-b from-yellow-400 via-amber-400 to-amber-500 hover:from-yellow-300 hover:via-amber-300 hover:to-amber-400 text-amber-900 font-bold text-sm px-6 py-2 rounded-full transition-all overflow-hidden border-0 active:translate-y-1 active:shadow-none"
                     style={{
-                      boxShadow: '0 4px 0 #B45309, 0 6px 15px rgba(245,158,11,0.4), inset 0 2px 4px rgba(255,255,255,0.5)',
+                      boxShadow: '0 3px 0 #B45309, 0 5px 12px rgba(245,158,11,0.4), inset 0 2px 4px rgba(255,255,255,0.5)',
                     }}
                   >
                     <div className="absolute top-0 left-0 right-0 h-1/2 bg-gradient-to-b from-white/40 to-transparent rounded-t-full" />
                     <span className="relative z-10">Daily Challenge</span>
                   </Button>
-                </div>
+                </HeroBlockDisplay>
               </div>
             )}
 
