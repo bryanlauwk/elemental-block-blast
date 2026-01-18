@@ -1,5 +1,3 @@
-import { motion } from 'framer-motion';
-
 // Element colors - vibrant, game-style
 const ELEMENTS = [
   { name: 'fire', bg: '#EF4444', emoji: '🔥', iconBg: 'linear-gradient(145deg, #EF4444, #DC2626)' },
@@ -22,17 +20,12 @@ const BLOCK_COLORS = [
 
 const BLOCK_SIZE = 48;
 
-// Element icons row
+// Element icons row - static
 const ElementIconsRow = () => {
   return (
-    <motion.div
-      className="flex items-center justify-center gap-2 sm:gap-3"
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: 0.5, duration: 0.4 }}
-    >
-      {ELEMENTS.map((element, i) => (
-        <motion.div
+    <div className="flex items-center justify-center gap-2 sm:gap-3">
+      {ELEMENTS.map((element) => (
+        <div
           key={element.name}
           className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center relative overflow-hidden"
           style={{
@@ -40,29 +33,24 @@ const ElementIconsRow = () => {
             boxShadow: `0 4px 0 ${element.bg}99, 0 6px 12px rgba(0,0,0,0.3), inset 0 2px 4px rgba(255,255,255,0.3)`,
             border: '2px solid rgba(255,255,255,0.25)',
           }}
-          initial={{ scale: 0 }}
-          animate={{ scale: 1 }}
-          transition={{ delay: 0.6 + i * 0.08, type: 'spring', stiffness: 400 }}
-          whileHover={{ scale: 1.1, y: -2 }}
         >
           <div className="absolute top-0 left-0 right-0 h-1/3 bg-gradient-to-b from-white/30 to-transparent rounded-t-lg" />
           <span className="text-xl sm:text-2xl relative z-10">{element.emoji}</span>
-        </motion.div>
+        </div>
       ))}
-    </motion.div>
+    </div>
   );
 };
 
-// Single 3D block
+// Single 3D block - static
 interface BlockProps {
   color: { bg: string; shadow: string };
   size?: number;
-  delay?: number;
 }
 
-const Block = ({ color, size = BLOCK_SIZE, delay = 0 }: BlockProps) => {
+const Block = ({ color, size = BLOCK_SIZE }: BlockProps) => {
   return (
-    <motion.div
+    <div
       className="rounded-lg relative overflow-hidden"
       style={{
         width: size,
@@ -76,17 +64,14 @@ const Block = ({ color, size = BLOCK_SIZE, delay = 0 }: BlockProps) => {
         `,
         border: '1px solid rgba(255,255,255,0.2)',
       }}
-      initial={{ scale: 0, opacity: 0 }}
-      animate={{ scale: 1, opacity: 1 }}
-      transition={{ delay, type: 'spring', stiffness: 400, damping: 15 }}
     >
       <div className="absolute top-0 left-0 right-0 h-1/3 bg-gradient-to-b from-white/35 to-transparent rounded-t-md" />
       <div className="absolute bottom-0 left-0 right-0 h-1/4 bg-gradient-to-t from-black/15 to-transparent" />
-    </motion.div>
+    </div>
   );
 };
 
-// Left block stack - tetris style arrangement
+// Left block stack - matching reference
 const LeftBlockStack = () => {
   const blocks = [
     // Bottom row
@@ -108,13 +93,7 @@ const LeftBlockStack = () => {
   const height = 4 * (BLOCK_SIZE + gap);
 
   return (
-    <motion.div
-      className="relative"
-      style={{ width, height }}
-      initial={{ opacity: 0, x: -50 }}
-      animate={{ opacity: 1, x: 0 }}
-      transition={{ delay: 0.3, duration: 0.5 }}
-    >
+    <div className="relative" style={{ width, height }}>
       {blocks.map((block, i) => (
         <div
           key={i}
@@ -124,14 +103,14 @@ const LeftBlockStack = () => {
             top: block.y * (BLOCK_SIZE + gap),
           }}
         >
-          <Block color={block.color} delay={0.4 + i * 0.05} />
+          <Block color={block.color} />
         </div>
       ))}
-    </motion.div>
+    </div>
   );
 };
 
-// Right block stack
+// Right block stack - matching reference
 const RightBlockStack = () => {
   const blocks = [
     // Bottom row
@@ -153,13 +132,7 @@ const RightBlockStack = () => {
   const height = 4 * (BLOCK_SIZE + gap);
 
   return (
-    <motion.div
-      className="relative"
-      style={{ width, height }}
-      initial={{ opacity: 0, x: 50 }}
-      animate={{ opacity: 1, x: 0 }}
-      transition={{ delay: 0.3, duration: 0.5 }}
-    >
+    <div className="relative" style={{ width, height }}>
       {blocks.map((block, i) => (
         <div
           key={i}
@@ -169,96 +142,21 @@ const RightBlockStack = () => {
             top: block.y * (BLOCK_SIZE + gap),
           }}
         >
-          <Block color={block.color} delay={0.5 + i * 0.05} />
+          <Block color={block.color} />
         </div>
       ))}
-    </motion.div>
+    </div>
   );
 };
 
-// Center floating balloon/helium block with glow
-const CenterBalloon = () => {
-  return (
-    <motion.div
-      className="relative flex flex-col items-center"
-      initial={{ opacity: 0, y: 30 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: 0.6, duration: 0.5 }}
-    >
-      {/* Glow effect behind balloon */}
-      <motion.div
-        className="absolute w-32 h-32 rounded-full -z-10"
-        style={{
-          background: 'radial-gradient(circle, rgba(236, 72, 153, 0.5) 0%, rgba(236, 72, 153, 0.2) 40%, transparent 70%)',
-          filter: 'blur(10px)',
-        }}
-        animate={{
-          scale: [1, 1.15, 1],
-          opacity: [0.6, 0.9, 0.6],
-        }}
-        transition={{
-          duration: 2,
-          repeat: Infinity,
-          ease: 'easeInOut',
-        }}
-      />
-
-      {/* Balloon block */}
-      <motion.div
-        className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl relative overflow-hidden flex items-center justify-center"
-        style={{
-          background: 'linear-gradient(145deg, #EC4899, #DB2777)',
-          boxShadow: `
-            0 6px 0 #BE185D,
-            0 10px 20px rgba(236, 72, 153, 0.5),
-            0 0 40px rgba(236, 72, 153, 0.4),
-            inset 0 4px 8px rgba(255,255,255,0.4),
-            inset -3px -3px 6px rgba(0,0,0,0.15)
-          `,
-          border: '2px solid rgba(255,255,255,0.3)',
-        }}
-        animate={{
-          y: [0, -10, 0],
-        }}
-        transition={{
-          duration: 2.5,
-          repeat: Infinity,
-          ease: 'easeInOut',
-        }}
-      >
-        {/* Shine */}
-        <div className="absolute top-1 left-2 w-6 h-6 sm:w-8 sm:h-8 bg-white/40 rounded-full blur-sm" />
-        <div className="absolute top-0 left-0 right-0 h-1/3 bg-gradient-to-b from-white/35 to-transparent rounded-t-xl" />
-        <span className="text-4xl sm:text-5xl relative z-10">🎈</span>
-      </motion.div>
-
-      {/* String/connection line */}
-      <motion.div
-        className="w-0.5 h-8 bg-gradient-to-b from-pink-400 to-transparent"
-        animate={{
-          scaleY: [1, 0.95, 1],
-        }}
-        transition={{
-          duration: 2.5,
-          repeat: Infinity,
-          ease: 'easeInOut',
-        }}
-      />
-    </motion.div>
-  );
-};
-
-// Perspective floor grid
+// Perspective floor grid - static
 const PerspectiveFloor = () => {
   return (
-    <motion.div
+    <div
       className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[400px] h-20 pointer-events-none"
       style={{
         perspective: '200px',
       }}
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ delay: 0.8, duration: 0.5 }}
     >
       <div
         className="w-full h-full"
@@ -282,38 +180,28 @@ const PerspectiveFloor = () => {
           filter: 'blur(8px)',
         }}
       />
-    </motion.div>
+    </div>
   );
 };
 
 export const HeroBlockDisplay = () => {
   return (
-    <motion.div
-      className="flex flex-col items-center gap-4"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.5 }}
-    >
+    <div className="flex flex-col items-center gap-4">
       {/* Element icons row */}
       <ElementIconsRow />
 
-      {/* Main display with blocks and balloon */}
-      <div className="relative flex items-end justify-center gap-4 sm:gap-8 mt-2">
+      {/* Main display with blocks - no balloon */}
+      <div className="relative flex items-end justify-center gap-8 sm:gap-12 mt-2">
         {/* Perspective floor */}
         <PerspectiveFloor />
 
         {/* Left stack */}
         <LeftBlockStack />
 
-        {/* Center balloon */}
-        <div className="flex flex-col items-center pb-4">
-          <CenterBalloon />
-        </div>
-
         {/* Right stack */}
         <RightBlockStack />
       </div>
-    </motion.div>
+    </div>
   );
 };
 
