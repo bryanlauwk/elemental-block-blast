@@ -22,7 +22,6 @@ import ElementMascots from '@/components/game/ElementMascots';
 import BackgroundDoodles from '@/components/game/BackgroundDoodles';
 import GameTitle from '@/components/game/GameTitle';
 import HeroBlockDisplay from '@/components/game/HeroBlockDisplay';
-import ReactionAnimations from '@/components/game/ReactionAnimations';
 import { Button } from '@/components/ui/button';
 import { Trophy, Play, RotateCcw, HelpCircle, Zap, Calendar } from 'lucide-react';
 import { Position } from '@/game/types';
@@ -172,9 +171,6 @@ const Index = () => {
       <AnimatePresence>
         {!hasStarted && <ElementMascots isPlaying={hasStarted} />}
       </AnimatePresence>
-
-      {/* Reaction animations - elements interact on start screen */}
-      <ReactionAnimations isPlaying={hasStarted} />
 
       {/* Tutorial overlay - shows on first game */}
       {!tutorialComplete && (
