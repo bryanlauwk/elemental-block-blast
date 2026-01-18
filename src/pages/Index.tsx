@@ -227,6 +227,38 @@ const Index = () => {
         }}
       />
       
+      {/* Perspective floor grid - classic arcade depth effect */}
+      <div 
+        className="absolute bottom-0 left-0 right-0 h-[40vh] pointer-events-none overflow-hidden"
+        style={{
+          perspective: '500px',
+          perspectiveOrigin: '50% 0%',
+        }}
+      >
+        <div 
+          className="absolute inset-0"
+          style={{
+            transform: 'rotateX(75deg)',
+            transformOrigin: 'top center',
+            backgroundImage: `
+              linear-gradient(rgba(255,255,255,0.2) 2px, transparent 2px),
+              linear-gradient(90deg, rgba(255,255,255,0.2) 2px, transparent 2px)
+            `,
+            backgroundSize: '60px 60px',
+            maskImage: 'linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.3) 50%, transparent 100%)',
+            WebkitMaskImage: 'linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.3) 50%, transparent 100%)',
+          }}
+        />
+        {/* Horizon glow line */}
+        <div 
+          className="absolute top-0 left-0 right-0 h-1"
+          style={{
+            background: 'linear-gradient(90deg, transparent 0%, rgba(0,229,255,0.6) 30%, rgba(255,100,200,0.6) 70%, transparent 100%)',
+            boxShadow: '0 0 30px rgba(0,229,255,0.5), 0 0 60px rgba(255,100,200,0.3)',
+          }}
+        />
+      </div>
+      
       {/* Subtle spotlight glow behind hero area */}
       <div 
         className="absolute inset-0 pointer-events-none"
