@@ -17,9 +17,16 @@ export function ElementLegend({ variant = 'horizontal' }: ElementLegendProps) {
   const isVertical = variant === 'vertical';
 
   return (
-    <div className="relative">
+    <div className="relative w-full">
+      {/* Vertical header */}
+      {isVertical && (
+        <p className="text-xs text-game-text-muted/60 uppercase tracking-wider mb-3 font-medium">
+          Elements
+        </p>
+      )}
+      
       {/* Element bar - horizontal or vertical layout */}
-      <div className={`flex items-center gap-2 ${isVertical ? 'flex-col' : 'justify-center sm:gap-3'}`}>
+      <div className={`flex ${isVertical ? 'flex-col gap-1' : 'items-center justify-center gap-2 sm:gap-3'}`}>
         {DISPLAY_ELEMENTS.map((element) => {
           const info = ELEMENT_INFO[element];
           const isActive = activeElement === element;
@@ -27,20 +34,33 @@ export function ElementLegend({ variant = 'horizontal' }: ElementLegendProps) {
           return (
             <motion.button
               key={element}
-              className="relative group"
+              className={`relative group ${isVertical ? 'w-full' : ''}`}
               onMouseEnter={() => setActiveElement(element)}
               onMouseLeave={() => setActiveElement(null)}
               onTouchStart={() => setActiveElement(isActive ? null : element)}
-              whileHover={{ scale: 1.15 }}
+              whileHover={{ scale: isVertical ? 1.02 : 1.15 }}
               whileTap={{ scale: 0.95 }}
             >
               <div className={`
-                flex items-center gap-2 p-1.5 rounded-lg transition-all
-                ${isActive ? 'bg-white/20 ring-2 ring-white/30' : 'bg-white/5 hover:bg-white/10'}
+                flex items-center gap-2.5 transition-all rounded-lg
+                ${isVertical 
+                  ? `w-full p-2 ${isActive 
+                      ? 'bg-white/15 border-l-2 border-game-accent' 
+                      : 'hover:bg-white/10 border-l-2 border-transparent'
+                    }` 
+                  : `p-1.5 ${isActive 
+                      ? 'bg-white/20 ring-2 ring-white/30' 
+                      : 'bg-white/5 hover:bg-white/10'
+                    }`
+                }
               `}>
-                <ElementBlock element={element} size={isVertical ? 24 : 28} isPreview />
+                <ElementBlock element={element} size={isVertical ? 28 : 28} isPreview />
                 {isVertical && (
-                  <span className="text-xs text-game-text-muted pr-1">{info.name}</span>
+                  <span className={`text-sm flex-1 text-left transition-colors ${
+                    isActive ? 'text-white' : 'text-game-text-muted'
+                  }`}>
+                    {info.name}
+                  </span>
                 )}
               </div>
               
@@ -63,7 +83,7 @@ export function ElementLegend({ variant = 'horizontal' }: ElementLegendProps) {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 5, scale: 0.95 }}
             className={`absolute z-50 ${isVertical 
-              ? 'left-full top-0 ml-2 w-56' 
+              ? 'left-0 right-0 top-full mt-2' 
               : 'left-1/2 -translate-x-1/2 mt-8 w-64 sm:w-72'
             }`}
           >

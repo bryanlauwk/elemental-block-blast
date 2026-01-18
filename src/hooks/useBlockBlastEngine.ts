@@ -34,11 +34,34 @@ const getRandomElement = (): ElementType => {
   return 'stone';
 };
 
-const getRandomShape = (): Position[] => {
-  const totalWeight = SHAPE_WEIGHTS.reduce((sum, s) => sum + s.weight, 0);
+// Dynamic difficulty: adjusts shape weights based on current score
+const getRandomShape = (score: number = 0): Position[] => {
+  // Apply score-based modifiers to shape weights
+  const modifiedWeights = SHAPE_WEIGHTS.map(({ shapeIndex, weight }) => {
+    const shapeSize = BLOCK_SHAPES[shapeIndex].length;
+    let modifier = 1;
+    
+    if (score < 500) {
+      // Easy phase: favor small pieces (1-3 blocks)
+      modifier = shapeSize <= 3 ? 1.5 : shapeSize <= 4 ? 0.8 : 0.3;
+    } else if (score < 1500) {
+      // Normal phase: standard distribution
+      modifier = 1;
+    } else if (score < 3000) {
+      // Hard phase: favor medium-large pieces
+      modifier = shapeSize <= 2 ? 0.7 : shapeSize <= 4 ? 1.2 : 1.5;
+    } else {
+      // Expert phase: heavily favor complex pieces
+      modifier = shapeSize <= 2 ? 0.4 : shapeSize <= 4 ? 1.0 : 2.0;
+    }
+    
+    return { shapeIndex, weight: weight * modifier };
+  });
+  
+  const totalWeight = modifiedWeights.reduce((sum, s) => sum + s.weight, 0);
   let random = Math.random() * totalWeight;
   
-  for (const { shapeIndex, weight } of SHAPE_WEIGHTS) {
+  for (const { shapeIndex, weight } of modifiedWeights) {
     random -= weight;
     if (random <= 0) return BLOCK_SHAPES[shapeIndex];
   }
@@ -47,10 +70,19 @@ const getRandomShape = (): Position[] => {
 };
 
 // Create piece with UNIFORM element type (all blocks same element)
-const createRandomPiece = (): DraggablePiece => {
-  const shape = getRandomShape();
-  const element = getRandomElement(); // Single element for entire piece
-  const elements = shape.map(() => element); // All same element
+// Now accepts score for dynamic difficulty and comebackMode for easier pieces
+const createRandomPiece = (score: number = 0, comebackMode: boolean = false): DraggablePiece => {
+  // Comeback mode: guarantee a small piece (1-2 blocks)
+  let shape: Position[];
+  if (comebackMode) {
+    const smallShapeIndices = [0, 1, 2]; // Single, H2, V2
+    shape = BLOCK_SHAPES[smallShapeIndices[Math.floor(Math.random() * smallShapeIndices.length)]];
+  } else {
+    shape = getRandomShape(score);
+  }
+  
+  const element = getRandomElement();
+  const elements = shape.map(() => element);
   
   return {
     id: `piece-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
@@ -122,6 +154,7 @@ export function useBlockBlastEngine(): BlockBlastEngine {
   const [reactionEvents, setReactionEvents] = useState<ReactionEvent[]>([]);
   const [reactionPreviewSummary, setReactionPreviewSummary] = useState<ReactionPreviewSummary | null>(null);
   const [particleTrigger, setParticleTrigger] = useState<ParticleTrigger | null>(null);
+  const [failedAttempts, setFailedAttempts] = useState(0); // Track for comeback mechanic
   // Check if piece can be placed at position
   const canPlacePiece = useCallback((piece: DraggablePiece, pos: Position): boolean => {
     return piece.shape.every((p) => {
@@ -453,7 +486,8 @@ export function useBlockBlastEngine(): BlockBlastEngine {
 
   // Start game
   const startGame = useCallback(() => {
-    const initialPieces = [createRandomPiece(), createRandomPiece(), createRandomPiece()];
+    // Start with easy pieces (score 0)
+    const initialPieces = [createRandomPiece(0), createRandomPiece(0), createRandomPiece(0)];
     
     setGameState({
       grid: createEmptyGrid(),
@@ -468,6 +502,7 @@ export function useBlockBlastEngine(): BlockBlastEngine {
     setReactionPreviews([]);
     setReactionEvents([]);
     setReactionPreviewSummary(null);
+    setFailedAttempts(0);
   }, []);
 
   // Select piece
@@ -572,11 +607,21 @@ export function useBlockBlastEngine(): BlockBlastEngine {
       
       // Remove placed piece from available
       const remainingPieces = prev.availablePieces.filter(p => p.id !== piece.id);
+      const newScore = prev.score + totalScore + piece.shape.length * 10;
       
-      // If all pieces used, generate new ones
+      // If all pieces used, generate new ones with dynamic difficulty
+      // Check if comeback mode should be triggered (3+ failed attempts)
+      const needsComeback = failedAttempts >= 3;
       const newPieces = remainingPieces.length === 0 
-        ? [createRandomPiece(), createRandomPiece(), createRandomPiece()]
+        ? [
+            createRandomPiece(newScore, needsComeback), // First piece may be easier if comeback
+            createRandomPiece(newScore),
+            createRandomPiece(newScore)
+          ]
         : remainingPieces;
+      
+      // Reset failed attempts on successful placement
+      setFailedAttempts(0);
       
       // Check for game over
       const isGameOver = !canAnyPieceFit(resolvedGrid, newPieces);
@@ -591,7 +636,7 @@ export function useBlockBlastEngine(): BlockBlastEngine {
         availablePieces: newPieces,
         selectedPiece: null,
         dropPreview: null,
-        score: prev.score + totalScore + piece.shape.length * 10, // Base points for placing
+        score: newScore,
         combo: maxCombo,
         isGameOver,
       };
@@ -599,7 +644,7 @@ export function useBlockBlastEngine(): BlockBlastEngine {
     
     setReactionPreviews([]);
     setReactionPreviewSummary(null);
-  }, [resolveGrid, canAnyPieceFit]);
+  }, [resolveGrid, canAnyPieceFit, failedAttempts]);
 
   return {
     gameState,
