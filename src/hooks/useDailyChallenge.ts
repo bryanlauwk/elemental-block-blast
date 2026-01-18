@@ -40,6 +40,15 @@ export function useDailyChallenge() {
     }
   }, []);
 
+  // Sanitize player name for security
+  const sanitizePlayerName = useCallback((name: string): string => {
+    return name
+      .replace(/[<>'"&\\]/g, '') // Remove HTML-sensitive characters
+      .replace(/[\x00-\x1F\x7F]/g, '') // Remove control characters
+      .trim()
+      .slice(0, 20); // Enforce max length
+  }, []);
+
   const submitDailyScore = useCallback(async (
     playerName: string, 
     score: number,
@@ -49,11 +58,16 @@ export function useDailyChallenge() {
     setError(null);
 
     try {
+      const sanitizedName = sanitizePlayerName(playerName);
+      if (!sanitizedName) {
+        throw new Error('Invalid player name');
+      }
+
       // Check if player already has a score for today
       const { data: existing } = await supabase
         .from('daily_challenge_scores')
         .select('id, score')
-        .eq('player_name', playerName.trim())
+        .eq('player_name', sanitizedName)
         .eq('challenge_date', date)
         .maybeSingle();
 
@@ -77,7 +91,7 @@ export function useDailyChallenge() {
         const { error: insertError } = await supabase
           .from('daily_challenge_scores')
           .insert({ 
-            player_name: playerName.trim(), 
+            player_name: sanitizedName, 
             score,
             challenge_date: date 
           });
@@ -108,17 +122,20 @@ export function useDailyChallenge() {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [sanitizePlayerName]);
 
   const getPlayerDailyScore = useCallback(async (
     playerName: string,
     date: string = getTodayDateString()
   ): Promise<number | null> => {
     try {
+      const sanitizedName = sanitizePlayerName(playerName);
+      if (!sanitizedName) return null;
+
       const { data } = await supabase
         .from('daily_challenge_scores')
         .select('score')
-        .eq('player_name', playerName.trim())
+        .eq('player_name', sanitizedName)
         .eq('challenge_date', date)
         .maybeSingle();
 
@@ -127,7 +144,7 @@ export function useDailyChallenge() {
       console.error('Failed to get player daily score:', err);
       return null;
     }
-  }, []);
+  }, [sanitizePlayerName]);
 
   return {
     fetchDailyLeaderboard,

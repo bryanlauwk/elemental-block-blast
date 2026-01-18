@@ -61,15 +61,29 @@ export function useGlobalLeaderboard() {
     }
   }, [getTimeFilter]);
 
+  // Sanitize player name for security
+  const sanitizePlayerName = useCallback((name: string): string => {
+    return name
+      .replace(/[<>'"&\\]/g, '') // Remove HTML-sensitive characters
+      .replace(/[\x00-\x1F\x7F]/g, '') // Remove control characters
+      .trim()
+      .slice(0, 20); // Enforce max length
+  }, []);
+
   const submitScore = useCallback(async (playerName: string, score: number): Promise<{ success: boolean; rank?: number }> => {
     setIsLoading(true);
     setError(null);
 
     try {
+      const sanitizedName = sanitizePlayerName(playerName);
+      if (!sanitizedName) {
+        throw new Error('Invalid player name');
+      }
+
       // Submit the score
       const { error: insertError } = await supabase
         .from('leaderboard')
-        .insert({ player_name: playerName.trim(), score });
+        .insert({ player_name: sanitizedName, score });
 
       if (insertError) {
         throw insertError;
@@ -94,7 +108,7 @@ export function useGlobalLeaderboard() {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [sanitizePlayerName]);
 
   const getPlayerRank = useCallback(async (score: number, period: TimePeriod = 'all'): Promise<number | null> => {
     try {
