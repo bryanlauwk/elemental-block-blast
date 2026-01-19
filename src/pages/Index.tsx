@@ -272,9 +272,25 @@ const Index = () => {
         <ReactionTutorial onComplete={() => setTutorialComplete(true)} />
       )}
 
-      {/* Top bar icons - glassmorphism squircles */}
-      <div className="fixed top-4 left-4 right-4 z-30 flex justify-between">
-        {/* Left icons */}
+      {/* Top bar - text logo left, icons right */}
+      <div className="fixed top-4 left-4 right-4 z-30 flex justify-between items-center">
+        {/* Left: Text Logo */}
+        <a 
+          href="https://www.bryanlauwk.fun" 
+          target="_blank" 
+          rel="noopener noreferrer"
+          className="font-bold tracking-tight text-white hover:text-cyan-300 transition-colors"
+          style={{
+            fontFamily: "'Bebas Neue', 'Anton', sans-serif",
+            fontSize: 'clamp(1rem, 3vw, 1.5rem)',
+            letterSpacing: '-0.02em',
+            textShadow: '0 2px 4px rgba(0,0,0,0.3)',
+          }}
+        >
+          BRYANLAUWK.FUN
+        </a>
+        
+        {/* Right: All icons */}
         <div className="flex gap-2 items-center">
           {/* Exit/Home button - only during gameplay */}
           {hasStarted && !gameState.isGameOver && (
@@ -312,10 +328,7 @@ const Index = () => {
           {currentStreak > 0 && (
             <StreakBadge streak={currentStreak} isAtRisk={isStreakAtRisk} size="md" />
           )}
-        </div>
-        
-        {/* Right icons */}
-        <div className="flex gap-2 items-center">
+          
           {/* Reaction feed toggle (mobile & tablet) */}
           {hasStarted && (
             <button
