@@ -1,6 +1,7 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Award, Lock } from 'lucide-react';
+import { X, Award, Lock, Trophy } from 'lucide-react';
 import { Achievement } from '@/hooks/useAchievements';
+import { modalStyles } from '@/game/theme';
 
 interface AchievementsModalProps {
   isOpen: boolean;
@@ -26,14 +27,22 @@ export function AchievementsModal({ isOpen, onClose, achievements, totalPoints }
             initial={{ scale: 0.9, opacity: 0, y: 20 }}
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.9, opacity: 0, y: 20 }}
-            className="relative w-full max-w-md max-h-[80vh] bg-game-grid-dark border border-game-grid-border/50 rounded-2xl shadow-2xl overflow-hidden"
+            className="relative w-full max-w-md max-h-[80vh] rounded-2xl overflow-hidden"
             onClick={(e) => e.stopPropagation()}
-            style={{
-              boxShadow: '0 0 60px rgba(139, 92, 246, 0.15), 0 25px 50px rgba(0,0,0,0.5)',
-            }}
+            style={modalStyles.container}
           >
+            {/* Decorative top gradient bar */}
+            <div 
+              className="absolute top-0 left-0 right-0 h-1"
+              style={{
+                background: 'linear-gradient(90deg, #FF6B35 0%, #FFD700 50%, #00E5FF 100%)',
+              }}
+            />
+
             {/* Header */}
-            <div className="sticky top-0 bg-game-grid-dark/95 backdrop-blur-sm border-b border-game-grid-border/30 px-6 py-4 z-10">
+            <div className="sticky top-0 backdrop-blur-sm border-b border-white/10 px-6 py-4 z-10"
+              style={{ background: 'rgba(15,23,42,0.95)' }}
+            >
               <button
                 onClick={onClose}
                 className="absolute top-4 right-4 text-white/40 hover:text-white/80 transition-colors"
@@ -42,13 +51,16 @@ export function AchievementsModal({ isOpen, onClose, achievements, totalPoints }
               </button>
 
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400 to-yellow-500 flex items-center justify-center">
-                  <Award className="w-6 h-6 text-amber-900" />
+                <div 
+                  className="w-11 h-11 rounded-xl flex items-center justify-center"
+                  style={modalStyles.headerIconGold}
+                >
+                  <Trophy className="w-6 h-6 text-amber-900" />
                 </div>
                 <div>
                   <h2 className="text-xl font-bold text-white">Achievements</h2>
-                  <p className="text-sm text-game-text-muted">
-                    {unlockedCount}/{achievements.length} unlocked • {totalPoints} pts
+                  <p className="text-sm text-white/50">
+                    <span className="text-[#FFD700] font-medium">{unlockedCount}/{achievements.length}</span> unlocked • <span className="text-[#00E5FF] font-medium">{totalPoints}</span> pts
                   </p>
                 </div>
               </div>
@@ -65,20 +77,26 @@ export function AchievementsModal({ isOpen, onClose, achievements, totalPoints }
                   className={`
                     relative p-4 rounded-xl border transition-all
                     ${achievement.unlocked 
-                      ? 'bg-amber-500/10 border-amber-500/30' 
+                      ? 'border-[#FFD700]/30' 
                       : 'bg-white/5 border-white/10 opacity-60'
                     }
                   `}
+                  style={achievement.unlocked ? modalStyles.infoBoxFire : undefined}
                 >
                   <div className="flex items-center gap-4">
                     {/* Icon */}
                     <div className={`
                       w-12 h-12 rounded-xl flex items-center justify-center text-2xl
                       ${achievement.unlocked 
-                        ? 'bg-gradient-to-br from-amber-400/20 to-yellow-500/20 border border-amber-500/30' 
+                        ? '' 
                         : 'bg-white/10 border border-white/10'
                       }
-                    `}>
+                    `}
+                    style={achievement.unlocked ? {
+                      background: 'linear-gradient(135deg, rgba(255,215,0,0.2) 0%, rgba(255,159,67,0.15) 100%)',
+                      border: '1px solid rgba(255,215,0,0.4)',
+                    } : undefined}
+                    >
                       {achievement.unlocked ? achievement.icon : <Lock className="w-5 h-5 text-white/40" />}
                     </div>
 
@@ -90,13 +108,13 @@ export function AchievementsModal({ isOpen, onClose, achievements, totalPoints }
                         </h3>
                         <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
                           achievement.unlocked 
-                            ? 'bg-amber-500/20 text-amber-400' 
+                            ? 'bg-[#FFD700]/20 text-[#FFD700]' 
                             : 'bg-white/10 text-white/40'
                         }`}>
                           +{achievement.points}
                         </span>
                       </div>
-                      <p className={`text-sm ${achievement.unlocked ? 'text-game-text-muted' : 'text-white/30'}`}>
+                      <p className={`text-sm ${achievement.unlocked ? 'text-white/60' : 'text-white/30'}`}>
                         {achievement.description}
                       </p>
 
@@ -109,7 +127,10 @@ export function AchievementsModal({ isOpen, onClose, achievements, totalPoints }
                           </div>
                           <div className="h-2 bg-white/10 rounded-full overflow-hidden">
                             <motion.div
-                              className="h-full bg-gradient-to-r from-amber-500 to-yellow-400 rounded-full"
+                              className="h-full rounded-full"
+                              style={{
+                                background: 'linear-gradient(90deg, #FF6B35 0%, #FFD700 100%)',
+                              }}
                               initial={{ width: 0 }}
                               animate={{ 
                                 width: `${((achievement.progress || 0) / achievement.maxProgress) * 100}%` 
@@ -126,9 +147,13 @@ export function AchievementsModal({ isOpen, onClose, achievements, totalPoints }
                       <motion.div
                         initial={{ scale: 0 }}
                         animate={{ scale: 1 }}
-                        className="w-8 h-8 rounded-full bg-green-500/20 border border-green-500/50 flex items-center justify-center"
+                        className="w-8 h-8 rounded-full flex items-center justify-center"
+                        style={{
+                          background: 'linear-gradient(135deg, rgba(0,229,255,0.2) 0%, rgba(0,180,216,0.15) 100%)',
+                          border: '1px solid rgba(0,229,255,0.5)',
+                        }}
                       >
-                        <span className="text-green-400">✓</span>
+                        <span className="text-[#00E5FF]">✓</span>
                       </motion.div>
                     )}
                   </div>

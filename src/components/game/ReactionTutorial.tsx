@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, ChevronRight, Flame, Droplets, FlaskConical, Sparkles } from 'lucide-react';
+import { X, ChevronRight, Flame, Droplets, FlaskConical, Sparkles, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { modalStyles } from '@/game/theme';
 
 interface ReactionTutorialProps {
   onComplete: () => void;
@@ -15,34 +16,35 @@ const tutorialSteps = [
     description: 'Place pieces to fill complete rows or columns. Full lines disappear and score points!',
     visual: (
       <div className="flex gap-1 items-center justify-center my-4">
-        <div className="w-8 h-8 bg-gradient-to-br from-red-400 to-red-600 rounded-lg" />
-        <div className="w-8 h-8 bg-gradient-to-br from-blue-400 to-blue-600 rounded-lg" />
-        <div className="w-8 h-8 bg-gradient-to-br from-green-400 to-green-600 rounded-lg" />
-        <div className="w-8 h-8 bg-gradient-to-br from-orange-400 to-orange-600 rounded-lg" />
+        <div className="w-8 h-8 bg-gradient-to-br from-[#FF6B35] to-[#FF9F43] rounded-lg" />
+        <div className="w-8 h-8 bg-gradient-to-br from-[#00B4D8] to-[#00E5FF] rounded-lg" />
+        <div className="w-8 h-8 bg-gradient-to-br from-[#4CAF50] to-[#8BC34A] rounded-lg" />
+        <div className="w-8 h-8 bg-gradient-to-br from-[#FFB347] to-[#FFD700] rounded-lg" />
         <motion.div
           animate={{ scale: [1, 0.8, 0], opacity: [1, 1, 0] }}
           transition={{ duration: 1.5, repeat: Infinity, repeatDelay: 1 }}
           className="absolute flex gap-1"
         >
-          <Sparkles className="w-6 h-6 text-yellow-400" />
+          <Sparkles className="w-6 h-6 text-[#FFD700]" />
         </motion.div>
       </div>
     ),
     icon: Sparkles,
-    color: 'text-yellow-400',
+    color: '#FFD700',
   },
   {
     title: 'Fire Burns Wood',
     description: 'Place Fire 🔥 next to Wood 🪵 and watch it burn to Ash! Earn bonus points for reactions.',
     visual: (
       <div className="flex items-center justify-center gap-4 my-4">
-        <div className="w-12 h-12 bg-gradient-to-br from-red-500 to-orange-600 rounded-xl flex items-center justify-center text-2xl shadow-lg shadow-orange-500/30">
+        <div className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl shadow-lg"
+          style={{ background: 'linear-gradient(135deg, #FF6B35 0%, #FF9F43 100%)', boxShadow: '0 4px 12px rgba(255,107,53,0.4)' }}>
           🔥
         </div>
         <motion.div
           animate={{ x: [-5, 5, -5] }}
           transition={{ duration: 0.5, repeat: Infinity }}
-          className="text-orange-400"
+          className="text-[#FF9F43]"
         >
           →
         </motion.div>
@@ -51,7 +53,7 @@ const tutorialSteps = [
           <motion.div
             animate={{ opacity: [0, 1, 0], scale: [0.8, 1.2, 0.8] }}
             transition={{ duration: 1, repeat: Infinity }}
-            className="absolute inset-0 bg-orange-500/50 rounded-xl"
+            className="absolute inset-0 bg-[#FF6B35]/50 rounded-xl"
           />
         </div>
         <span className="text-white/60">=</span>
@@ -61,14 +63,15 @@ const tutorialSteps = [
       </div>
     ),
     icon: Flame,
-    color: 'text-orange-400',
+    color: '#FF6B35',
   },
   {
     title: 'Water Extinguishes Fire',
     description: 'Water 💧 and Fire 🔥 cancel each other out! Both disappear in a splash of steam.',
     visual: (
       <div className="flex items-center justify-center gap-4 my-4">
-        <div className="w-12 h-12 bg-gradient-to-br from-blue-400 to-blue-600 rounded-xl flex items-center justify-center text-2xl shadow-lg shadow-blue-500/30">
+        <div className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl shadow-lg"
+          style={{ background: 'linear-gradient(135deg, #00B4D8 0%, #00E5FF 100%)', boxShadow: '0 4px 12px rgba(0,229,255,0.4)' }}>
           💧
         </div>
         <motion.div
@@ -78,7 +81,8 @@ const tutorialSteps = [
         >
           💥
         </motion.div>
-        <div className="w-12 h-12 bg-gradient-to-br from-red-500 to-orange-600 rounded-xl flex items-center justify-center text-2xl shadow-lg shadow-orange-500/30">
+        <div className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl shadow-lg"
+          style={{ background: 'linear-gradient(135deg, #FF6B35 0%, #FF9F43 100%)', boxShadow: '0 4px 12px rgba(255,107,53,0.4)' }}>
           🔥
         </div>
         <span className="text-white/60">=</span>
@@ -92,26 +96,29 @@ const tutorialSteps = [
       </div>
     ),
     icon: Droplets,
-    color: 'text-blue-400',
+    color: '#00E5FF',
   },
   {
     title: 'Acid Dissolves Everything',
     description: 'Acid 🧪 is the wildcard! It dissolves ANY adjacent element for bonus points.',
     visual: (
       <div className="flex items-center justify-center gap-4 my-4">
-        <div className="w-12 h-12 bg-gradient-to-br from-green-400 to-green-600 rounded-xl flex items-center justify-center text-2xl shadow-lg shadow-green-500/30">
+        <div className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl shadow-lg"
+          style={{ background: 'linear-gradient(135deg, #4CAF50 0%, #8BC34A 100%)', boxShadow: '0 4px 12px rgba(76,175,80,0.4)' }}>
           🧪
         </div>
         <motion.div
           animate={{ rotate: [0, 360] }}
           transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
-          className="text-green-400"
+          className="text-[#8BC34A]"
         >
           →
         </motion.div>
         <div className="grid grid-cols-2 gap-1">
-          <div className="w-8 h-8 bg-gradient-to-br from-red-500 to-orange-600 rounded-lg flex items-center justify-center text-lg opacity-50">🔥</div>
-          <div className="w-8 h-8 bg-gradient-to-br from-blue-400 to-blue-600 rounded-lg flex items-center justify-center text-lg opacity-50">💧</div>
+          <div className="w-8 h-8 rounded-lg flex items-center justify-center text-lg opacity-50"
+            style={{ background: 'linear-gradient(135deg, #FF6B35 0%, #FF9F43 100%)' }}>🔥</div>
+          <div className="w-8 h-8 rounded-lg flex items-center justify-center text-lg opacity-50"
+            style={{ background: 'linear-gradient(135deg, #00B4D8 0%, #00E5FF 100%)' }}>💧</div>
           <div className="w-8 h-8 bg-gradient-to-br from-amber-600 to-amber-800 rounded-lg flex items-center justify-center text-lg opacity-50">🪵</div>
           <div className="w-8 h-8 bg-gradient-to-br from-gray-400 to-gray-600 rounded-lg flex items-center justify-center text-lg opacity-50">🪨</div>
         </div>
@@ -126,7 +133,7 @@ const tutorialSteps = [
       </div>
     ),
     icon: FlaskConical,
-    color: 'text-green-400',
+    color: '#8BC34A',
   },
 ];
 
@@ -178,8 +185,17 @@ const ReactionTutorial: React.FC<ReactionTutorialProps> = ({ onComplete }) => {
           initial={{ scale: 0.9, y: 20 }}
           animate={{ scale: 1, y: 0 }}
           exit={{ scale: 0.9, y: 20 }}
-          className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-2xl p-6 max-w-md w-full shadow-2xl border border-white/10"
+          className="rounded-2xl p-6 max-w-md w-full relative overflow-hidden"
+          style={modalStyles.container}
         >
+          {/* Decorative top gradient bar */}
+          <div 
+            className="absolute top-0 left-0 right-0 h-1"
+            style={{
+              background: 'linear-gradient(90deg, #FF6B35 0%, #FFD700 50%, #00E5FF 100%)',
+            }}
+          />
+
           {/* Skip button */}
           <button
             onClick={handleSkip}
@@ -191,22 +207,24 @@ const ReactionTutorial: React.FC<ReactionTutorialProps> = ({ onComplete }) => {
           {/* Progress dots */}
           <div className="flex justify-center gap-2 mb-6">
             {tutorialSteps.map((_, index) => (
-              <div
+              <motion.div
                 key={index}
-                className={`w-2 h-2 rounded-full transition-all ${
-                  index === currentStep
-                    ? 'bg-white w-6'
-                    : index < currentStep
-                    ? 'bg-white/60'
-                    : 'bg-white/20'
-                }`}
+                className={`h-2 rounded-full transition-all`}
+                style={{
+                  width: index === currentStep ? '24px' : '8px',
+                  background: index === currentStep 
+                    ? step.color 
+                    : index < currentStep 
+                      ? 'rgba(255,255,255,0.6)' 
+                      : 'rgba(255,255,255,0.2)',
+                }}
               />
             ))}
           </div>
 
           {/* Step content */}
           <div className="text-center">
-            <div className={`inline-flex items-center gap-2 ${step.color} mb-2`}>
+            <div className="inline-flex items-center gap-2 mb-2" style={{ color: step.color }}>
               <StepIcon className="w-6 h-6" />
               <span className="text-lg font-bold">{step.title}</span>
             </div>
@@ -225,13 +243,14 @@ const ReactionTutorial: React.FC<ReactionTutorialProps> = ({ onComplete }) => {
                 <Button
                   variant="ghost"
                   onClick={handleSkip}
-                  className="flex-1 text-white/50 hover:text-white/80"
+                  className="flex-1 text-white/50 hover:text-white/80 hover:bg-white/10"
                 >
                   Skip
                 </Button>
                 <Button
                   onClick={handleNext}
-                  className="flex-1 bg-white text-black hover:bg-white/90"
+                  className="flex-1 text-white border-0 hover:opacity-90"
+                  style={modalStyles.primaryButtonCyan}
                 >
                   Next <ChevronRight className="w-4 h-4 ml-1" />
                 </Button>
@@ -239,8 +258,10 @@ const ReactionTutorial: React.FC<ReactionTutorialProps> = ({ onComplete }) => {
             ) : (
               <Button
                 onClick={handleComplete}
-                className="w-full bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:opacity-90"
+                className="w-full text-white border-0 hover:opacity-90"
+                style={modalStyles.primaryButtonFire}
               >
+                <Zap className="w-5 h-5 mr-2" />
                 Let's Play! 🎮
               </Button>
             )}
