@@ -1,78 +1,81 @@
 import { motion } from 'framer-motion';
 import { Flame, Droplets, TreeDeciduous, Mountain, Wind, Crown } from 'lucide-react';
 
-// Rainbow spectrum for ELEMENTAL - vibrant arcade style
+// OG-inspired colors - warm gradient for ELEMENTAL (fire/gold tones)
 const elementalColors = [
-  { bg: '#FF4136', shadow: '#C41E3A' }, // E - Red
-  { bg: '#FF851B', shadow: '#CC6600' }, // L - Orange
-  { bg: '#FFD700', shadow: '#CC9900' }, // E - Yellow
-  { bg: '#2ECC40', shadow: '#228B22' }, // M - Green
-  { bg: '#39CCCC', shadow: '#008B8B' }, // E - Teal
-  { bg: '#0074D9', shadow: '#004080' }, // N - Blue
-  { bg: '#6366F1', shadow: '#4338CA' }, // T - Indigo
-  { bg: '#B10DC9', shadow: '#800080' }, // A - Purple (crown goes here)
-  { bg: '#F012BE', shadow: '#A0007A' }, // L - Magenta
+  { bg: '#FF6B35', shadow: '#C44D1B' }, // E - Fire Orange
+  { bg: '#FF7F40', shadow: '#CC5020' }, // L - Orange
+  { bg: '#FF9344', shadow: '#CC6620' }, // E - Light Orange
+  { bg: '#FFA94D', shadow: '#CC7A20' }, // M - Gold Orange
+  { bg: '#FFBE56', shadow: '#CC8E25' }, // E - Warm Gold
+  { bg: '#FFD25F', shadow: '#CCA230' }, // N - Gold
+  { bg: '#FFE168', shadow: '#CCB535' }, // T - Light Gold
+  { bg: '#FFF071', shadow: '#CCC340' }, // A - Bright Gold (crown)
+  { bg: '#FFFA7A', shadow: '#CCD045' }, // L - Yellow Gold
 ];
 
-// Combined colors for "BLOCK BLAST" - Orange/Gold for BLOCK, Cyan for BLAST
+// OG-inspired BLOCK BLAST - Cyan/Teal energy theme
 const blockBlastColors = [
-  // BLOCK - Orange/Gold
-  { bg: '#FF9500', shadow: '#CC6600' }, // B - Orange
-  { bg: '#FFB347', shadow: '#CC8800' }, // L - Light Orange
-  { bg: '#FFC125', shadow: '#B8860B' }, // O - Gold
-  { bg: '#FFD700', shadow: '#CC9900' }, // C - Yellow Gold
-  { bg: '#FFDF00', shadow: '#CCAA00' }, // K - Bright Gold
-  // Space
-  // BLAST - Cyan/Teal
-  { bg: '#00E5FF', shadow: '#006994' }, // B - Bright Cyan
-  { bg: '#00D4F0', shadow: '#005F7A' }, // L - Cyan
-  { bg: '#00C4E0', shadow: '#005566' }, // A - Teal Cyan
-  { bg: '#00B4D0', shadow: '#004C52' }, // S - Teal
-  { bg: '#00A4C0', shadow: '#00444A' }, // T - Deep Teal
+  // BLOCK - Warm tones transitioning
+  { bg: '#FFB347', shadow: '#CC8020' }, // B
+  { bg: '#FFC864', shadow: '#CC9530' }, // L
+  { bg: '#FFDD82', shadow: '#CCAA50' }, // O
+  { bg: '#E8E0A0', shadow: '#B8AD70' }, // C
+  { bg: '#C0DEC0', shadow: '#90AB90' }, // K
+  // BLAST - Cyan energy
+  { bg: '#00E5FF', shadow: '#006080' }, // B - Bright Cyan
+  { bg: '#00D8F5', shadow: '#005570' }, // L
+  { bg: '#00CBEB', shadow: '#004A60' }, // A
+  { bg: '#00BEE0', shadow: '#003F50' }, // S
+  { bg: '#00B0D5', shadow: '#003440' }, // T
 ];
 
-// Element icons with professional styling
+// Element icons with OG-inspired styling
 const elementIcons = [
   { 
     Icon: Flame, 
     name: 'Fire',
     bgGradient: 'linear-gradient(145deg, #FF6B35 0%, #F7931E 50%, #E85D04 100%)',
     shadowColor: '#9D2A04',
-    iconColor: '#FFFFFF'
+    iconColor: '#FFFFFF',
+    glowColor: '#FF6B35'
   },
   { 
     Icon: Droplets, 
     name: 'Water',
     bgGradient: 'linear-gradient(145deg, #00B4D8 0%, #0096C7 50%, #0077B6 100%)',
     shadowColor: '#023E8A',
-    iconColor: '#FFFFFF'
+    iconColor: '#FFFFFF',
+    glowColor: '#00B4D8'
   },
   { 
     Icon: TreeDeciduous, 
     name: 'Wood',
     bgGradient: 'linear-gradient(145deg, #8B5A2B 0%, #6B4423 50%, #5D3A1A 100%)',
     shadowColor: '#3D2314',
-    iconColor: '#C4A574'
+    iconColor: '#C4A574',
+    glowColor: '#8B5A2B'
   },
   { 
     Icon: Mountain, 
     name: 'Stone',
     bgGradient: 'linear-gradient(145deg, #8D8D8D 0%, #6B6B6B 50%, #4A4A4A 100%)',
     shadowColor: '#2D2D2D',
-    iconColor: '#D4D4D4'
+    iconColor: '#D4D4D4',
+    glowColor: '#8D8D8D'
   },
   { 
     Icon: Wind, 
     name: 'Helium',
     bgGradient: 'linear-gradient(145deg, #84D98A 0%, #4CAF50 50%, #2E7D32 100%)',
     shadowColor: '#1B5E20',
-    iconColor: '#E8F5E9'
+    iconColor: '#E8F5E9',
+    glowColor: '#4CAF50'
   },
 ];
 
-// Subtle letter rotations for cohesive, unified title feel
+// Subtle letter rotations
 const elementalRotations = [1, -0.5, 0.5, -1, 0.5, -0.5, 1, -0.5, 0.5];
-// BLOCK BLAST rotations (10 letters + space conceptually) - subtle to match ELEMENTAL
 const blockBlastRotations = [-0.5, 0.5, -0.5, 0.5, -0.5, -0.5, 1, -0.5, 0.5, -1];
 
 interface BlockLetterProps {
@@ -113,27 +116,28 @@ const BlockLetter = ({ letter, color, index, isSecondWord, hasCrown, rotation = 
         transform: `rotate(${rotation}deg)`,
         textShadow: isSecondWord 
           ? `
-            0 2px 0 rgba(255,255,255,0.5),
+            0 2px 0 rgba(255,255,255,0.6),
             3px 3px 0 ${color.shadow},
             5px 5px 0 ${color.shadow},
-            6px 6px 10px rgba(0,0,0,0.4),
-            0 0 40px ${color.bg}60,
-            0 0 60px ${color.bg}30
+            6px 6px 12px rgba(0,0,0,0.5),
+            0 0 50px ${color.bg}80,
+            0 0 80px ${color.bg}50,
+            0 0 120px ${color.bg}30
           `
           : `
-            0 2px 0 rgba(255,255,255,0.5),
+            0 2px 0 rgba(255,255,255,0.6),
             3px 3px 0 ${color.shadow},
             5px 5px 0 ${color.shadow},
-            6px 6px 10px rgba(0,0,0,0.4),
-            0 0 40px ${color.bg}50
+            6px 6px 12px rgba(0,0,0,0.5),
+            0 0 40px ${color.bg}70,
+            0 0 60px ${color.bg}40
           `,
-        WebkitTextStroke: isSecondWord ? '1.5px rgba(0,0,0,0.15)' : '1.5px rgba(0,0,0,0.15)',
+        WebkitTextStroke: isSecondWord ? '1.5px rgba(0,0,0,0.2)' : '1.5px rgba(0,0,0,0.2)',
         letterSpacing: '0.02em',
         lineHeight: 1,
       }}
     >
       {letter}
-      {/* Crown integrated on the letter */}
       {hasCrown && (
         <motion.div
           className="absolute -top-3 sm:-top-4 md:-top-6 lg:-top-8 left-1/2 -translate-x-1/2"
@@ -154,7 +158,8 @@ const BlockLetter = ({ letter, color, index, isSecondWord, hasCrown, rotation = 
                   drop-shadow(0 2px 0 #CC7700)
                   drop-shadow(0 3px 0 #AA5500)
                   drop-shadow(0 4px 0 rgba(0,0,0,0.4))
-                  drop-shadow(0 0 20px rgba(255,215,0,0.8))
+                  drop-shadow(0 0 20px rgba(255,215,0,0.9))
+                  drop-shadow(0 0 40px rgba(255,150,0,0.6))
                 `,
               }}
             />
@@ -164,8 +169,6 @@ const BlockLetter = ({ letter, color, index, isSecondWord, hasCrown, rotation = 
     </motion.span>
   );
 };
-
-// Removed separate GoldenCrown - now integrated into BlockLetter
 
 interface ElementIconProps {
   element: typeof elementIcons[0];
@@ -189,6 +192,20 @@ const ElementIcon = ({ element, index }: ElementIconProps) => {
       whileTap={{ scale: 0.95 }}
       className="relative cursor-pointer group"
     >
+      {/* Glow effect behind icon */}
+      <motion.div
+        className="absolute inset-0 rounded-xl"
+        animate={{ 
+          opacity: [0.4, 0.7, 0.4],
+          scale: [1, 1.1, 1]
+        }}
+        transition={{ duration: 2, repeat: Infinity, ease: "easeInOut", delay: index * 0.2 }}
+        style={{
+          background: element.glowColor,
+          filter: 'blur(12px)',
+        }}
+      />
+      
       {/* Main icon container */}
       <div
         className="relative w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 lg:w-16 lg:h-16 rounded-xl flex items-center justify-center transition-shadow duration-200"
@@ -197,17 +214,18 @@ const ElementIcon = ({ element, index }: ElementIconProps) => {
           boxShadow: `
             0 5px 0 ${element.shadowColor},
             0 7px 0 rgba(0,0,0,0.3),
-            inset 0 2px 6px rgba(255,255,255,0.35),
-            0 10px 25px rgba(0,0,0,0.25)
+            inset 0 2px 6px rgba(255,255,255,0.4),
+            0 10px 30px rgba(0,0,0,0.3),
+            0 0 30px ${element.glowColor}50
           `,
-          border: '2px solid rgba(255,255,255,0.25)',
+          border: '2px solid rgba(255,255,255,0.3)',
         }}
       >
         {/* Top shine bar */}
         <div 
           className="absolute top-1 left-2 right-2 h-3 rounded-full pointer-events-none"
           style={{
-            background: 'linear-gradient(180deg, rgba(255,255,255,0.5) 0%, transparent 100%)',
+            background: 'linear-gradient(180deg, rgba(255,255,255,0.6) 0%, transparent 100%)',
           }}
         />
         
@@ -229,9 +247,88 @@ const ElementIcon = ({ element, index }: ElementIconProps) => {
   );
 };
 
+// Animated energy ring component (like the OG image)
+const EnergyRing = () => (
+  <motion.div
+    className="absolute inset-0 flex items-center justify-center pointer-events-none"
+    initial={{ opacity: 0, scale: 0.8 }}
+    animate={{ opacity: 1, scale: 1 }}
+    transition={{ delay: 0.2, duration: 0.6 }}
+  >
+    {/* Outer fire ring */}
+    <motion.div
+      className="absolute w-[280px] h-[280px] sm:w-[350px] sm:h-[350px] md:w-[450px] md:h-[450px] lg:w-[550px] lg:h-[550px] rounded-full"
+      animate={{ rotate: 360 }}
+      transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+      style={{
+        background: 'conic-gradient(from 0deg, transparent 0%, #FF6B35 20%, #FFB347 40%, transparent 60%, #00E5FF 80%, #00B4D8 90%, transparent 100%)',
+        filter: 'blur(8px)',
+        opacity: 0.4,
+      }}
+    />
+    
+    {/* Inner energy glow */}
+    <motion.div
+      className="absolute w-[220px] h-[220px] sm:w-[280px] sm:h-[280px] md:w-[360px] md:h-[360px] lg:w-[440px] lg:h-[440px] rounded-full"
+      animate={{ 
+        scale: [1, 1.05, 1],
+        opacity: [0.3, 0.5, 0.3]
+      }}
+      transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+      style={{
+        background: 'radial-gradient(circle, rgba(255,180,0,0.4) 0%, rgba(255,100,0,0.2) 40%, transparent 70%)',
+        filter: 'blur(20px)',
+      }}
+    />
+
+    {/* Cyan accent ring */}
+    <motion.div
+      className="absolute w-[260px] h-[260px] sm:w-[330px] sm:h-[330px] md:w-[420px] md:h-[420px] lg:w-[520px] lg:h-[520px] rounded-full"
+      animate={{ rotate: -360 }}
+      transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
+      style={{
+        border: '3px solid transparent',
+        borderTopColor: '#00E5FF40',
+        borderRightColor: '#FF6B3540',
+        filter: 'blur(2px)',
+      }}
+    />
+  </motion.div>
+);
+
+// Floating spark particles
+const SparkParticle = ({ delay, x, y }: { delay: number; x: number; y: number }) => (
+  <motion.div
+    className="absolute w-1.5 h-1.5 rounded-full"
+    initial={{ opacity: 0, x, y, scale: 0 }}
+    animate={{ 
+      opacity: [0, 1, 0],
+      y: [y, y - 60],
+      scale: [0, 1, 0]
+    }}
+    transition={{ 
+      delay,
+      duration: 2,
+      repeat: Infinity,
+      repeatDelay: Math.random() * 2
+    }}
+    style={{
+      background: Math.random() > 0.5 ? '#FF6B35' : '#00E5FF',
+      boxShadow: `0 0 8px ${Math.random() > 0.5 ? '#FF6B35' : '#00E5FF'}`,
+    }}
+  />
+);
+
 export const GameTitle = () => {
   const word1 = 'ELEMENTAL';
   const word2 = 'BLOCK BLAST';
+
+  // Generate random spark positions
+  const sparks = Array.from({ length: 12 }, (_, i) => ({
+    delay: i * 0.3,
+    x: (Math.random() - 0.5) * 300,
+    y: (Math.random() - 0.5) * 100 + 50,
+  }));
 
   return (
     <motion.div 
@@ -240,35 +337,43 @@ export const GameTitle = () => {
       animate={{ scale: 1, opacity: 1 }}
       transition={{ duration: 0.5, ease: 'easeOut' }}
     >
-      {/* Unified logo container with subtle glow background */}
-      <div className="relative p-3 sm:p-4 md:p-5 lg:p-6">
-        {/* Soft glowing backdrop for visual grouping */}
+      {/* Energy ring effect */}
+      <EnergyRing />
+      
+      {/* Floating sparks */}
+      {sparks.map((spark, i) => (
+        <SparkParticle key={i} {...spark} />
+      ))}
+
+      {/* Unified logo container */}
+      <div className="relative p-3 sm:p-4 md:p-5 lg:p-6 z-10">
+        {/* Soft glowing backdrop */}
         <div 
           className="absolute inset-0 -z-10 rounded-3xl"
           style={{
             background: `
-              radial-gradient(ellipse 100% 100% at 50% 50%, rgba(99,102,241,0.15) 0%, transparent 70%)
-            `,
-            filter: 'blur(30px)',
-          }}
-        />
-        
-        {/* Colorful glow behind title */}
-        <div 
-          className="absolute inset-0 -z-10"
-          style={{
-            background: `
-              radial-gradient(ellipse 50% 30% at 30% 30%, rgba(255,65,54,0.15) 0%, transparent 50%),
-              radial-gradient(ellipse 50% 30% at 70% 30%, rgba(0,116,217,0.15) 0%, transparent 50%),
-              radial-gradient(ellipse 70% 50% at 50% 70%, rgba(0,229,255,0.2) 0%, transparent 50%)
+              radial-gradient(ellipse 120% 100% at 50% 50%, rgba(255,107,53,0.2) 0%, transparent 50%)
             `,
             filter: 'blur(40px)',
           }}
         />
         
-        {/* Title words stacked - 2 lines: ELEMENTAL / BLOCK BLAST */}
+        {/* Colorful glow behind title - OG style */}
+        <div 
+          className="absolute inset-0 -z-10"
+          style={{
+            background: `
+              radial-gradient(ellipse 60% 40% at 30% 40%, rgba(255,107,53,0.25) 0%, transparent 50%),
+              radial-gradient(ellipse 60% 40% at 70% 40%, rgba(255,200,100,0.2) 0%, transparent 50%),
+              radial-gradient(ellipse 80% 60% at 50% 70%, rgba(0,229,255,0.3) 0%, transparent 50%)
+            `,
+            filter: 'blur(50px)',
+          }}
+        />
+        
+        {/* Title words stacked */}
         <div className="flex flex-col items-center -space-y-1 sm:-space-y-2 md:-space-y-3 lg:-space-y-4">
-          {/* First line - ELEMENTAL (Rainbow) with crown on A */}
+          {/* First line - ELEMENTAL */}
           <div className="flex items-center justify-center">
             {word1.split('').map((letter, i) => (
               <BlockLetter
@@ -276,25 +381,27 @@ export const GameTitle = () => {
                 letter={letter}
                 color={elementalColors[i]}
                 index={i}
-                hasCrown={i === 7} // Crown on "A"
+                hasCrown={i === 7}
                 rotation={elementalRotations[i]}
               />
             ))}
           </div>
 
-          {/* Second line - BLOCK BLAST (Orange to Cyan) with pulsing glow */}
+          {/* Second line - BLOCK BLAST with enhanced glow */}
           <motion.div 
             className="flex items-center justify-center"
             animate={{ 
-              filter: ['drop-shadow(0 0 30px rgba(0,229,255,0.4))', 'drop-shadow(0 0 50px rgba(0,229,255,0.7))', 'drop-shadow(0 0 30px rgba(0,229,255,0.4))']
+              filter: [
+                'drop-shadow(0 0 40px rgba(0,229,255,0.5))',
+                'drop-shadow(0 0 70px rgba(0,229,255,0.8))',
+                'drop-shadow(0 0 40px rgba(0,229,255,0.5))'
+              ]
             }}
-            transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+            transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
           >
             {word2.split('').map((letter, i) => {
-              // Skip space character but add visual gap
               if (letter === ' ') return <span key={`space-${i}`} className="w-3 sm:w-4 md:w-6 lg:w-8" />;
-              // Get color index (skip space in the count for colors)
-              const colorIndex = i < 5 ? i : i - 1; // BLOCK is 0-4, then space, BLAST is 5-9 (but colors are 0-4, 5-9)
+              const colorIndex = i < 5 ? i : i - 1;
               return (
                 <BlockLetter 
                   key={`w2-${i}`} 
@@ -309,9 +416,9 @@ export const GameTitle = () => {
           </motion.div>
         </div>
 
-        {/* Element Icons Row - tighter spacing, part of logo */}
+        {/* Element Icons Row */}
         <motion.div 
-          className="flex items-center justify-center gap-1.5 sm:gap-2 md:gap-3 lg:gap-4 mt-2 sm:mt-3 md:mt-4"
+          className="flex items-center justify-center gap-1.5 sm:gap-2 md:gap-3 lg:gap-4 mt-4 sm:mt-5 md:mt-6"
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.6 }}
