@@ -149,7 +149,7 @@ export function useDailyChallenge() {
     } finally {
       setIsLoading(false);
     }
-  }, [sanitizePlayerName]);
+  }, [sanitizePlayerName, validateScore]);
 
   const getPlayerDailyScore = useCallback(async (
     playerName: string,
