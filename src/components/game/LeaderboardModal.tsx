@@ -4,6 +4,7 @@ import { Trophy, Medal, Award, X, Trash2, Globe, User, Loader2 } from 'lucide-re
 import { HighScoreEntry } from '@/hooks/useHighScores';
 import { useGlobalLeaderboard, TimePeriod, LeaderboardEntry } from '@/hooks/useGlobalLeaderboard';
 import { Button } from '@/components/ui/button';
+import { modalStyles } from '@/game/theme';
 
 interface LeaderboardModalProps {
   isOpen: boolean;
@@ -45,13 +46,13 @@ export function LeaderboardModal({
   const getRankIcon = (rank: number) => {
     switch (rank) {
       case 1:
-        return <Trophy className="w-5 h-5 text-yellow-400" />;
+        return <Trophy className="w-5 h-5 text-[#FFD700]" />;
       case 2:
         return <Medal className="w-5 h-5 text-slate-300" />;
       case 3:
-        return <Award className="w-5 h-5 text-amber-600" />;
+        return <Award className="w-5 h-5 text-[#FF9F43]" />;
       default:
-        return <span className="w-5 text-center text-sm text-game-text-muted">{rank}</span>;
+        return <span className="w-5 text-center text-sm text-white/50">{rank}</span>;
     }
   };
 
@@ -79,7 +80,7 @@ export function LeaderboardModal({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40"
+            className="fixed inset-0 bg-black/70 backdrop-blur-sm z-40"
             onClick={onClose}
           />
           
@@ -90,11 +91,27 @@ export function LeaderboardModal({
             exit={{ opacity: 0, scale: 0.9, y: 20 }}
             className="fixed inset-x-4 top-1/2 -translate-y-1/2 z-50 max-w-md mx-auto"
           >
-            <div className="bg-gradient-to-b from-game-grid-dark to-game-grid-darker rounded-2xl p-5 border border-game-grid-border shadow-2xl max-h-[80vh] flex flex-col">
+            <div 
+              className="rounded-2xl p-5 max-h-[80vh] flex flex-col overflow-hidden relative"
+              style={modalStyles.container}
+            >
+              {/* Decorative top gradient bar */}
+              <div 
+                className="absolute top-0 left-0 right-0 h-1"
+                style={{
+                  background: 'linear-gradient(90deg, #FF6B35 0%, #FFD700 50%, #00E5FF 100%)',
+                }}
+              />
+
               {/* Header */}
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
-                  <Trophy className="w-5 h-5 text-yellow-400" />
+                  <div 
+                    className="p-2.5 rounded-xl"
+                    style={modalStyles.headerIconGold}
+                  >
+                    <Trophy className="w-5 h-5 text-amber-900" />
+                  </div>
                   <h2 className="text-lg font-bold text-white">Leaderboard</h2>
                 </div>
                 <div className="flex items-center gap-2">
@@ -102,7 +119,7 @@ export function LeaderboardModal({
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="h-8 w-8 p-0 text-game-text-muted hover:text-red-400 hover:bg-red-400/10"
+                      className="h-8 w-8 p-0 text-white/40 hover:text-red-400 hover:bg-red-400/10"
                       onClick={onClear}
                     >
                       <Trash2 className="w-4 h-4" />
@@ -111,7 +128,7 @@ export function LeaderboardModal({
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="h-8 w-8 p-0 text-game-text-muted hover:text-white hover:bg-white/10"
+                    className="h-8 w-8 p-0 text-white/40 hover:text-white hover:bg-white/10"
                     onClick={onClose}
                   >
                     <X className="w-4 h-4" />
@@ -120,14 +137,17 @@ export function LeaderboardModal({
               </div>
 
               {/* Tab Switcher */}
-              <div className="flex gap-1 mb-4 p-1 bg-game-grid-darker/50 rounded-xl">
+              <div className="flex gap-1 mb-4 p-1 bg-black/30 rounded-xl">
                 <button
                   onClick={() => setActiveTab('global')}
                   className={`flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg text-sm font-medium transition-all ${
                     activeTab === 'global'
-                      ? 'bg-game-accent text-white'
-                      : 'text-game-text-muted hover:text-white'
+                      ? 'text-white'
+                      : 'text-white/50 hover:text-white'
                   }`}
+                  style={activeTab === 'global' ? {
+                    background: 'linear-gradient(135deg, #00B4D8 0%, #00E5FF 100%)',
+                  } : undefined}
                 >
                   <Globe className="w-4 h-4" />
                   Global
@@ -136,9 +156,12 @@ export function LeaderboardModal({
                   onClick={() => setActiveTab('local')}
                   className={`flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg text-sm font-medium transition-all ${
                     activeTab === 'local'
-                      ? 'bg-game-accent text-white'
-                      : 'text-game-text-muted hover:text-white'
+                      ? 'text-white'
+                      : 'text-white/50 hover:text-white'
                   }`}
+                  style={activeTab === 'local' ? {
+                    background: 'linear-gradient(135deg, #FF6B35 0%, #FF9F43 100%)',
+                  } : undefined}
                 >
                   <User className="w-4 h-4" />
                   Local
@@ -154,9 +177,13 @@ export function LeaderboardModal({
                       onClick={() => setTimePeriod(period)}
                       className={`flex-1 py-1.5 px-2 rounded-lg text-xs font-medium transition-all ${
                         timePeriod === period
-                          ? 'bg-white/10 text-white border border-white/20'
-                          : 'text-game-text-muted hover:text-white hover:bg-white/5'
+                          ? 'text-white'
+                          : 'text-white/50 hover:text-white hover:bg-white/5'
                       }`}
+                      style={timePeriod === period ? {
+                        background: 'rgba(0,229,255,0.2)',
+                        border: '1px solid rgba(0,229,255,0.4)',
+                      } : undefined}
                     >
                       {TIME_PERIOD_LABELS[period]}
                     </button>
@@ -170,7 +197,7 @@ export function LeaderboardModal({
                   // Global Leaderboard
                   isLoading ? (
                     <div className="flex items-center justify-center py-12">
-                      <Loader2 className="w-8 h-8 text-game-accent animate-spin" />
+                      <Loader2 className="w-8 h-8 text-[#00E5FF] animate-spin" />
                     </div>
                   ) : error ? (
                     <div className="text-center py-8">
@@ -178,7 +205,7 @@ export function LeaderboardModal({
                       <Button
                         variant="ghost"
                         size="sm"
-                        className="mt-2 text-game-text-muted"
+                        className="mt-2 text-white/50"
                         onClick={() => fetchLeaderboard(timePeriod).then(setGlobalScores)}
                       >
                         Try again
@@ -186,9 +213,9 @@ export function LeaderboardModal({
                     </div>
                   ) : globalScores.length === 0 ? (
                     <div className="text-center py-8">
-                      <Globe className="w-12 h-12 text-game-text-muted/30 mx-auto mb-3" />
-                      <p className="text-game-text-muted text-sm">No scores yet for this period</p>
-                      <p className="text-game-text-muted/60 text-xs mt-1">Be the first to set a record!</p>
+                      <Globe className="w-12 h-12 text-white/20 mx-auto mb-3" />
+                      <p className="text-white/50 text-sm">No scores yet for this period</p>
+                      <p className="text-white/30 text-xs mt-1">Be the first to set a record!</p>
                     </div>
                   ) : (
                     <div className="space-y-2">
@@ -202,31 +229,30 @@ export function LeaderboardModal({
                             initial={{ opacity: 0, x: -10 }}
                             animate={{ opacity: 1, x: 0 }}
                             transition={{ delay: index * 0.03 }}
-                            className={`
-                              flex items-center gap-3 py-2.5 px-3 rounded-xl
-                              ${isHighlighted 
-                                ? 'bg-game-accent/20 border border-game-accent/40' 
+                            className="flex items-center gap-3 py-2.5 px-3 rounded-xl"
+                            style={
+                              isHighlighted 
+                                ? modalStyles.infoBoxCyan
                                 : index === 0 
-                                  ? 'bg-yellow-500/10 border border-yellow-500/20' 
-                                  : 'bg-white/5'
-                              }
-                            `}
+                                  ? modalStyles.infoBoxFire
+                                  : { background: 'rgba(255,255,255,0.05)' }
+                            }
                           >
                             <div className="w-6 flex justify-center">
                               {getRankIcon(index + 1)}
                             </div>
                             <div className="flex-1 min-w-0">
                               <p className={`font-bold truncate ${
-                                index === 0 ? 'text-yellow-400' : 'text-white'
+                                index === 0 ? 'text-[#FFD700]' : 'text-white'
                               }`}>
                                 {entry.player_name}
                               </p>
-                              <p className="text-xs text-game-text-muted">
+                              <p className="text-xs text-white/40">
                                 {formatDate(entry.created_at)}
                               </p>
                             </div>
                             <span className={`font-bold text-lg ${
-                              index === 0 ? 'text-yellow-400' : 'text-white'
+                              index === 0 ? 'text-[#FFD700]' : 'text-white'
                             }`}>
                               {entry.score.toLocaleString()}
                             </span>
@@ -239,9 +265,9 @@ export function LeaderboardModal({
                   // Local Leaderboard
                   highScores.length === 0 ? (
                     <div className="text-center py-8">
-                      <Trophy className="w-12 h-12 text-game-text-muted/30 mx-auto mb-3" />
-                      <p className="text-game-text-muted text-sm">No local scores yet</p>
-                      <p className="text-game-text-muted/60 text-xs mt-1">Play a game to set a record!</p>
+                      <Trophy className="w-12 h-12 text-white/20 mx-auto mb-3" />
+                      <p className="text-white/50 text-sm">No local scores yet</p>
+                      <p className="text-white/30 text-xs mt-1">Play a game to set a record!</p>
                     </div>
                   ) : (
                     <div className="space-y-2">
@@ -254,25 +280,24 @@ export function LeaderboardModal({
                             initial={{ opacity: 0, x: -10 }}
                             animate={{ opacity: 1, x: 0 }}
                             transition={{ delay: index * 0.03 }}
-                            className={`
-                              flex items-center gap-3 py-2.5 px-3 rounded-xl
-                              ${isCurrentScore 
-                                ? 'bg-game-accent/20 border border-game-accent/40' 
+                            className="flex items-center gap-3 py-2.5 px-3 rounded-xl"
+                            style={
+                              isCurrentScore 
+                                ? modalStyles.infoBoxCyan
                                 : index === 0 
-                                  ? 'bg-yellow-500/10 border border-yellow-500/20' 
-                                  : 'bg-white/5'
-                              }
-                            `}
+                                  ? modalStyles.infoBoxFire
+                                  : { background: 'rgba(255,255,255,0.05)' }
+                            }
                           >
                             <div className="w-6 flex justify-center">
                               {getRankIcon(index + 1)}
                             </div>
                             <span className={`flex-1 font-bold text-lg ${
-                              index === 0 ? 'text-yellow-400' : 'text-white'
+                              index === 0 ? 'text-[#FFD700]' : 'text-white'
                             }`}>
                               {entry.score.toLocaleString()}
                             </span>
-                            <span className="text-game-text-muted text-xs">
+                            <span className="text-white/40 text-xs">
                               {entry.date}
                             </span>
                           </motion.div>

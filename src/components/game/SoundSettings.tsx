@@ -4,6 +4,7 @@ import { Volume2, VolumeX, Music, Music2, X, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Slider } from '@/components/ui/slider';
+import { modalStyles } from '@/game/theme';
 import { 
   isSfxEnabled, 
   setSfxEnabled, 
@@ -54,7 +55,7 @@ export function SoundSettings({ isOpen, onClose }: SoundSettingsProps) {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50"
+            className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50"
             onClick={onClose}
           />
           
@@ -65,17 +66,33 @@ export function SoundSettings({ isOpen, onClose }: SoundSettingsProps) {
             exit={{ opacity: 0, scale: 0.9, y: 20 }}
             className="fixed inset-x-4 top-1/2 -translate-y-1/2 z-50 max-w-xs mx-auto"
           >
-            <div className="bg-gradient-to-b from-game-grid-dark to-game-grid-darker rounded-2xl p-5 border border-game-grid-border shadow-2xl">
+            <div 
+              className="rounded-2xl p-5 relative overflow-hidden"
+              style={modalStyles.container}
+            >
+              {/* Decorative top gradient bar */}
+              <div 
+                className="absolute top-0 left-0 right-0 h-1"
+                style={{
+                  background: 'linear-gradient(90deg, #FF6B35 0%, #FFD700 50%, #00E5FF 100%)',
+                }}
+              />
+
               {/* Header */}
               <div className="flex items-center justify-between mb-5">
                 <div className="flex items-center gap-2">
-                  <Settings className="w-5 h-5 text-game-accent" />
+                  <div 
+                    className="p-2 rounded-xl"
+                    style={modalStyles.headerIconCyan}
+                  >
+                    <Settings className="w-5 h-5 text-white" />
+                  </div>
                   <h2 className="text-lg font-bold text-white">Sound Settings</h2>
                 </div>
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="h-8 w-8 p-0 text-game-text-muted hover:text-white hover:bg-white/10"
+                  className="h-8 w-8 p-0 text-white/40 hover:text-white hover:bg-white/10"
                   onClick={onClose}
                 >
                   <X className="w-4 h-4" />
@@ -88,19 +105,19 @@ export function SoundSettings({ isOpen, onClose }: SoundSettingsProps) {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     {sfxOn ? (
-                      <Volume2 className="w-5 h-5 text-game-accent" />
+                      <Volume2 className="w-5 h-5 text-[#00E5FF]" />
                     ) : (
-                      <VolumeX className="w-5 h-5 text-game-text-muted" />
+                      <VolumeX className="w-5 h-5 text-white/40" />
                     )}
                     <div>
                       <p className="text-white font-medium">Sound Effects</p>
-                      <p className="text-xs text-game-text-muted">Game sounds & reactions</p>
+                      <p className="text-xs text-white/50">Game sounds & reactions</p>
                     </div>
                   </div>
                   <Switch
                     checked={sfxOn}
                     onCheckedChange={handleSfxToggle}
-                    className="data-[state=checked]:bg-game-accent"
+                    className="data-[state=checked]:bg-[#00E5FF]"
                   />
                 </div>
 
@@ -108,26 +125,26 @@ export function SoundSettings({ isOpen, onClose }: SoundSettingsProps) {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     {musicOn ? (
-                      <Music className="w-5 h-5 text-game-accent" />
+                      <Music className="w-5 h-5 text-[#FF6B35]" />
                     ) : (
-                      <Music2 className="w-5 h-5 text-game-text-muted" />
+                      <Music2 className="w-5 h-5 text-white/40" />
                     )}
                     <div>
                       <p className="text-white font-medium">Background Music</p>
-                      <p className="text-xs text-game-text-muted">Ambient soundtrack</p>
+                      <p className="text-xs text-white/50">Ambient soundtrack</p>
                     </div>
                   </div>
                   <Switch
                     checked={musicOn}
                     onCheckedChange={handleMusicToggle}
-                    className="data-[state=checked]:bg-game-accent"
+                    className="data-[state=checked]:bg-[#FF6B35]"
                   />
                 </div>
 
                 {/* Volume Slider */}
                 <div className={`space-y-3 ${!musicOn ? 'opacity-50 pointer-events-none' : ''}`}>
                   <div className="flex items-center justify-between">
-                    <p className="text-sm text-game-text-muted">Music Volume</p>
+                    <p className="text-sm text-white/50">Music Volume</p>
                     <span className="text-sm text-white font-medium">{Math.round(volume[0])}%</span>
                   </div>
                   <Slider
@@ -136,13 +153,13 @@ export function SoundSettings({ isOpen, onClose }: SoundSettingsProps) {
                     max={100}
                     min={0}
                     step={5}
-                    className="w-full"
+                    className="w-full [&_[role=slider]]:bg-[#FFD700] [&_.bg-primary]:bg-gradient-to-r [&_.bg-primary]:from-[#FF6B35] [&_.bg-primary]:to-[#FFD700]"
                   />
                 </div>
               </div>
 
               {/* Hint */}
-              <p className="text-xs text-game-text-muted/60 text-center mt-5">
+              <p className="text-xs text-white/30 text-center mt-5">
                 Settings are saved automatically
               </p>
             </div>
@@ -175,13 +192,13 @@ export function SoundToggleButton({ onClick }: SoundToggleButtonProps) {
       onClick={onClick}
       className={`p-2.5 rounded-full border transition-colors ${
         isAnyOn 
-          ? 'bg-game-grid-dark/80 border-game-grid-border/50 hover:bg-game-grid-dark' 
+          ? 'bg-game-grid-dark/80 border-[#00E5FF]/30 hover:bg-game-grid-dark' 
           : 'bg-game-grid-dark/80 border-red-500/30 hover:bg-game-grid-dark'
       }`}
       title="Sound Settings"
     >
       {isAnyOn ? (
-        <Volume2 className="w-5 h-5 text-game-accent" />
+        <Volume2 className="w-5 h-5 text-[#00E5FF]" />
       ) : (
         <VolumeX className="w-5 h-5 text-red-400" />
       )}
