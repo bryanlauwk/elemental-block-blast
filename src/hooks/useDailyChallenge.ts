@@ -49,6 +49,23 @@ export function useDailyChallenge() {
       .slice(0, 20); // Enforce max length
   }, []);
 
+  // Score validation constants (must match database constraints)
+  const MAX_SCORE = 10000000;
+  const MIN_SCORE = 1;
+
+  const validateScore = useCallback((score: number): { valid: boolean; error?: string } => {
+    if (!Number.isInteger(score)) {
+      return { valid: false, error: 'Score must be a whole number' };
+    }
+    if (score < MIN_SCORE) {
+      return { valid: false, error: 'Score must be positive' };
+    }
+    if (score > MAX_SCORE) {
+      return { valid: false, error: 'Score exceeds maximum allowed value' };
+    }
+    return { valid: true };
+  }, []);
+
   const submitDailyScore = useCallback(async (
     playerName: string, 
     score: number,
@@ -58,6 +75,12 @@ export function useDailyChallenge() {
     setError(null);
 
     try {
+      // Validate score before submission
+      const scoreValidation = validateScore(score);
+      if (!scoreValidation.valid) {
+        throw new Error(scoreValidation.error);
+      }
+
       const sanitizedName = sanitizePlayerName(playerName);
       if (!sanitizedName) {
         throw new Error('Invalid player name');
