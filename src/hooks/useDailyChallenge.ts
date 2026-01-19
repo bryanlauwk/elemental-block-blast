@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { getTodayDateString } from '@/game/seededRandom';
-
+import { containsProfanity } from '@/utils/profanityFilter';
 export interface DailyChallengeEntry {
   id: string;
   player_name: string;
@@ -63,6 +63,10 @@ export function useDailyChallenge() {
         throw new Error('Invalid player name');
       }
 
+      // Check for profanity before submission
+      if (containsProfanity(sanitizedName)) {
+        throw new Error('Please choose an appropriate name');
+      }
       // Check if player already has a score for today
       const { data: existing } = await supabase
         .from('daily_challenge_scores')

@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Trophy, User, Loader2, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { validatePlayerName } from '@/utils/profanityFilter';
 
 interface PlayerNameModalProps {
   isOpen: boolean;
@@ -40,19 +41,9 @@ export function PlayerNameModal({
   }, []);
 
   const validateName = useCallback((name: string): boolean => {
-    const trimmed = name.trim();
-    if (trimmed.length < 1) {
-      setError('Name is required');
-      return false;
-    }
-    if (trimmed.length > 20) {
-      setError('Name must be 20 characters or less');
-      return false;
-    }
-    // Check for valid characters only (alphanumeric, spaces, common punctuation)
-    const validNamePattern = /^[a-zA-Z0-9\s_\-!?.]+$/;
-    if (!validNamePattern.test(trimmed)) {
-      setError('Name can only contain letters, numbers, spaces, and basic punctuation');
+    const validation = validatePlayerName(name);
+    if (!validation.isValid) {
+      setError(validation.error || 'Invalid name');
       return false;
     }
     setError(null);
