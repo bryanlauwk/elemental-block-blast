@@ -1,8 +1,8 @@
 import { useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { containsProfanity } from '@/utils/profanityFilter';
 
 export type TimePeriod = 'day' | 'week' | 'month' | 'all';
-
 export interface LeaderboardEntry {
   id: string;
   player_name: string;
@@ -78,6 +78,11 @@ export function useGlobalLeaderboard() {
       const sanitizedName = sanitizePlayerName(playerName);
       if (!sanitizedName) {
         throw new Error('Invalid player name');
+      }
+
+      // Check for profanity before submission
+      if (containsProfanity(sanitizedName)) {
+        throw new Error('Please choose an appropriate name');
       }
 
       // Submit the score
