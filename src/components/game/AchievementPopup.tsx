@@ -25,11 +25,11 @@ export function AchievementPopup({ achievement, onDismiss }: AchievementPopupPro
           initial={{ opacity: 0, y: -100, scale: 0.8 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: -50, scale: 0.9 }}
-          className="fixed top-20 left-1/2 -translate-x-1/2 z-50"
+          className="fixed top-20 sm:top-20 left-4 right-4 sm:left-1/2 sm:right-auto sm:-translate-x-1/2 z-50 mx-auto max-w-sm sm:max-w-none sm:w-auto"
           onClick={onDismiss}
         >
           <motion.div
-            className="relative bg-gradient-to-r from-amber-600/90 via-yellow-500/90 to-amber-600/90 border-2 border-yellow-400/60 rounded-2xl px-6 py-4 shadow-2xl backdrop-blur-sm cursor-pointer"
+            className="relative bg-gradient-to-r from-amber-600/90 via-yellow-500/90 to-amber-600/90 border-2 border-yellow-400/60 rounded-2xl px-4 sm:px-6 py-3 sm:py-4 shadow-2xl backdrop-blur-sm cursor-pointer"
             animate={{ 
               boxShadow: [
                 '0 0 20px rgba(251, 191, 36, 0.3)',
@@ -39,9 +39,9 @@ export function AchievementPopup({ achievement, onDismiss }: AchievementPopupPro
             }}
             transition={{ duration: 1.5, repeat: Infinity }}
           >
-            {/* Sparkle effects */}
+            {/* Sparkle effects - hidden on small mobile */}
             <motion.div
-              className="absolute -top-2 -left-2 w-4 h-4 text-yellow-300"
+              className="absolute -top-2 -left-2 w-4 h-4 text-yellow-300 hidden sm:block"
               animate={{ 
                 scale: [0, 1, 0],
                 rotate: [0, 180, 360],
@@ -51,7 +51,7 @@ export function AchievementPopup({ achievement, onDismiss }: AchievementPopupPro
               ✦
             </motion.div>
             <motion.div
-              className="absolute -top-1 -right-3 w-3 h-3 text-yellow-200"
+              className="absolute -top-1 -right-3 w-3 h-3 text-yellow-200 hidden sm:block"
               animate={{ 
                 scale: [0, 1, 0],
                 rotate: [0, 180, 360],
@@ -61,7 +61,7 @@ export function AchievementPopup({ achievement, onDismiss }: AchievementPopupPro
               ✦
             </motion.div>
             <motion.div
-              className="absolute -bottom-2 right-4 w-3 h-3 text-amber-300"
+              className="absolute -bottom-2 right-4 w-3 h-3 text-amber-300 hidden sm:block"
               animate={{ 
                 scale: [0, 1, 0],
                 rotate: [0, 180, 360],
@@ -71,35 +71,35 @@ export function AchievementPopup({ achievement, onDismiss }: AchievementPopupPro
               ✦
             </motion.div>
 
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-3 sm:gap-4">
               {/* Icon */}
-              <div className="relative">
+              <div className="relative flex-shrink-0">
                 <motion.div
-                  className="w-14 h-14 rounded-full bg-black/30 border-2 border-yellow-300/50 flex items-center justify-center text-3xl"
+                  className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-black/30 border-2 border-yellow-300/50 flex items-center justify-center text-2xl sm:text-3xl"
                   animate={{ rotate: [0, 5, -5, 0] }}
                   transition={{ duration: 0.5, delay: 0.2 }}
                 >
                   {achievement.icon}
                 </motion.div>
                 <motion.div
-                  className="absolute -top-1 -right-1 w-6 h-6 bg-yellow-400 rounded-full flex items-center justify-center"
+                  className="absolute -top-1 -right-1 w-5 h-5 sm:w-6 sm:h-6 bg-yellow-400 rounded-full flex items-center justify-center"
                   initial={{ scale: 0 }}
                   animate={{ scale: 1 }}
                   transition={{ delay: 0.3, type: 'spring' }}
                 >
-                  <Award className="w-4 h-4 text-amber-900" />
+                  <Award className="w-3 h-3 sm:w-4 sm:h-4 text-amber-900" />
                 </motion.div>
               </div>
 
               {/* Text */}
-              <div>
-                <p className="text-xs font-semibold text-yellow-200 uppercase tracking-wider mb-0.5">
+              <div className="min-w-0 flex-1">
+                <p className="text-[10px] sm:text-xs font-semibold text-yellow-200 uppercase tracking-wider mb-0.5">
                   Achievement Unlocked!
                 </p>
-                <h3 className="text-lg font-black text-white mb-0.5">
+                <h3 className="text-base sm:text-lg font-black text-white mb-0.5 truncate">
                   {achievement.name}
                 </h3>
-                <p className="text-sm text-yellow-100/80">
+                <p className="text-xs sm:text-sm text-yellow-100/80">
                   +{achievement.points} points
                 </p>
               </div>
