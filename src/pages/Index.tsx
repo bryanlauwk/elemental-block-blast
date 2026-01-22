@@ -21,6 +21,7 @@ import { ExitConfirmModal } from '@/components/game/ExitConfirmModal';
 import { StreakBadge } from '@/components/game/StreakBadge';
 import { AchievementPopup } from '@/components/game/AchievementPopup';
 import { AchievementsModal } from '@/components/game/AchievementsModal';
+import { MobileMenu } from '@/components/game/MobileMenu';
 import ReactionFeed from '@/components/game/ReactionFeed';
 import ReactionTutorial from '@/components/game/ReactionTutorial';
 import ReactionParticles from '@/components/game/ReactionParticles';
@@ -290,7 +291,7 @@ const Index = () => {
           BRYANLAUWK.FUN
         </a>
         
-        {/* Right: All icons */}
+        {/* Right: Icons - Desktop shows all, Mobile shows hamburger */}
         <div className="flex gap-2 items-center">
           {/* Exit/Home button - only during gameplay */}
           {hasStarted && !gameState.isGameOver && (
@@ -304,75 +305,99 @@ const Index = () => {
             </button>
           )}
           
-          {/* Sound Settings button */}
-          <button
-            onClick={() => setShowSoundSettings(true)}
-            className={iconButtonClass}
-            style={iconButtonStyle}
-            title="Sound Settings"
-          >
-            <Volume2 className="w-5 h-5 text-white" />
-          </button>
-          
-          {/* Daily Challenge button */}
-          <button
-            onClick={() => setShowDailyChallenge(true)}
-            className={iconButtonClass}
-            style={iconButtonStyle}
-            title="Daily Challenge"
-          >
-            <Calendar className="w-5 h-5 text-white" />
-          </button>
-          
-          {/* Streak badge */}
-          {currentStreak > 0 && (
-            <StreakBadge streak={currentStreak} isAtRisk={isStreakAtRisk} size="md" />
+          {/* Mobile: Hamburger Menu */}
+          {isMobile && (
+            <MobileMenu
+              onOpenSoundSettings={() => setShowSoundSettings(true)}
+              onOpenDailyChallenge={() => setShowDailyChallenge(true)}
+              onOpenAchievements={() => setShowAchievements(true)}
+              onOpenLeaderboard={() => setShowLeaderboard(true)}
+              onOpenTutorial={() => {
+                localStorage.removeItem('elemental-blast-tutorial-seen');
+                setTutorialComplete(false);
+              }}
+              onToggleReactionFeed={() => setShowReactionFeed(!showReactionFeed)}
+              showReactionFeedToggle={hasStarted}
+              reactionFeedActive={showReactionFeed}
+              currentStreak={currentStreak}
+              isStreakAtRisk={isStreakAtRisk}
+            />
           )}
           
-          {/* Reaction feed toggle (mobile & tablet) */}
-          {hasStarted && (
-            <button
-              onClick={() => setShowReactionFeed(!showReactionFeed)}
-              className={`${iconButtonClass} lg:hidden`}
-              style={iconButtonStyle}
-              title="View Reactions"
-            >
-              <Zap className={`w-5 h-5 ${showReactionFeed ? 'text-game-accent' : 'text-yellow-400'}`} />
-            </button>
-          )}
-          
-          {/* Achievements button */}
-          <button
-            onClick={() => setShowAchievements(true)}
-            className={iconButtonClass}
-            style={iconButtonStyle}
-            title="Achievements"
-          >
-            <Award className="w-5 h-5 text-amber-400" />
-          </button>
-          
-          {/* Leaderboard button - Trophy with gold fill */}
-          <button
-            onClick={() => setShowLeaderboard(true)}
-            className={iconButtonClass}
-            style={iconButtonStyle}
-            title="View High Scores"
-          >
-            <Trophy className="w-5 h-5" fill="#FBBF24" stroke="#F59E0B" />
-          </button>
+          {/* Desktop: Full icon bar */}
+          {!isMobile && (
+            <>
+              {/* Sound Settings button */}
+              <button
+                onClick={() => setShowSoundSettings(true)}
+                className={iconButtonClass}
+                style={iconButtonStyle}
+                title="Sound Settings"
+              >
+                <Volume2 className="w-5 h-5 text-white" />
+              </button>
+              
+              {/* Daily Challenge button */}
+              <button
+                onClick={() => setShowDailyChallenge(true)}
+                className={iconButtonClass}
+                style={iconButtonStyle}
+                title="Daily Challenge"
+              >
+                <Calendar className="w-5 h-5 text-white" />
+              </button>
+              
+              {/* Streak badge */}
+              {currentStreak > 0 && (
+                <StreakBadge streak={currentStreak} isAtRisk={isStreakAtRisk} size="md" />
+              )}
+              
+              {/* Reaction feed toggle (tablet) */}
+              {hasStarted && (
+                <button
+                  onClick={() => setShowReactionFeed(!showReactionFeed)}
+                  className={`${iconButtonClass} lg:hidden`}
+                  style={iconButtonStyle}
+                  title="View Reactions"
+                >
+                  <Zap className={`w-5 h-5 ${showReactionFeed ? 'text-game-accent' : 'text-yellow-400'}`} />
+                </button>
+              )}
+              
+              {/* Achievements button */}
+              <button
+                onClick={() => setShowAchievements(true)}
+                className={iconButtonClass}
+                style={iconButtonStyle}
+                title="Achievements"
+              >
+                <Award className="w-5 h-5 text-amber-400" />
+              </button>
+              
+              {/* Leaderboard button */}
+              <button
+                onClick={() => setShowLeaderboard(true)}
+                className={iconButtonClass}
+                style={iconButtonStyle}
+                title="View High Scores"
+              >
+                <Trophy className="w-5 h-5" fill="#FBBF24" stroke="#F59E0B" />
+              </button>
 
-          {/* Help button to replay tutorial */}
-          <button
-            onClick={() => {
-              localStorage.removeItem('elemental-blast-tutorial-seen');
-              setTutorialComplete(false);
-            }}
-            className={iconButtonClass}
-            style={iconButtonStyle}
-            title="How to Play"
-          >
-            <HelpCircle className="w-5 h-5 text-white" />
-          </button>
+              {/* Help button */}
+              <button
+                onClick={() => {
+                  localStorage.removeItem('elemental-blast-tutorial-seen');
+                  setTutorialComplete(false);
+                }}
+                className={iconButtonClass}
+                style={iconButtonStyle}
+                title="How to Play"
+              >
+                <HelpCircle className="w-5 h-5 text-white" />
+              </button>
+            </>
+          )}
         </div>
       </div>
 

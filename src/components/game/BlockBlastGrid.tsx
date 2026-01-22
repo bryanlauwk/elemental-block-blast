@@ -1,4 +1,5 @@
 import { motion } from 'framer-motion';
+import { useRef, useCallback, TouchEvent } from 'react';
 import { Cell, DraggablePiece, Position, GRID_WIDTH, GRID_HEIGHT } from '@/game/types';
 import { ElementBlock } from './ElementBlock';
 import { cn } from '@/lib/utils';
@@ -34,6 +35,9 @@ export function BlockBlastGrid({
   onGridLeave,
   reactionPreviews = [],
 }: BlockBlastGridProps) {
+  const gridRef = useRef<HTMLDivElement>(null);
+  const lastTouchCell = useRef<Position | null>(null);
+
   const isPreviewPosition = (x: number, y: number): boolean => {
     if (!selectedPiece || !dropPreview) return false;
     return selectedPiece.shape.some(
@@ -64,12 +68,87 @@ export function BlockBlastGrid({
     return null;
   };
 
+  // Get cell position from touch coordinates
+  const getCellFromTouch = useCallback((touchX: number, touchY: number): Position | null => {
+    if (!gridRef.current) return null;
+    
+    const gridElement = gridRef.current;
+    const rect = gridElement.getBoundingClientRect();
+    
+    // Check if touch is within grid bounds
+    if (touchX < rect.left || touchX > rect.right || touchY < rect.top || touchY > rect.bottom) {
+      return null;
+    }
+    
+    // Calculate cell position based on grid layout
+    const relativeX = touchX - rect.left;
+    const relativeY = touchY - rect.top;
+    
+    const cellWidth = rect.width / GRID_WIDTH;
+    const cellHeight = rect.height / GRID_HEIGHT;
+    
+    const x = Math.floor(relativeX / cellWidth);
+    const y = Math.floor(relativeY / cellHeight);
+    
+    if (x >= 0 && x < GRID_WIDTH && y >= 0 && y < GRID_HEIGHT) {
+      return { x, y };
+    }
+    return null;
+  }, []);
+
+  // Touch handlers for drag preview
+  const handleTouchStart = useCallback((e: TouchEvent<HTMLDivElement>) => {
+    if (!selectedPiece) return;
+    
+    const touch = e.touches[0];
+    const cell = getCellFromTouch(touch.clientX, touch.clientY);
+    
+    if (cell) {
+      lastTouchCell.current = cell;
+      onCellHover(cell);
+    }
+  }, [selectedPiece, getCellFromTouch, onCellHover]);
+
+  const handleTouchMove = useCallback((e: TouchEvent<HTMLDivElement>) => {
+    if (!selectedPiece) return;
+    
+    const touch = e.touches[0];
+    const cell = getCellFromTouch(touch.clientX, touch.clientY);
+    
+    if (cell) {
+      // Only update if cell changed to avoid unnecessary re-renders
+      if (!lastTouchCell.current || lastTouchCell.current.x !== cell.x || lastTouchCell.current.y !== cell.y) {
+        lastTouchCell.current = cell;
+        onCellHover(cell);
+      }
+    } else {
+      // Touch moved outside grid
+      if (lastTouchCell.current) {
+        lastTouchCell.current = null;
+        onGridLeave();
+      }
+    }
+  }, [selectedPiece, getCellFromTouch, onCellHover, onGridLeave]);
+
+  const handleTouchEnd = useCallback((e: TouchEvent<HTMLDivElement>) => {
+    if (!selectedPiece || !lastTouchCell.current) return;
+    
+    const cell = lastTouchCell.current;
+    
+    // Place piece if valid
+    if (canPlacePiece(selectedPiece, cell)) {
+      onCellClick(cell);
+    }
+    
+    lastTouchCell.current = null;
+  }, [selectedPiece, canPlacePiece, onCellClick]);
+
   const isValidPreview = selectedPiece && dropPreview && canPlacePiece(selectedPiece, dropPreview);
   const reactionBonus = reactionPreviews.reduce((sum, p) => sum + p.affectedPositions.length * 50, 0);
   const primaryReactionType = reactionPreviews.length > 0 ? reactionPreviews[0].type : null;
 
-  // Calculate cell size based on screen
-  const cellSize = 'w-9 h-9 sm:w-10 sm:h-10 md:w-11 md:h-11';
+  // Calculate cell size based on screen - larger for mobile touch targets
+  const cellSize = 'w-10 h-10 sm:w-10 sm:h-10 md:w-11 md:h-11';
 
   return (
     <motion.div
@@ -77,8 +156,11 @@ export function BlockBlastGrid({
         x: shakeIntensity > 0 ? [0, -shakeIntensity, shakeIntensity, -shakeIntensity, 0] : 0,
       }}
       transition={{ duration: 0.3 }}
-      className="relative"
+      className="relative touch-none"
       onMouseLeave={onGridLeave}
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
     >
       {/* Enhanced reaction bonus indicator */}
       {reactionBonus > 0 && isValidPreview && primaryReactionType && (
@@ -124,6 +206,7 @@ export function BlockBlastGrid({
         
         {/* Grid cells */}
         <div 
+          ref={gridRef}
           className="grid gap-[3px] sm:gap-1 relative z-10"
           style={{
             gridTemplateColumns: `repeat(${GRID_WIDTH}, 1fr)`,
@@ -211,7 +294,7 @@ export function BlockBlastGrid({
                       'w-full h-full flex items-center justify-center p-0.5 relative z-10',
                       reactionType && 'animate-pulse'
                     )}>
-                      <ElementBlock element={cell.element} size={32} />
+                      <ElementBlock element={cell.element} size={36} />
                     </div>
                   )}
                   
@@ -221,7 +304,7 @@ export function BlockBlastGrid({
                       initial={{ scale: 0.9 }}
                       animate={{ scale: 1 }}
                     >
-                      <ElementBlock element={previewElement as any} size={32} isPreview />
+                      <ElementBlock element={previewElement as any} size={36} isPreview />
                     </motion.div>
                   )}
                 </motion.div>
