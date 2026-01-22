@@ -2,6 +2,8 @@ import { motion } from 'framer-motion';
 import { DraggablePiece, Position } from '@/game/types';
 import { ElementBlock } from './ElementBlock';
 import { cn } from '@/lib/utils';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { X } from 'lucide-react';
 
 interface PieceTrayProps {
   pieces: DraggablePiece[];
@@ -11,6 +13,8 @@ interface PieceTrayProps {
 }
 
 export function PieceTray({ pieces, selectedPiece, onSelectPiece, disabled }: PieceTrayProps) {
+  const isMobile = useIsMobile();
+  
   const getPieceBounds = (shape: Position[]) => {
     const minX = Math.min(...shape.map(p => p.x));
     const maxX = Math.max(...shape.map(p => p.x));
@@ -18,6 +22,10 @@ export function PieceTray({ pieces, selectedPiece, onSelectPiece, disabled }: Pi
     const maxY = Math.max(...shape.map(p => p.y));
     return { width: maxX - minX + 1, height: maxY - minY + 1, minX, minY };
   };
+
+  // Larger sizes for mobile touch targets
+  const blockSize = isMobile ? 26 : 22;
+  const cellSize = isMobile ? 28 : 22;
 
   return (
     <div className="w-full">
@@ -30,8 +38,10 @@ export function PieceTray({ pieces, selectedPiece, onSelectPiece, disabled }: Pi
             <motion.button
               key={piece.id}
               className={cn(
-                'relative p-2 sm:p-3 rounded-xl transition-all',
+                'relative p-3 sm:p-3 rounded-xl transition-all touch-manipulation',
                 'bg-game-tray/50 border border-game-grid-border/30',
+                // Minimum touch target size of 48px for mobile
+                'min-w-[56px] min-h-[56px] sm:min-w-0 sm:min-h-0',
                 isSelected && 'ring-2 ring-game-accent bg-game-accent/10 border-game-accent/30',
                 disabled && 'opacity-40 cursor-not-allowed',
                 !disabled && !isSelected && 'hover:bg-game-tray hover:border-game-grid-border/50 active:scale-95'
@@ -51,8 +61,8 @@ export function PieceTray({ pieces, selectedPiece, onSelectPiece, disabled }: Pi
               <div 
                 className="grid gap-[2px]"
                 style={{
-                  gridTemplateColumns: `repeat(${bounds.width}, 22px)`,
-                  gridTemplateRows: `repeat(${bounds.height}, 22px)`,
+                  gridTemplateColumns: `repeat(${bounds.width}, ${cellSize}px)`,
+                  gridTemplateRows: `repeat(${bounds.height}, ${cellSize}px)`,
                 }}
               >
                 {Array.from({ length: bounds.height }, (_, row) =>
@@ -65,12 +75,13 @@ export function PieceTray({ pieces, selectedPiece, onSelectPiece, disabled }: Pi
                     return (
                       <div
                         key={`${row}-${col}`}
-                        className="w-[22px] h-[22px] flex items-center justify-center"
+                        className="flex items-center justify-center"
+                        style={{ width: cellSize, height: cellSize }}
                       >
                         {hasBlock && (
                           <ElementBlock 
                             element={piece.elements[shapeIndex]} 
-                            size={20}
+                            size={blockSize}
                             isPreview
                             showSymbol={false}
                           />
@@ -97,9 +108,28 @@ export function PieceTray({ pieces, selectedPiece, onSelectPiece, disabled }: Pi
         })}
       </div>
       
-      {/* Minimal hint */}
+      {/* Cancel selection button for mobile */}
+      {isMobile && selectedPiece && (
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="flex justify-center mt-3"
+        >
+          <button
+            onClick={() => onSelectPiece(null)}
+            className="flex items-center gap-2 px-4 py-2 rounded-full bg-game-cell hover:bg-game-cell-hover border border-game-grid-border/30 text-sm text-game-text-muted hover:text-white transition-colors"
+          >
+            <X className="w-4 h-4" />
+            Cancel Selection
+          </button>
+        </motion.div>
+      )}
+      
+      {/* Instruction hint */}
       <p className="text-center text-xs text-game-text-muted/60 mt-3">
-        {selectedPiece ? 'Tap grid to place' : 'Select a piece'}
+        {selectedPiece 
+          ? (isMobile ? 'Drag on grid to preview, lift to place' : 'Tap grid to place') 
+          : 'Select a piece'}
       </p>
     </div>
   );
