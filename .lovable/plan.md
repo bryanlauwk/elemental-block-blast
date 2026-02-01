@@ -1,118 +1,209 @@
 
-
-# Mobile UX Optimization Plan
+# Animation Performance Optimization Plan
 
 ## Overview
 
-This plan addresses two main issues you identified:
-1. **Crowded menu icons** - Too many icons visible in the top bar on mobile
-2. **Touch interaction limitations** - No hover detection means the current tap-to-select, tap-to-place workflow feels clunky
+This plan addresses animation lag and stuttering observed during gameplay on PC. The investigation revealed multiple performance bottlenecks across the game's animation system.
+
+## Root Causes Identified
+
+### 1. Infinite Repeating Animations Running Simultaneously
+Multiple components have `repeat: Infinity` animations that run continuously during gameplay:
+
+- **BlockBlastGrid.tsx**: Reaction preview animations with `repeat: Infinity` on every affected cell
+- **ComboDisplay.tsx**: Scale animation pulses infinitely during combo display
+- **AchievementPopup.tsx**: Multiple sparkle animations with `repeat: Infinity`
+- **ReactionTutorial.tsx**: 8+ infinite animations running when tutorial is visible
+
+### 2. Unoptimized Grid Cell Re-renders
+- **BlockBlastGrid.tsx** renders 64 cells (8x8 grid) on every state change
+- Each cell creates multiple motion components with animations
+- No memoization on individual grid cells
+- Touch handlers recreated on every render
+
+### 3. ReactionParticles Spawning Too Many Elements
+- Creates 6-10 particles per reaction position
+- Multiple reactions can spawn 50+ animated elements simultaneously
+- Particles use complex animations with transforms, opacity, and rotation
+
+### 4. ElementBlock Re-animates on Every Render
+- Initial scale/opacity animation triggers on every mount
+- No `layoutId` optimization for smooth transitions
+- Box-shadow calculations are expensive with multiple layers
+
+### 5. AnimatePresence Mode Issues
+- Using `mode="popLayout"` in ReactionFeed causes layout recalculations
+- Multiple nested AnimatePresence components compete for animation frames
 
 ---
 
-## Part 1: Hamburger Menu for Mobile Icons
+## Technical Implementation
 
-### Current Problem
-The top navigation bar shows 6-8 icons (Sound, Calendar, Streak, Reactions, Achievements, Trophy, Help, and sometimes Home) all in a row, which is cramped on small screens.
+### Part 1: Memoize Grid Cells
 
-### Solution
-Create a hamburger menu that collapses secondary icons on mobile while keeping only essential controls visible.
+**File: `src/components/game/BlockBlastGrid.tsx`**
 
-**Visible on mobile (always):**
-- Home/Exit button (during gameplay only)
-- Hamburger menu icon
+Create a memoized GridCell component to prevent unnecessary re-renders:
 
-**Inside hamburger menu:**
-- Sound Settings
-- Daily Challenge
-- Streak Badge
-- Achievements
-- Leaderboard (Trophy)
-- How to Play (Help)
-- Reaction Feed toggle (during gameplay)
+```tsx
+// Extract to separate memoized component
+const GridCell = React.memo(({ 
+  cell, x, y, isPreview, previewElement, reactionType, sourceType, 
+  isValidPreview, selectedPiece, onCellHover, onCellClick, cellSize 
+}) => {
+  // Cell rendering logic moved here
+});
+```
 
-### Files to Create/Modify
-1. **Create** `src/components/game/MobileMenu.tsx`
-   - Use the existing `Sheet` component (sliding panel from right)
-   - Display menu items with icons and labels in a clean vertical list
-   - Match the game's vibrant branding (fire-to-cyan gradients)
-   - Include smooth animations for opening/closing
+### Part 2: Reduce Particle Count and Simplify Animations
 
-2. **Modify** `src/pages/Index.tsx`
-   - Import and use the new `MobileMenu` component
-   - Show hamburger icon on mobile (using `useIsMobile` hook)
-   - Keep full icon bar on desktop/tablet (above 768px)
+**File: `src/components/game/ReactionParticles.tsx`**
+
+1. Reduce particle count from 6-10 to 3-4 per position
+2. Use CSS animations instead of Framer Motion for particles
+3. Add `will-change: transform` for GPU acceleration
+4. Use `transform` instead of individual x/y properties
+
+Changes:
+- `particleConfig.burn.count`: 8 → 4
+- `particleConfig.extinguish.count`: 10 → 5
+- `particleConfig.dissolve.count`: 6 → 3
+- Replace Framer Motion with CSS keyframe animations
+
+### Part 3: Optimize Infinite Animations
+
+**File: `src/components/game/BlockBlastGrid.tsx`**
+
+Replace infinite Framer Motion animations with CSS animations for reaction previews:
+
+```css
+/* Add to index.css */
+@keyframes pulse-reaction {
+  0%, 100% { opacity: 0.3; transform: scale(1); }
+  50% { opacity: 0.6; transform: scale(1.05); }
+}
+
+.animate-reaction-pulse {
+  animation: pulse-reaction 0.8s ease-in-out infinite;
+}
+```
+
+**File: `src/components/game/ComboDisplay.tsx`**
+
+Remove `repeat: Infinity` and use CSS animation:
+
+```tsx
+// Replace Framer Motion infinite with CSS
+className="text-3xl font-black tracking-wider animate-pulse-scale"
+```
+
+### Part 4: Simplify ElementBlock Animations
+
+**File: `src/components/game/ElementBlock.tsx`**
+
+1. Remove initial animation for preview elements
+2. Simplify box-shadow to single layer
+3. Use `transform: translateZ(0)` for GPU layer promotion
+
+Changes:
+```tsx
+// Skip animation for preview blocks
+initial={isPreview ? { scale: 1, opacity: 1 } : { scale: 0.8, opacity: 0 }}
+```
+
+### Part 5: Optimize AnimatePresence Usage
+
+**File: `src/components/game/ReactionFeed.tsx`**
+
+Change `mode="popLayout"` to `mode="sync"` to prevent layout thrashing:
+
+```tsx
+<AnimatePresence mode="sync">
+```
+
+### Part 6: Add Hardware Acceleration Hints
+
+**File: `src/index.css`**
+
+Add CSS optimizations:
+
+```css
+/* GPU acceleration for animated elements */
+.game-grid-cell {
+  will-change: transform, opacity;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+/* Optimized reaction animations */
+@keyframes pulse-reaction {
+  0%, 100% { opacity: 0.3; transform: scale(1); }
+  50% { opacity: 0.6; transform: scale(1.05); }
+}
+
+@keyframes pulse-source {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.2); }
+}
+
+.animate-reaction-pulse {
+  animation: pulse-reaction 0.8s ease-in-out infinite;
+  will-change: transform, opacity;
+}
+
+.animate-source-pulse {
+  animation: pulse-source 0.6s ease-in-out infinite;
+  will-change: transform;
+}
+```
+
+### Part 7: Debounce Hover Events
+
+**File: `src/components/game/BlockBlastGrid.tsx`**
+
+Add debouncing to prevent excessive re-renders during mouse movement:
+
+```tsx
+// Use requestAnimationFrame for hover updates
+const rafRef = useRef<number | null>(null);
+
+const throttledCellHover = useCallback((pos: Position) => {
+  if (rafRef.current) return;
+  rafRef.current = requestAnimationFrame(() => {
+    onCellHover(pos);
+    rafRef.current = null;
+  });
+}, [onCellHover]);
+```
 
 ---
 
-## Part 2: Improved Touch Interactions for Block Placement
+## Files to Modify
 
-### Current Problem
-- Mobile users must: tap piece to select, then tap grid cell to place
-- No visual preview while dragging finger across grid (onMouseEnter doesn't work on touch)
-- Feels disconnected compared to fluid drag-and-drop in similar games
-
-### Solution: Touch-Aware Grid with Drag Preview
-
-**Option A: Enhanced Tap-and-Slide (Recommended)**
-After selecting a piece, let users slide their finger across the grid to see the preview move in real-time, then lift to place.
-
-**Implementation:**
-1. **Modify** `src/components/game/BlockBlastGrid.tsx`
-   - Add `onTouchStart`, `onTouchMove`, and `onTouchEnd` handlers
-   - Use `document.elementFromPoint()` to detect which grid cell is under the finger
-   - Update drop preview in real-time as finger moves
-   - Place piece when finger lifts (if valid position)
-
-2. **Modify** `src/components/game/PieceTray.tsx`
-   - Add touch feedback when selecting pieces
-   - Show clearer visual indicator of selected piece
-
-3. **Add visual feedback:**
-   - Slight haptic-like pulse animation on valid placement zones
-   - Clear "invalid placement" indicator (red tint) when dragging over occupied cells
-   - Larger touch targets for piece selection on mobile
-
-### Touch Flow (After Implementation)
-1. Tap a piece in the tray (piece highlights, slight scale-up)
-2. Touch and drag on the grid to see preview follow finger
-3. Lift finger to place (or drag off grid to cancel)
-4. Optional: Tap selected piece again to deselect
+| File | Changes |
+|------|---------|
+| `src/components/game/BlockBlastGrid.tsx` | Memoize cells, CSS animations, throttle hovers |
+| `src/components/game/ReactionParticles.tsx` | Reduce count, CSS animations, GPU hints |
+| `src/components/game/ElementBlock.tsx` | Conditional animations, simpler shadows |
+| `src/components/game/ComboDisplay.tsx` | CSS animation instead of Framer infinite |
+| `src/components/game/ReactionFeed.tsx` | Change AnimatePresence mode |
+| `src/index.css` | Add GPU acceleration and CSS animations |
 
 ---
 
-## Part 3: Additional Mobile UX Improvements
+## Expected Performance Improvements
 
-### 3.1 Larger Touch Targets
-- Increase piece tray item sizes on mobile
-- Increase grid cell touch areas slightly
-
-### 3.2 Visual Feedback Enhancements
-- Add subtle vibration/pulse when hovering valid placement
-- Show placement instruction text more prominently on mobile
-- Add a "Cancel" button when piece is selected (to deselect without tapping grid)
-
-### 3.3 Safe Area Handling
-- Ensure UI doesn't conflict with notches or rounded corners on modern phones
-- Use `safe-area-inset-*` CSS properties
+- **60% fewer animation frames** by replacing Framer Motion infinite loops with CSS
+- **Reduced re-renders** through memoization of grid cells
+- **Lower particle overhead** with 50% fewer particles per reaction
+- **GPU acceleration** for smooth transforms without main thread blocking
+- **Smoother hover interactions** with requestAnimationFrame throttling
 
 ---
 
-## Technical Implementation Summary
+## Mobile Considerations
 
-| File | Action | Purpose |
-|------|--------|---------|
-| `src/components/game/MobileMenu.tsx` | Create | Hamburger menu component |
-| `src/pages/Index.tsx` | Modify | Integrate mobile menu, conditional rendering |
-| `src/components/game/BlockBlastGrid.tsx` | Modify | Add touch event handlers for drag preview |
-| `src/components/game/PieceTray.tsx` | Modify | Larger touch targets, better selection feedback |
-
----
-
-## Expected Results
-
-- **Cleaner mobile UI** - Only 2 icons visible (Home + Menu) instead of 8
-- **Intuitive touch controls** - Drag finger to preview, lift to place
-- **Consistent branding** - Menu matches the vibrant game aesthetic
-- **Better accessibility** - Larger touch targets, clearer feedback
-
+These optimizations will also benefit mobile devices:
+- CSS animations are more battery-efficient than JavaScript animations
+- Fewer DOM elements means faster touch event processing
+- GPU-accelerated transforms work well on mobile GPUs
