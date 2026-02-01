@@ -16,13 +16,10 @@ export function ComboDisplay({ count, show }: ComboDisplayProps) {
           className="absolute inset-0 flex items-center justify-center pointer-events-none z-50"
         >
           <div className="bg-gradient-to-r from-yellow-500 via-orange-500 to-red-500 text-white px-6 py-3 rounded-lg shadow-2xl">
-            <motion.span
-              animate={{ scale: [1, 1.2, 1] }}
-              transition={{ duration: 0.3, repeat: Infinity }}
-              className="text-3xl font-black tracking-wider"
-            >
+            {/* Use CSS animation instead of Framer Motion infinite loop */}
+            <span className="text-3xl font-black tracking-wider inline-block animate-combo-pulse">
               COMBO x{count}!
-            </motion.span>
+            </span>
           </div>
         </motion.div>
       )}
