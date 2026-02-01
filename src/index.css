@@ -164,3 +164,57 @@ All colors MUST be HSL.
     padding-right: env(safe-area-inset-right);
   }
 }
+
+/* GPU acceleration for animated game elements */
+.game-grid-cell {
+  will-change: transform, opacity;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+/* Optimized reaction animations - CSS instead of JS for performance */
+@keyframes pulse-reaction {
+  0%, 100% { opacity: 0.3; transform: scale(1); }
+  50% { opacity: 0.6; transform: scale(1.05); }
+}
+
+@keyframes pulse-source {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.2); }
+}
+
+@keyframes combo-pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.15); }
+}
+
+@keyframes sparkle {
+  0%, 100% { transform: scale(0) rotate(0deg); }
+  50% { transform: scale(1) rotate(180deg); }
+}
+
+.animate-reaction-pulse {
+  animation: pulse-reaction 0.8s ease-in-out infinite;
+  will-change: transform, opacity;
+}
+
+.animate-source-pulse {
+  animation: pulse-source 0.6s ease-in-out infinite;
+  will-change: transform;
+}
+
+.animate-combo-pulse {
+  animation: combo-pulse 0.3s ease-in-out infinite;
+}
+
+.animate-sparkle {
+  animation: sparkle 1s ease-in-out infinite;
+}
+
+.animate-sparkle-delayed-1 {
+  animation: sparkle 1s ease-in-out infinite 0.3s;
+}
+
+.animate-sparkle-delayed-2 {
+  animation: sparkle 1s ease-in-out infinite 0.6s;
+}

@@ -24,21 +24,22 @@ interface ReactionParticlesProps {
   gridOffset?: { x: number; y: number };
 }
 
+// Reduced particle counts for better performance
 const particleConfig = {
   burn: {
     emojis: ['🔥', '✨', '💥', '⚡'],
     colors: ['#ff6b35', '#ff9f1c', '#ffcd3c'],
-    count: 8,
+    count: 4, // Reduced from 8
   },
   extinguish: {
     emojis: ['💧', '💦', '🌊', '❄️'],
     colors: ['#00b4d8', '#48cae4', '#90e0ef'],
-    count: 10,
+    count: 5, // Reduced from 10
   },
   dissolve: {
     emojis: ['🫧', '💀', '☠️', '🧪'],
     colors: ['#52b788', '#40916c', '#74c69d'],
-    count: 6,
+    count: 3, // Reduced from 6
   },
 };
 

@@ -39,37 +39,16 @@ export function AchievementPopup({ achievement, onDismiss }: AchievementPopupPro
             }}
             transition={{ duration: 1.5, repeat: Infinity }}
           >
-            {/* Sparkle effects - hidden on small mobile */}
-            <motion.div
-              className="absolute -top-2 -left-2 w-4 h-4 text-yellow-300 hidden sm:block"
-              animate={{ 
-                scale: [0, 1, 0],
-                rotate: [0, 180, 360],
-              }}
-              transition={{ duration: 1, repeat: Infinity }}
-            >
+            {/* Sparkle effects - CSS animations instead of Framer Motion infinite loops */}
+            <div className="absolute -top-2 -left-2 w-4 h-4 text-yellow-300 hidden sm:block animate-sparkle">
               ✦
-            </motion.div>
-            <motion.div
-              className="absolute -top-1 -right-3 w-3 h-3 text-yellow-200 hidden sm:block"
-              animate={{ 
-                scale: [0, 1, 0],
-                rotate: [0, 180, 360],
-              }}
-              transition={{ duration: 1, repeat: Infinity, delay: 0.3 }}
-            >
+            </div>
+            <div className="absolute -top-1 -right-3 w-3 h-3 text-yellow-200 hidden sm:block animate-sparkle-delayed-1">
               ✦
-            </motion.div>
-            <motion.div
-              className="absolute -bottom-2 right-4 w-3 h-3 text-amber-300 hidden sm:block"
-              animate={{ 
-                scale: [0, 1, 0],
-                rotate: [0, 180, 360],
-              }}
-              transition={{ duration: 1, repeat: Infinity, delay: 0.6 }}
-            >
+            </div>
+            <div className="absolute -bottom-2 right-4 w-3 h-3 text-amber-300 hidden sm:block animate-sparkle-delayed-2">
               ✦
-            </motion.div>
+            </div>
 
             <div className="flex items-center gap-3 sm:gap-4">
               {/* Icon */}
