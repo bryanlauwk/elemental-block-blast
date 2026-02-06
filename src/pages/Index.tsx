@@ -183,12 +183,10 @@ const Index = () => {
   }, [gameState.score, isDailyChallenge, submitScore, submitDailyScore, storePlayerName]);
 
   const handleCellHover = useCallback((pos: Position) => {
-    if (gameState.selectedPiece && canPlacePiece(gameState.selectedPiece, pos)) {
-      setDropPreview(pos);
-    } else if (gameState.selectedPiece) {
+    if (gameState.selectedPiece) {
       setDropPreview(pos);
     }
-  }, [gameState.selectedPiece, canPlacePiece, setDropPreview]);
+  }, [gameState.selectedPiece, setDropPreview]);
 
   const handleCellClick = useCallback((pos: Position) => {
     if (gameState.selectedPiece && canPlacePiece(gameState.selectedPiece, pos)) {

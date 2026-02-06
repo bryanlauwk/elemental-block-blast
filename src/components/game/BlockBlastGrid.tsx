@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import React, { useRef, useCallback, TouchEvent, memo } from 'react';
+import React, { useRef, useCallback, useMemo, TouchEvent, memo } from 'react';
 import { Cell, DraggablePiece, Position, GRID_WIDTH, GRID_HEIGHT } from '@/game/types';
 import { ElementBlock } from './ElementBlock';
 import { cn } from '@/lib/utils';
@@ -55,7 +55,7 @@ const GridCell = memo(function GridCell({
   cellSize,
 }: GridCellProps) {
   return (
-    <motion.div
+    <div
       className={cn(
         'aspect-square rounded-lg transition-colors duration-100 cursor-pointer relative overflow-hidden game-grid-cell',
         cellSize,
@@ -63,12 +63,12 @@ const GridCell = memo(function GridCell({
         !cell.element && hasSelectedPiece && 'hover:bg-game-cell-hover',
         isPreview && isValidPreview && 'ring-2 ring-game-accent/70',
         isPreview && !isValidPreview && 'ring-2 ring-red-400/60',
+        hasSelectedPiece && 'active:scale-95',
       )}
       onMouseEnter={() => onCellHover({ x, y })}
       onClick={() => onCellClick({ x, y })}
-      whileTap={hasSelectedPiece ? { scale: 0.95 } : {}}
     >
-      {/* Reaction target highlight - CSS animation instead of Framer Motion */}
+      {/* Reaction target highlight - CSS animation */}
       {reactionType && (
         <div
           className={cn(
@@ -91,13 +91,11 @@ const GridCell = memo(function GridCell({
         </div>
       )}
 
-      {/* Reaction indicator icon on target */}
+      {/* Reaction indicator icon on target - CSS animation instead of Framer Motion */}
       {reactionType && !sourceType && (
-        <motion.div
-          initial={{ scale: 0, rotate: -45 }}
-          animate={{ scale: 1, rotate: 0 }}
+        <div
           className={cn(
-            'absolute top-0.5 right-0.5 w-4 h-4 rounded-full z-20 flex items-center justify-center',
+            'absolute top-0.5 right-0.5 w-4 h-4 rounded-full z-20 flex items-center justify-center animate-reaction-icon-in',
             reactionType === 'burn' && 'bg-orange-500',
             reactionType === 'extinguish' && 'bg-blue-500',
             reactionType === 'dissolve' && 'bg-green-500',
@@ -108,9 +106,9 @@ const GridCell = memo(function GridCell({
             const Icon = config.icon;
             return <Icon className="w-2.5 h-2.5 text-white" />;
           })()}
-        </motion.div>
+        </div>
       )}
-      
+
       {cell.element && (
         <div className={cn(
           'w-full h-full flex items-center justify-center p-0.5 relative z-10',
@@ -119,13 +117,13 @@ const GridCell = memo(function GridCell({
           <ElementBlock element={cell.element} size={36} />
         </div>
       )}
-      
+
       {previewElement && !cell.element && isValidPreview && (
         <div className="w-full h-full flex items-center justify-center p-0.5 opacity-60">
           <ElementBlock element={previewElement as any} size={36} isPreview />
         </div>
       )}
-    </motion.div>
+    </div>
   );
 });
 
@@ -144,35 +142,30 @@ export function BlockBlastGrid({
   const lastTouchCell = useRef<Position | null>(null);
   const rafRef = useRef<number | null>(null);
 
-  const isPreviewPosition = useCallback((x: number, y: number): boolean => {
-    if (!selectedPiece || !dropPreview) return false;
-    return selectedPiece.shape.some(
-      (p) => dropPreview.x + p.x === x && dropPreview.y + p.y === y
-    );
-  }, [selectedPiece, dropPreview]);
+  // Pre-compute all lookup maps in a single useMemo to avoid O(n) per cell lookups
+  const { previewMap, reactionTargetMap, reactionSourceMap } = useMemo(() => {
+    const pMap = new Map<string, string>(); // key -> element name
+    const rTargetMap = new Map<string, 'burn' | 'extinguish' | 'dissolve'>();
+    const rSourceMap = new Map<string, 'burn' | 'extinguish' | 'dissolve'>();
 
-  const getPreviewElement = useCallback((x: number, y: number): string | null => {
-    if (!selectedPiece || !dropPreview) return null;
-    const index = selectedPiece.shape.findIndex(
-      (p) => dropPreview.x + p.x === x && dropPreview.y + p.y === y
-    );
-    return index !== -1 ? selectedPiece.elements[index] : null;
-  }, [selectedPiece, dropPreview]);
-
-  const getReactionType = useCallback((x: number, y: number): 'burn' | 'extinguish' | 'dissolve' | null => {
-    for (const preview of reactionPreviews) {
-      const affected = preview.affectedPositions.find(p => p.x === x && p.y === y);
-      if (affected) return preview.type;
+    // Build preview position map
+    if (selectedPiece && dropPreview) {
+      selectedPiece.shape.forEach((p, i) => {
+        const key = `${dropPreview.x + p.x},${dropPreview.y + p.y}`;
+        pMap.set(key, selectedPiece.elements[i]);
+      });
     }
-    return null;
-  }, [reactionPreviews]);
 
-  const isReactionSource = useCallback((x: number, y: number): 'burn' | 'extinguish' | 'dissolve' | null => {
+    // Build reaction lookup maps
     for (const preview of reactionPreviews) {
-      if (preview.pos.x === x && preview.pos.y === y) return preview.type;
+      rSourceMap.set(`${preview.pos.x},${preview.pos.y}`, preview.type);
+      for (const pos of preview.affectedPositions) {
+        rTargetMap.set(`${pos.x},${pos.y}`, preview.type);
+      }
     }
-    return null;
-  }, [reactionPreviews]);
+
+    return { previewMap: pMap, reactionTargetMap: rTargetMap, reactionSourceMap: rSourceMap };
+  }, [selectedPiece, dropPreview, reactionPreviews]);
 
   // Throttled hover handler using requestAnimationFrame
   const throttledCellHover = useCallback((pos: Position) => {
@@ -330,10 +323,10 @@ export function BlockBlastGrid({
         >
           {grid.map((row, y) =>
             row.map((cell, x) => {
-              const isPreview = isPreviewPosition(x, y);
-              const previewElement = getPreviewElement(x, y);
-              const reactionType = getReactionType(x, y);
-              const sourceType = isReactionSource(x, y);
+              const key = `${x},${y}`;
+              const previewElement = previewMap.get(key) || null;
+              const reactionType = reactionTargetMap.get(key) || null;
+              const sourceType = reactionSourceMap.get(key) || null;
 
               return (
                 <GridCell
@@ -341,7 +334,7 @@ export function BlockBlastGrid({
                   cell={cell}
                   x={x}
                   y={y}
-                  isPreview={isPreview}
+                  isPreview={!!previewElement}
                   previewElement={previewElement}
                   reactionType={reactionType}
                   sourceType={sourceType}

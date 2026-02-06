@@ -167,9 +167,41 @@ All colors MUST be HSL.
 
 /* GPU acceleration for animated game elements */
 .game-grid-cell {
-  will-change: transform, opacity;
   transform: translateZ(0);
   backface-visibility: hidden;
+  contain: layout style paint;
+}
+
+/* Block appearance animation - replaces Framer Motion initial/animate */
+@keyframes block-appear {
+  from { transform: translateZ(0) scale(0.8); opacity: 0; }
+  to { transform: translateZ(0) scale(1); opacity: 1; }
+}
+
+.animate-block-appear {
+  animation: block-appear 0.15s ease-out both;
+}
+
+/* Reaction icon pop-in animation - replaces Framer Motion */
+@keyframes reaction-icon-in {
+  from { transform: scale(0) rotate(-45deg); }
+  to { transform: scale(1) rotate(0deg); }
+}
+
+.animate-reaction-icon-in {
+  animation: reaction-icon-in 0.2s ease-out both;
+}
+
+/* CSS particle animation - replaces Framer Motion per-particle */
+@keyframes particle-fly {
+  0% { transform: translate(0, 0) scale(0); opacity: 1; }
+  30% { transform: translate(calc(var(--end-x) * 0.3), calc(var(--end-y) * 0.3)) scale(1.2); opacity: 1; }
+  100% { transform: translate(var(--end-x), var(--end-y)) scale(0.6); opacity: 0; }
+}
+
+.particle-animate {
+  animation: particle-fly var(--particle-duration, 0.8s) ease-out var(--particle-delay, 0s) both;
+  will-change: transform, opacity;
 }
 
 /* Optimized reaction animations - CSS instead of JS for performance */
@@ -195,12 +227,10 @@ All colors MUST be HSL.
 
 .animate-reaction-pulse {
   animation: pulse-reaction 0.8s ease-in-out infinite;
-  will-change: transform, opacity;
 }
 
 .animate-source-pulse {
   animation: pulse-source 0.6s ease-in-out infinite;
-  will-change: transform;
 }
 
 .animate-combo-pulse {
@@ -217,4 +247,9 @@ All colors MUST be HSL.
 
 .animate-sparkle-delayed-2 {
   animation: sparkle 1s ease-in-out infinite 0.6s;
+}
+
+/* Grid container containment for layout isolation */
+.game-grid-container {
+  contain: layout style;
 }

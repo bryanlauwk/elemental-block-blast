@@ -562,38 +562,36 @@ export function useBlockBlastEngine(): BlockBlastEngine {
   }, []);
 
   // Set drop preview and calculate reaction previews
+  // Heavy computation moved out of state setter for better responsiveness
   const setDropPreview = useCallback((pos: Position | null) => {
-    setGameState(prev => {
-      if (pos && prev.selectedPiece && canPlacePiece(prev.selectedPiece, pos)) {
-        const previews = getReactionPreview(prev.selectedPiece, pos);
-        setReactionPreviews(previews);
-        
-        // Calculate summary for the side panel
-        if (previews.length > 0) {
-          const typeCounts: Record<string, { count: number; points: number }> = {};
-          previews.forEach(p => {
-            const key = p.type;
-            if (!typeCounts[key]) typeCounts[key] = { count: 0, points: 0 };
-            typeCounts[key].count += p.affectedPositions.length;
-            typeCounts[key].points += p.affectedPositions.length * 50;
-          });
-          // Get the primary reaction type
-          const primaryType = Object.entries(typeCounts).sort((a, b) => b[1].count - a[1].count)[0];
-          setReactionPreviewSummary({
-            type: primaryType[0] as 'burn' | 'extinguish' | 'dissolve',
-            count: Object.values(typeCounts).reduce((sum, t) => sum + t.count, 0),
-            points: Object.values(typeCounts).reduce((sum, t) => sum + t.points, 0),
-          });
-        } else {
-          setReactionPreviewSummary(null);
-        }
+    if (pos && gameState.selectedPiece && canPlacePiece(gameState.selectedPiece, pos)) {
+      const previews = getReactionPreview(gameState.selectedPiece, pos);
+      setReactionPreviews(previews);
+
+      // Calculate summary for the side panel
+      if (previews.length > 0) {
+        const typeCounts: Record<string, { count: number; points: number }> = {};
+        previews.forEach(p => {
+          const key = p.type;
+          if (!typeCounts[key]) typeCounts[key] = { count: 0, points: 0 };
+          typeCounts[key].count += p.affectedPositions.length;
+          typeCounts[key].points += p.affectedPositions.length * 50;
+        });
+        const primaryType = Object.entries(typeCounts).sort((a, b) => b[1].count - a[1].count)[0];
+        setReactionPreviewSummary({
+          type: primaryType[0] as 'burn' | 'extinguish' | 'dissolve',
+          count: Object.values(typeCounts).reduce((sum, t) => sum + t.count, 0),
+          points: Object.values(typeCounts).reduce((sum, t) => sum + t.points, 0),
+        });
       } else {
-        setReactionPreviews([]);
         setReactionPreviewSummary(null);
       }
-      return { ...prev, dropPreview: pos };
-    });
-  }, [canPlacePiece, getReactionPreview]);
+    } else {
+      setReactionPreviews([]);
+      setReactionPreviewSummary(null);
+    }
+    setGameState(prev => ({ ...prev, dropPreview: pos }));
+  }, [gameState.selectedPiece, canPlacePiece, getReactionPreview]);
 
   // Place piece on grid
   const placePiece = useCallback((piece: DraggablePiece, pos: Position) => {

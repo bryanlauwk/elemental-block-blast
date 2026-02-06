@@ -1,17 +1,17 @@
-import React, { useEffect, useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import React, { useEffect, useState, useRef, memo } from 'react';
 import { Position } from '@/game/types';
 
 interface Particle {
   id: string;
   x: number;
   y: number;
+  endX: number;
+  endY: number;
   type: 'burn' | 'extinguish' | 'dissolve';
   emoji: string;
   delay: number;
-  angle: number;
-  distance: number;
   size: number;
+  duration: number;
 }
 
 interface ReactionParticlesProps {
@@ -28,27 +28,26 @@ interface ReactionParticlesProps {
 const particleConfig = {
   burn: {
     emojis: ['🔥', '✨', '💥', '⚡'],
-    colors: ['#ff6b35', '#ff9f1c', '#ffcd3c'],
-    count: 4, // Reduced from 8
+    count: 3,
   },
   extinguish: {
     emojis: ['💧', '💦', '🌊', '❄️'],
-    colors: ['#00b4d8', '#48cae4', '#90e0ef'],
-    count: 5, // Reduced from 10
+    count: 3,
   },
   dissolve: {
     emojis: ['🫧', '💀', '☠️', '🧪'],
-    colors: ['#52b788', '#40916c', '#74c69d'],
-    count: 3, // Reduced from 6
+    count: 2,
   },
 };
 
-const ReactionParticles: React.FC<ReactionParticlesProps> = ({ 
-  trigger, 
+// Use CSS animations instead of Framer Motion for particles
+const ReactionParticles: React.FC<ReactionParticlesProps> = memo(({
+  trigger,
   cellSize = 44,
   gridOffset = { x: 0, y: 0 }
 }) => {
   const [particles, setParticles] = useState<Particle[]>([]);
+  const cleanupTimerRef = useRef<ReturnType<typeof setTimeout>>();
 
   useEffect(() => {
     if (!trigger || trigger.positions.length === 0) return;
@@ -56,81 +55,70 @@ const ReactionParticles: React.FC<ReactionParticlesProps> = ({
     const config = particleConfig[trigger.type];
     const newParticles: Particle[] = [];
 
-    trigger.positions.forEach((pos) => {
+    // Cap positions to avoid too many particles at once
+    const positions = trigger.positions.length > 6 ? trigger.positions.slice(0, 6) : trigger.positions;
+
+    positions.forEach((pos) => {
       const centerX = gridOffset.x + (pos.x + 0.5) * cellSize;
       const centerY = gridOffset.y + (pos.y + 0.5) * cellSize;
 
       for (let i = 0; i < config.count; i++) {
         const angle = (Math.PI * 2 * i) / config.count + Math.random() * 0.5;
         const distance = 30 + Math.random() * 50;
-        
+        const duration = 0.6 + Math.random() * 0.3;
+
         newParticles.push({
           id: `${trigger.timestamp}-${pos.x}-${pos.y}-${i}`,
           x: centerX,
           y: centerY,
+          endX: Math.cos(angle) * distance,
+          endY: Math.sin(angle) * distance - 20,
           type: trigger.type,
           emoji: config.emojis[Math.floor(Math.random() * config.emojis.length)],
-          delay: Math.random() * 0.15,
-          angle,
-          distance,
+          delay: Math.random() * 0.1,
           size: 12 + Math.random() * 10,
+          duration,
         });
       }
     });
 
+    // Use Set for O(1) cleanup instead of O(n*m) .filter with .some
+    const newIds = new Set(newParticles.map(p => p.id));
     setParticles(prev => [...prev, ...newParticles]);
 
-    // Clean up particles after animation
-    const timeout = setTimeout(() => {
-      setParticles(prev => prev.filter(p => !newParticles.some(np => np.id === p.id)));
-    }, 1500);
+    // Clean up particles after animation completes
+    cleanupTimerRef.current = setTimeout(() => {
+      setParticles(prev => prev.filter(p => !newIds.has(p.id)));
+    }, 1200);
 
-    return () => clearTimeout(timeout);
+    return () => {
+      if (cleanupTimerRef.current) clearTimeout(cleanupTimerRef.current);
+    };
   }, [trigger, cellSize, gridOffset]);
 
   return (
     <div className="absolute inset-0 pointer-events-none overflow-hidden z-40">
-      <AnimatePresence>
-        {particles.map((particle) => {
-          const endX = Math.cos(particle.angle) * particle.distance;
-          const endY = Math.sin(particle.angle) * particle.distance - 20; // Slight upward bias
-
-          return (
-            <motion.div
-              key={particle.id}
-              initial={{ 
-                x: particle.x, 
-                y: particle.y, 
-                scale: 0,
-                opacity: 1,
-              }}
-              animate={{ 
-                x: particle.x + endX,
-                y: particle.y + endY,
-                scale: [0, 1.2, 0.8],
-                opacity: [1, 1, 0],
-                rotate: particle.type === 'dissolve' ? [0, 180] : [0, 45],
-              }}
-              exit={{ opacity: 0 }}
-              transition={{ 
-                duration: 0.8 + Math.random() * 0.4,
-                delay: particle.delay,
-                ease: 'easeOut',
-              }}
-              className="absolute"
-              style={{ 
-                fontSize: particle.size,
-                left: -particle.size / 2,
-                top: -particle.size / 2,
-              }}
-            >
-              {particle.emoji}
-            </motion.div>
-          );
-        })}
-      </AnimatePresence>
+      {particles.map((particle) => (
+        <div
+          key={particle.id}
+          className="absolute particle-animate"
+          style={{
+            fontSize: particle.size,
+            left: particle.x - particle.size / 2,
+            top: particle.y - particle.size / 2,
+            '--end-x': `${particle.endX}px`,
+            '--end-y': `${particle.endY}px`,
+            '--particle-duration': `${particle.duration}s`,
+            '--particle-delay': `${particle.delay}s`,
+            animationDuration: `${particle.duration}s`,
+            animationDelay: `${particle.delay}s`,
+          } as React.CSSProperties}
+        >
+          {particle.emoji}
+        </div>
+      ))}
     </div>
   );
-};
+});
 
 export default ReactionParticles;
