@@ -45,15 +45,25 @@ export function ScorePopup({ score, show, text, reactionType }: ScorePopupProps)
             </motion.div>
           )}
 
-          {/* Score value */}
+          {/* Score value — neon tier-tinted, motion-blur rise */}
           <motion.div
-            animate={{ 
-              scale: [1, 1.2, 1],
-            }}
-            transition={{ duration: 0.4, repeat: 2 }}
+            initial={{ scale: 0.7, y: 20, filter: 'blur(6px)' }}
+            animate={{ scale: 1, y: 0, filter: 'blur(0px)' }}
+            exit={{ scale: 0.9, y: -40, filter: 'blur(8px)', opacity: 0 }}
+            transition={{ type: 'spring', stiffness: 280, damping: 18 }}
             className="text-center"
           >
-            <span className="text-5xl sm:text-6xl font-black bg-gradient-to-r from-yellow-300 via-orange-400 to-pink-500 bg-clip-text text-transparent drop-shadow-2xl">
+            <span
+              className={cn(
+                'text-5xl sm:text-6xl font-black bg-clip-text text-transparent drop-shadow-[0_4px_24px_hsl(var(--neon-magenta)/0.55)]',
+                score >= 500
+                  ? 'bg-gradient-to-r from-neon-magenta via-neon-violet to-neon-cyan'
+                  : score >= 200
+                    ? 'bg-gradient-to-r from-neon-amber via-neon-magenta to-neon-violet'
+                    : 'bg-gradient-to-r from-neon-mint via-neon-cyan to-neon-magenta',
+              )}
+              style={{ textShadow: '0 0 18px hsl(var(--neon-mint) / 0.45)' }}
+            >
               +{score}
             </span>
           </motion.div>

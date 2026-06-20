@@ -25,6 +25,7 @@ import { MobileMenu } from '@/components/game/MobileMenu';
 import ReactionFeed from '@/components/game/ReactionFeed';
 import ReactionTutorial from '@/components/game/ReactionTutorial';
 import ReactionParticles from '@/components/game/ReactionParticles';
+import MarqueeRibbon from '@/components/game/MarqueeRibbon';
 
 import GameTitle from '@/components/game/GameTitle';
 import HeroBlockDisplay from '@/components/game/HeroBlockDisplay';
@@ -202,29 +203,38 @@ const Index = () => {
 
   const hasStarted = gameState.availablePieces.length > 0;
 
-  // Glassmorphism icon button style - mobile optimized
-  const iconButtonClass = "w-10 h-10 sm:w-11 sm:h-11 md:w-12 md:h-12 rounded-xl flex items-center justify-center transition-all hover:scale-105 active:scale-95";
-  const iconButtonStyle = {
-    background: 'linear-gradient(145deg, rgba(30, 58, 138, 0.9), rgba(15, 23, 42, 0.95))',
-    boxShadow: '0 4px 0 rgba(6, 182, 212, 0.3), 0 6px 15px rgba(0,0,0,0.4), inset 0 1px 2px rgba(255,255,255,0.1)',
-    border: '1px solid rgba(34, 211, 238, 0.4)',
-  };
+  // Neon glass icon chip — token-driven, no hardcoded colors
+  const iconButtonClass =
+    'neon-glass-chip w-10 h-10 sm:w-11 sm:h-11 md:w-12 md:h-12 rounded-xl flex items-center justify-center transition-all hover:scale-105 active:scale-95';
+  const iconButtonStyle = undefined as React.CSSProperties | undefined;
 
   return (
-    <div className="min-h-[100dvh] text-white flex flex-col relative overflow-hidden"
-      style={{
-        background: 'radial-gradient(ellipse 120% 80% at 50% 20%, hsl(220 75% 45%) 0%, hsl(225 80% 32%) 40%, hsl(230 85% 22%) 100%)',
-      }}
+    <div
+      className="min-h-[100dvh] text-white flex flex-col relative overflow-hidden bg-gradient-stage"
     >
-      {/* Grid pattern overlay - arcade style with white lines */}
-      <div 
-        className="absolute inset-0 pointer-events-none"
+      {/* Subtle neon grid pattern */}
+      <div
+        className="absolute inset-0 pointer-events-none opacity-60"
         style={{
           backgroundImage: `
-            linear-gradient(rgba(255,255,255,0.15) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(255,255,255,0.15) 1px, transparent 1px)
+            linear-gradient(hsl(var(--neon-mint) / 0.08) 1px, transparent 1px),
+            linear-gradient(90deg, hsl(var(--neon-magenta) / 0.06) 1px, transparent 1px)
           `,
-          backgroundSize: '40px 40px',
+          backgroundSize: '44px 44px',
+        }}
+      />
+
+      {/* Animated scanlines (desktop only — perf) */}
+      {!isMobile && (
+        <div className="neon-scanlines absolute inset-0 pointer-events-none opacity-50 mix-blend-screen" />
+      )}
+
+      {/* Vignette */}
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          background:
+            'radial-gradient(ellipse 100% 70% at 50% 50%, transparent 40%, hsl(var(--neon-bg-deep) / 0.85) 100%)',
         }}
       />
       
@@ -242,8 +252,8 @@ const Index = () => {
             transform: 'rotateX(75deg)',
             transformOrigin: 'top center',
             backgroundImage: `
-              linear-gradient(rgba(255,255,255,0.2) 2px, transparent 2px),
-              linear-gradient(90deg, rgba(255,255,255,0.2) 2px, transparent 2px)
+              linear-gradient(hsl(var(--neon-magenta) / 0.55) 2px, transparent 2px),
+              linear-gradient(90deg, hsl(var(--neon-mint) / 0.5) 2px, transparent 2px)
             `,
             backgroundSize: '60px 60px',
             maskImage: 'linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.3) 50%, transparent 100%)',
@@ -254,19 +264,29 @@ const Index = () => {
         <div 
           className="absolute top-0 left-0 right-0 h-1"
           style={{
-            background: 'linear-gradient(90deg, transparent 0%, rgba(0,229,255,0.6) 30%, rgba(255,100,200,0.6) 70%, transparent 100%)',
-            boxShadow: '0 0 30px rgba(0,229,255,0.5), 0 0 60px rgba(255,100,200,0.3)',
+            background:
+              'linear-gradient(90deg, transparent 0%, hsl(var(--neon-mint) / 0.85) 30%, hsl(var(--neon-magenta) / 0.85) 70%, transparent 100%)',
+            boxShadow:
+              '0 0 30px hsl(var(--neon-mint) / 0.55), 0 0 60px hsl(var(--neon-magenta) / 0.4)',
           }}
         />
       </div>
       
-      {/* Subtle spotlight glow behind hero area */}
+      {/* Spotlight glow behind hero area — magenta-violet */}
       <div 
         className="absolute inset-0 pointer-events-none"
         style={{
-          background: 'radial-gradient(ellipse 70% 50% at 50% 35%, rgba(100,150,255,0.25) 0%, transparent 70%)',
+          background:
+            'radial-gradient(ellipse 70% 50% at 50% 32%, hsl(var(--neon-violet) / 0.32) 0%, transparent 70%)',
         }}
       />
+
+      {/* Arcade marquee — only on landing for less noise during play */}
+      {!hasStarted && !isMobile && (
+        <div className="absolute top-16 left-0 right-0 z-10">
+          <MarqueeRibbon />
+        </div>
+      )}
 
       {/* Tutorial overlay - shows on first game */}
       {!tutorialComplete && (
@@ -483,6 +503,18 @@ const Index = () => {
                   >
                     {/* Shine effect */}
                     <div className="absolute top-0 left-0 right-0 h-1/2 bg-gradient-to-b from-white/40 to-transparent rounded-t-full" />
+                    {/* Animated neon shimmer band */}
+                    <span
+                      aria-hidden
+                      className="pointer-events-none absolute inset-0 rounded-full opacity-70"
+                      style={{
+                        background:
+                          'linear-gradient(100deg, transparent 30%, rgba(255,255,255,0.45) 50%, transparent 70%)',
+                        backgroundSize: '200% 100%',
+                        animation: 'neon-shimmer 3s linear infinite',
+                        mixBlendMode: 'screen',
+                      }}
+                    />
                     <span className="relative z-10 tracking-widest drop-shadow-lg">PLAY</span>
                   </Button>
                   
@@ -495,6 +527,25 @@ const Index = () => {
                     <span>Daily Challenge</span>
                   </button>
                 </HeroBlockDisplay>
+
+                {/* HUD stat chips — give the landing a game feel */}
+                <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3">
+                  <div className="neon-glass-chip flex items-center gap-2 rounded-full px-3 py-1.5 text-xs">
+                    <Trophy className="h-3.5 w-3.5 text-neon-amber" />
+                    <span className="font-bold uppercase tracking-wider text-white/70">Best</span>
+                    <span className="font-black text-neon-mint">{topScore.toLocaleString()}</span>
+                  </div>
+                  <div className="neon-glass-chip flex items-center gap-2 rounded-full px-3 py-1.5 text-xs">
+                    <Zap className="h-3.5 w-3.5 text-neon-magenta" />
+                    <span className="font-bold uppercase tracking-wider text-white/70">Streak</span>
+                    <span className="font-black text-neon-magenta">{currentStreak}</span>
+                  </div>
+                  <div className="neon-glass-chip flex items-center gap-2 rounded-full px-3 py-1.5 text-xs">
+                    <Award className="h-3.5 w-3.5 text-neon-violet" />
+                    <span className="font-bold uppercase tracking-wider text-white/70">XP</span>
+                    <span className="font-black text-neon-cyan">{totalPoints.toLocaleString()}</span>
+                  </div>
+                </div>
               </div>
             )}
             

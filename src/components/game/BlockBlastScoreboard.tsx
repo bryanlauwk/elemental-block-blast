@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles } from 'lucide-react';
+import { Sparkles, Trophy, Flame } from 'lucide-react';
 
 interface BlockBlastScoreboardProps {
   score: number;
@@ -12,40 +12,62 @@ export function BlockBlastScoreboard({ score, topScore, compact = false }: Block
 
   if (compact) {
     return (
-      <div className="text-center">
-        <motion.div 
-          className="relative inline-block"
-          animate={isNewHighScore ? { scale: [1, 1.05, 1] } : {}}
-          transition={{ duration: 0.3 }}
+      <div className="w-full max-w-[420px]">
+        <div
+          className={`neon-hud-panel relative grid grid-cols-2 gap-px overflow-hidden rounded-2xl ${
+            isNewHighScore ? 'neon-hud-panel--best-pop' : ''
+          }`}
         >
-          <motion.span 
-            className="text-5xl sm:text-6xl md:text-7xl font-black bg-gradient-to-r from-game-score-start via-game-score-mid to-game-score-end bg-clip-text text-transparent drop-shadow-lg"
-            key={score}
-            initial={{ scale: 1.1, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ duration: 0.15, ease: 'easeOut' }}
-          >
-            {score.toLocaleString()}
-          </motion.span>
-        </motion.div>
-        
-        {/* Best score - subtle below */}
-        <div className="mt-1 flex items-center justify-center gap-1.5">
-          <span className="text-xs text-game-text-muted/70 font-medium tracking-wide">
-            BEST: {topScore.toLocaleString()}
-          </span>
-          <AnimatePresence>
-            {isNewHighScore && (
-              <motion.div
-                initial={{ opacity: 0, scale: 0 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0 }}
-                className="flex items-center gap-0.5"
-              >
-                <Sparkles className="w-3 h-3 text-yellow-400" />
-              </motion.div>
-            )}
-          </AnimatePresence>
+          {/* Top accent line */}
+          <span
+            aria-hidden
+            className="pointer-events-none absolute inset-x-0 top-0 h-px"
+            style={{ background: 'var(--gradient-neon)' }}
+          />
+
+          {/* SCORE panel */}
+          <div className="relative flex flex-col items-center justify-center px-3 py-2 bg-neon-bg-deep/40">
+            <span className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-[0.25em] text-neon-mint/80">
+              <Flame className="h-3 w-3" /> Score
+            </span>
+            <motion.span
+              key={score}
+              initial={{ y: 8, opacity: 0, scale: 1.05 }}
+              animate={{ y: 0, opacity: 1, scale: 1 }}
+              transition={{ duration: 0.18, ease: 'easeOut' }}
+              className="mt-0.5 text-4xl sm:text-5xl font-black leading-none neon-shimmer-text"
+            >
+              {score.toLocaleString()}
+            </motion.span>
+          </div>
+
+          {/* BEST panel */}
+          <div className="relative flex flex-col items-center justify-center border-l border-neon-mint/15 px-3 py-2 bg-neon-bg-deep/40">
+            <span className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-[0.25em] text-neon-magenta/80">
+              <Trophy className="h-3 w-3" /> Best
+            </span>
+            <span
+              className={`mt-0.5 text-2xl sm:text-3xl font-black leading-none ${
+                isNewHighScore
+                  ? 'bg-gradient-to-r from-neon-magenta via-neon-violet to-neon-cyan bg-clip-text text-transparent'
+                  : 'text-white/90'
+              }`}
+            >
+              {Math.max(topScore, score).toLocaleString()}
+            </span>
+            <AnimatePresence>
+              {isNewHighScore && (
+                <motion.span
+                  initial={{ opacity: 0, scale: 0 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0 }}
+                  className="mt-0.5 flex items-center gap-0.5 text-[9px] font-bold uppercase tracking-[0.3em] text-neon-magenta"
+                >
+                  <Sparkles className="h-2.5 w-2.5" /> New!
+                </motion.span>
+              )}
+            </AnimatePresence>
+          </div>
         </div>
       </div>
     );

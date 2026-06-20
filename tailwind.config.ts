@@ -79,6 +79,26 @@ export default {
           "icon-bg": "hsl(var(--game-icon-bg))",
           "icon-border": "hsl(var(--game-icon-border))",
         },
+        // Neon Arcade palette
+        neon: {
+          "bg-deep": "hsl(var(--neon-bg-deep))",
+          "bg-mid": "hsl(var(--neon-bg-mid))",
+          "bg-glow": "hsl(var(--neon-bg-glow))",
+          mint: "hsl(var(--neon-mint))",
+          magenta: "hsl(var(--neon-magenta))",
+          cyan: "hsl(var(--neon-cyan))",
+          violet: "hsl(var(--neon-violet))",
+          amber: "hsl(var(--neon-amber))",
+        },
+      },
+      backgroundImage: {
+        "gradient-neon": "var(--gradient-neon)",
+        "gradient-stage": "var(--gradient-stage)",
+      },
+      boxShadow: {
+        "neon-mint": "var(--shadow-neon-mint)",
+        "neon-magenta": "var(--shadow-neon-magenta)",
+        "hud-glass": "var(--shadow-hud-glass)",
       },
       borderRadius: {
         lg: "var(--radius)",

@@ -67,6 +67,36 @@ All colors MUST be HSL.
     --game-glow: 195 100% 60%;
     --game-icon-bg: 220 70% 20%;
     --game-icon-border: 200 80% 50%;
+
+    /* ─── Neon Arcade tokens ─── */
+    --neon-bg-deep: 245 70% 6%;
+    --neon-bg-mid: 258 60% 12%;
+    --neon-bg-glow: 285 65% 18%;
+    --neon-mint: 165 80% 55%;
+    --neon-magenta: 325 95% 62%;
+    --neon-cyan: 190 95% 60%;
+    --neon-violet: 268 85% 65%;
+    --neon-amber: 42 100% 60%;
+    --gradient-neon: linear-gradient(
+      90deg,
+      hsl(var(--neon-mint)) 0%,
+      hsl(var(--neon-cyan)) 50%,
+      hsl(var(--neon-magenta)) 100%
+    );
+    --gradient-stage: radial-gradient(
+      ellipse 120% 80% at 50% 18%,
+      hsl(var(--neon-bg-glow)) 0%,
+      hsl(var(--neon-bg-mid)) 45%,
+      hsl(var(--neon-bg-deep)) 100%
+    );
+    --shadow-neon-mint: 0 0 18px hsl(var(--neon-mint) / 0.55),
+      0 0 38px hsl(var(--neon-mint) / 0.3);
+    --shadow-neon-magenta: 0 0 18px hsl(var(--neon-magenta) / 0.55),
+      0 0 38px hsl(var(--neon-magenta) / 0.28);
+    --shadow-hud-glass: 0 1px 0 hsl(var(--neon-mint) / 0.35) inset,
+      0 -1px 0 hsl(0 0% 100% / 0.04) inset,
+      0 8px 24px hsl(var(--neon-bg-deep) / 0.55),
+      0 0 0 1px hsl(var(--neon-mint) / 0.18);
   }
 
   .dark {
@@ -126,6 +156,15 @@ All colors MUST be HSL.
     --game-glow: 195 100% 60%;
     --game-icon-bg: 220 70% 20%;
     --game-icon-border: 200 80% 50%;
+
+    --neon-bg-deep: 245 70% 6%;
+    --neon-bg-mid: 258 60% 12%;
+    --neon-bg-glow: 285 65% 18%;
+    --neon-mint: 165 80% 55%;
+    --neon-magenta: 325 95% 62%;
+    --neon-cyan: 190 95% 60%;
+    --neon-violet: 268 85% 65%;
+    --neon-amber: 42 100% 60%;
   }
 }
 
@@ -217,4 +256,159 @@ All colors MUST be HSL.
 
 .animate-sparkle-delayed-2 {
   animation: sparkle 1s ease-in-out infinite 0.6s;
+}
+
+/* ─── Neon Arcade keyframes ─── */
+@keyframes scanline-drift {
+  0% { background-position: 0 0; }
+  100% { background-position: 0 100vh; }
+}
+
+@keyframes neon-marquee {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+@keyframes neon-shimmer {
+  0% { background-position: -150% 0; }
+  100% { background-position: 250% 0; }
+}
+
+@keyframes neon-shockwave {
+  0% { transform: translate(-50%, -50%) scale(0.2); opacity: 0.85; }
+  100% { transform: translate(-50%, -50%) scale(2.4); opacity: 0; }
+}
+
+@keyframes neon-flash {
+  0% { opacity: 0; }
+  20% { opacity: 0.55; }
+  100% { opacity: 0; }
+}
+
+@keyframes hero-bob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+
+@keyframes neon-pulse-ring {
+  0%, 100% { box-shadow: 0 0 0 0 hsl(var(--neon-mint) / 0.55); }
+  50% { box-shadow: 0 0 0 10px hsl(var(--neon-mint) / 0); }
+}
+
+.neon-scanlines {
+  background-image: repeating-linear-gradient(
+    180deg,
+    hsl(var(--neon-mint) / 0.05) 0px,
+    hsl(var(--neon-mint) / 0.05) 1px,
+    transparent 1px,
+    transparent 4px
+  );
+  animation: scanline-drift 12s linear infinite;
+  will-change: background-position;
+}
+
+.neon-marquee-track {
+  animation: neon-marquee 28s linear infinite;
+  will-change: transform;
+}
+
+.neon-shimmer-text {
+  background: linear-gradient(
+    100deg,
+    hsl(var(--neon-mint)) 0%,
+    #ffffff 35%,
+    hsl(var(--neon-magenta)) 55%,
+    hsl(var(--neon-cyan)) 75%,
+    hsl(var(--neon-mint)) 100%
+  );
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: neon-shimmer 3.5s linear infinite;
+}
+
+.neon-shockwave {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 120%;
+  height: 120%;
+  border-radius: 9999px;
+  border: 2px solid hsl(var(--neon-mint) / 0.7);
+  box-shadow: 0 0 28px hsl(var(--neon-mint) / 0.55),
+    inset 0 0 18px hsl(var(--neon-mint) / 0.35);
+  pointer-events: none;
+  animation: neon-shockwave 0.55s ease-out forwards;
+}
+
+.neon-shockwave--magenta {
+  border-color: hsl(var(--neon-magenta) / 0.75);
+  box-shadow: 0 0 28px hsl(var(--neon-magenta) / 0.6),
+    inset 0 0 18px hsl(var(--neon-magenta) / 0.4);
+}
+
+.neon-flash-overlay {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    circle at 50% 50%,
+    hsl(var(--neon-mint) / 0.55) 0%,
+    hsl(var(--neon-cyan) / 0.25) 35%,
+    transparent 75%
+  );
+  pointer-events: none;
+  animation: neon-flash 0.45s ease-out forwards;
+  mix-blend-mode: screen;
+}
+
+.neon-hero-bob {
+  animation: hero-bob 4s ease-in-out infinite;
+  will-change: transform;
+}
+
+.neon-glass-chip {
+  background: linear-gradient(
+    145deg,
+    hsl(var(--neon-bg-mid) / 0.85),
+    hsl(var(--neon-bg-deep) / 0.95)
+  );
+  border: 1px solid hsl(var(--neon-mint) / 0.35);
+  box-shadow: var(--shadow-hud-glass);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  transition: box-shadow 0.2s ease, transform 0.2s ease, border-color 0.2s ease;
+}
+
+.neon-glass-chip:hover {
+  border-color: hsl(var(--neon-mint) / 0.65);
+  box-shadow: var(--shadow-hud-glass), var(--shadow-neon-mint);
+}
+
+.neon-hud-panel {
+  background: linear-gradient(
+    180deg,
+    hsl(var(--neon-bg-mid) / 0.85) 0%,
+    hsl(var(--neon-bg-deep) / 0.95) 100%
+  );
+  border: 1px solid hsl(var(--neon-mint) / 0.25);
+  box-shadow: var(--shadow-hud-glass);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.neon-hud-panel--best-pop {
+  animation: neon-pulse-ring 1.2s ease-out 2;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .neon-scanlines,
+  .neon-marquee-track,
+  .neon-shimmer-text,
+  .neon-hero-bob,
+  .neon-shockwave,
+  .neon-flash-overlay,
+  .neon-hud-panel--best-pop {
+    animation: none !important;
+  }
 }

@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import React, { useRef, useCallback, TouchEvent, memo } from 'react';
+import React, { useRef, useCallback, TouchEvent, memo, useEffect, useState } from 'react';
 import { Cell, DraggablePiece, Position, GRID_WIDTH, GRID_HEIGHT } from '@/game/types';
 import { ElementBlock } from './ElementBlock';
 import { cn } from '@/lib/utils';
@@ -265,6 +265,14 @@ export function BlockBlastGrid({
   // Calculate cell size based on screen - larger for mobile touch targets
   const cellSize = 'w-10 h-10 sm:w-10 sm:h-10 md:w-11 md:h-11';
 
+  // One-shot flash overlay tied to shakeIntensity bumps (combo clears)
+  const [flashKey, setFlashKey] = useState(0);
+  useEffect(() => {
+    if (shakeIntensity > 3) {
+      setFlashKey((k) => k + 1);
+    }
+  }, [shakeIntensity]);
+
   return (
     <motion.div
       animate={{
@@ -309,15 +317,31 @@ export function BlockBlastGrid({
         </motion.div>
       )}
       
-      {/* Grid container - clean, minimal styling */}
-      <div className="relative p-2 sm:p-3 rounded-2xl bg-game-grid-dark shadow-2xl border border-game-grid-border/50">
-        {/* Subtle outer glow */}
-        <div 
-          className="absolute inset-0 rounded-2xl pointer-events-none"
-          style={{
-            boxShadow: '0 0 60px rgba(139, 92, 246, 0.15), inset 0 1px 0 rgba(255,255,255,0.05)',
-          }}
+      {/* Grid container - neon arcade frame */}
+      <div
+        className="relative p-2 sm:p-3 rounded-2xl border border-neon-mint/30 shadow-2xl"
+        style={{
+          background:
+            'linear-gradient(180deg, hsl(var(--neon-bg-mid) / 0.95) 0%, hsl(var(--neon-bg-deep) / 0.98) 100%)',
+          boxShadow:
+            '0 0 0 1px hsl(var(--neon-mint) / 0.2), 0 0 32px hsl(var(--neon-mint) / 0.18), 0 0 60px hsl(var(--neon-magenta) / 0.12), inset 0 1px 0 hsl(var(--neon-mint) / 0.18)',
+        }}
+      >
+        {/* Top neon accent line */}
+        <span
+          aria-hidden
+          className="pointer-events-none absolute inset-x-3 top-0 h-px rounded-full"
+          style={{ background: 'var(--gradient-neon)', opacity: 0.7 }}
         />
+
+        {/* Combo flash overlay — mounted only briefly */}
+        {flashKey > 0 && (
+          <span
+            key={flashKey}
+            className="neon-flash-overlay rounded-2xl"
+            aria-hidden
+          />
+        )}
         
         {/* Grid cells */}
         <div 
