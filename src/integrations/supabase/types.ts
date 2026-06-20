@@ -92,6 +92,14 @@ export type Database = {
         }
         Returns: boolean
       }
+      submit_daily_score: {
+        Args: { _challenge_date?: string; _player_name: string; _score: number }
+        Returns: {
+          is_new_best: boolean
+          rank: number
+          success: boolean
+        }[]
+      }
     }
     Enums: {
       app_role: "admin" | "moderator" | "user"
