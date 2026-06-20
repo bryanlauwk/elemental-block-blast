@@ -1,4 +1,5 @@
 import { motion, AnimatePresence } from 'framer-motion';
+import { Zap } from 'lucide-react';
 
 interface ComboDisplayProps {
   count: number;
@@ -10,16 +11,24 @@ export function ComboDisplay({ count, show }: ComboDisplayProps) {
     <AnimatePresence>
       {show && count > 1 && (
         <motion.div
-          initial={{ scale: 0, rotate: -10 }}
-          animate={{ scale: 1, rotate: 0 }}
-          exit={{ scale: 0, opacity: 0, y: -50 }}
+          initial={{ scale: 0.4, rotate: -8, opacity: 0 }}
+          animate={{ scale: 1, rotate: 0, opacity: 1 }}
+          exit={{ scale: 0.6, opacity: 0, y: -60 }}
+          transition={{ type: 'spring', stiffness: 320, damping: 16 }}
           className="absolute inset-0 flex items-center justify-center pointer-events-none z-50"
         >
-          <div className="bg-gradient-to-r from-yellow-500 via-orange-500 to-red-500 text-white px-6 py-3 rounded-lg shadow-2xl">
-            {/* Use CSS animation instead of Framer Motion infinite loop */}
-            <span className="text-3xl font-black tracking-wider inline-block animate-combo-pulse">
-              COMBO x{count}!
+          <div
+            className="relative flex items-center gap-2 rounded-xl border border-neon-mint/50 bg-neon-bg-deep/85 px-5 py-3 backdrop-blur-md"
+            style={{
+              boxShadow:
+                '0 0 28px hsl(var(--neon-magenta) / 0.5), 0 0 60px hsl(var(--neon-mint) / 0.3), inset 0 1px 0 hsl(var(--neon-mint) / 0.4)',
+            }}
+          >
+            <Zap className="h-6 w-6 text-neon-mint drop-shadow-[0_0_8px_hsl(var(--neon-mint))]" />
+            <span className="neon-shimmer-text text-3xl font-black uppercase tracking-[0.18em] animate-combo-pulse">
+              Combo x{count}
             </span>
+            <span className="neon-shockwave" />
           </div>
         </motion.div>
       )}
