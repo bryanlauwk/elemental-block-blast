@@ -90,58 +90,24 @@ export function useDailyChallenge() {
       if (containsProfanity(sanitizedName)) {
         throw new Error('Please choose an appropriate name');
       }
-      // Check if player already has a score for today
-      const { data: existing } = await supabase
-        .from('daily_challenge_scores')
-        .select('id, score')
-        .eq('player_name', sanitizedName)
-        .eq('challenge_date', date)
-        .maybeSingle();
+      // Submit via SECURITY DEFINER RPC: server validates name/score and
+      // only updates an existing entry if the new score is higher.
+      const { data, error: rpcError } = await supabase.rpc('submit_daily_score', {
+        _player_name: sanitizedName,
+        _score: score,
+        _challenge_date: date,
+      });
 
-      let isNewBest = false;
-
-      if (existing) {
-        // Only update if new score is better
-        if (score > existing.score) {
-          const { error: updateError } = await supabase
-            .from('daily_challenge_scores')
-            .update({ score })
-            .eq('id', existing.id);
-
-          if (updateError) {
-            throw updateError;
-          }
-          isNewBest = true;
-        }
-      } else {
-        // Insert new score
-        const { error: insertError } = await supabase
-          .from('daily_challenge_scores')
-          .insert({ 
-            player_name: sanitizedName, 
-            score,
-            challenge_date: date 
-          });
-
-        if (insertError) {
-          throw insertError;
-        }
-        isNewBest = true;
+      if (rpcError) {
+        throw rpcError;
       }
 
-      // Get the player's rank
-      const { count, error: countError } = await supabase
-        .from('daily_challenge_scores')
-        .select('*', { count: 'exact', head: true })
-        .eq('challenge_date', date)
-        .gt('score', score);
-
-      if (countError) {
-        console.warn('Could not fetch rank:', countError);
-        return { success: true, isNewBest };
-      }
-
-      return { success: true, rank: (count || 0) + 1, isNewBest };
+      const row = Array.isArray(data) ? data[0] : data;
+      return {
+        success: true,
+        isNewBest: !!row?.is_new_best,
+        rank: row?.rank ? Number(row.rank) : undefined,
+      };
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to submit daily score';
       setError(message);
