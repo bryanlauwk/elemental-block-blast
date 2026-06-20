@@ -49,6 +49,9 @@ const ReactionParticles: React.FC<ReactionParticlesProps> = ({
   gridOffset = { x: 0, y: 0 }
 }) => {
   const [particles, setParticles] = useState<Particle[]>([]);
+  const [shockwaves, setShockwaves] = useState<
+    { id: string; x: number; y: number; type: 'burn' | 'extinguish' | 'dissolve' }[]
+  >([]);
 
   useEffect(() => {
     if (!trigger || trigger.positions.length === 0) return;
@@ -80,16 +83,46 @@ const ReactionParticles: React.FC<ReactionParticlesProps> = ({
 
     setParticles(prev => [...prev, ...newParticles]);
 
+    // Spawn one cheap shockwave ring per source position
+    const newShocks = trigger.positions.map((pos) => ({
+      id: `s-${trigger.timestamp}-${pos.x}-${pos.y}`,
+      x: gridOffset.x + (pos.x + 0.5) * cellSize,
+      y: gridOffset.y + (pos.y + 0.5) * cellSize,
+      type: trigger.type,
+    }));
+    setShockwaves((prev) => [...prev, ...newShocks]);
+    const shockTimeout = setTimeout(() => {
+      setShockwaves((prev) => prev.filter((s) => !newShocks.some((ns) => ns.id === s.id)));
+    }, 600);
+
     // Clean up particles after animation
     const timeout = setTimeout(() => {
       setParticles(prev => prev.filter(p => !newParticles.some(np => np.id === p.id)));
     }, 1500);
 
-    return () => clearTimeout(timeout);
+    return () => {
+      clearTimeout(timeout);
+      clearTimeout(shockTimeout);
+    };
   }, [trigger, cellSize, gridOffset]);
 
   return (
     <div className="absolute inset-0 pointer-events-none overflow-hidden z-40">
+      {/* Shockwave rings — single CSS animation each */}
+      {shockwaves.map((s) => (
+        <span
+          key={s.id}
+          className={`neon-shockwave ${
+            s.type === 'burn' ? 'neon-shockwave--magenta' : ''
+          }`}
+          style={{
+            left: s.x,
+            top: s.y,
+            width: cellSize * 1.6,
+            height: cellSize * 1.6,
+          }}
+        />
+      ))}
       <AnimatePresence>
         {particles.map((particle) => {
           const endX = Math.cos(particle.angle) * particle.distance;

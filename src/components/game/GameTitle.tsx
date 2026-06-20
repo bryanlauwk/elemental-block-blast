@@ -232,8 +232,8 @@ export const GameTitle = () => {
             ))}
           </div>
 
-          {/* Second line - BLOCK BLAST */}
-          <div className="flex items-center justify-center -mt-1 sm:-mt-2 md:-mt-3">
+          {/* Second line - BLOCK BLAST with neon shimmer sweep overlay */}
+          <div className="relative flex items-center justify-center -mt-1 sm:-mt-2 md:-mt-3">
             {word2.split('').map((letter, i) => {
               if (letter === ' ') return <span key={`space-${i}`} className="w-2 sm:w-3 md:w-4 lg:w-5" />;
               const colorIndex = i < 5 ? i : i - 1;
@@ -247,6 +247,20 @@ export const GameTitle = () => {
                 />
               );
             })}
+            {/* One-time shimmer sweep */}
+            <motion.span
+              aria-hidden
+              initial={{ x: '-120%', opacity: 0 }}
+              animate={{ x: '120%', opacity: [0, 0.85, 0] }}
+              transition={{ delay: 1.1, duration: 1.4, ease: 'easeOut' }}
+              className="pointer-events-none absolute inset-y-0 w-1/3"
+              style={{
+                background:
+                  'linear-gradient(100deg, transparent 0%, rgba(255,255,255,0.55) 50%, transparent 100%)',
+                mixBlendMode: 'screen',
+                filter: 'blur(2px)',
+              }}
+            />
           </div>
         </div>
 
