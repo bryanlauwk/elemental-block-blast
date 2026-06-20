@@ -503,6 +503,18 @@ const Index = () => {
                   >
                     {/* Shine effect */}
                     <div className="absolute top-0 left-0 right-0 h-1/2 bg-gradient-to-b from-white/40 to-transparent rounded-t-full" />
+                    {/* Animated neon shimmer band */}
+                    <span
+                      aria-hidden
+                      className="pointer-events-none absolute inset-0 rounded-full opacity-70"
+                      style={{
+                        background:
+                          'linear-gradient(100deg, transparent 30%, rgba(255,255,255,0.45) 50%, transparent 70%)',
+                        backgroundSize: '200% 100%',
+                        animation: 'neon-shimmer 3s linear infinite',
+                        mixBlendMode: 'screen',
+                      }}
+                    />
                     <span className="relative z-10 tracking-widest drop-shadow-lg">PLAY</span>
                   </Button>
                   
@@ -515,6 +527,25 @@ const Index = () => {
                     <span>Daily Challenge</span>
                   </button>
                 </HeroBlockDisplay>
+
+                {/* HUD stat chips — give the landing a game feel */}
+                <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3">
+                  <div className="neon-glass-chip flex items-center gap-2 rounded-full px-3 py-1.5 text-xs">
+                    <Trophy className="h-3.5 w-3.5 text-neon-amber" />
+                    <span className="font-bold uppercase tracking-wider text-white/70">Best</span>
+                    <span className="font-black text-neon-mint">{topScore.toLocaleString()}</span>
+                  </div>
+                  <div className="neon-glass-chip flex items-center gap-2 rounded-full px-3 py-1.5 text-xs">
+                    <Zap className="h-3.5 w-3.5 text-neon-magenta" />
+                    <span className="font-bold uppercase tracking-wider text-white/70">Streak</span>
+                    <span className="font-black text-neon-magenta">{currentStreak}</span>
+                  </div>
+                  <div className="neon-glass-chip flex items-center gap-2 rounded-full px-3 py-1.5 text-xs">
+                    <Award className="h-3.5 w-3.5 text-neon-violet" />
+                    <span className="font-bold uppercase tracking-wider text-white/70">XP</span>
+                    <span className="font-black text-neon-cyan">{totalPoints.toLocaleString()}</span>
+                  </div>
+                </div>
               </div>
             )}
             
