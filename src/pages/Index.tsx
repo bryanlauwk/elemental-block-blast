@@ -495,67 +495,116 @@ const Index = () => {
           <div className="flex flex-col items-center w-full max-w-[400px] h-full">
             {/* Start screen - landing page */}
             {!hasStarted && (
-              <div className="flex flex-col items-center justify-center flex-1 gap-4 sm:gap-6 md:gap-8 py-2 sm:py-4">
-                {/* Title Section - unified logo */}
+              <div className="flex flex-col items-center justify-center flex-1 gap-8 sm:gap-10 py-4 sm:py-6 w-full">
+                {/* Pixar stat chips — above title */}
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.05, duration: 0.4 }}
+                  className="flex flex-wrap items-center justify-center gap-2 sm:gap-3"
+                >
+                  <div className="flex items-center gap-2 px-4 py-1.5 rounded-full bg-pixar-navy-deep/70 border-2 border-pixar-blue/30">
+                    <span className="text-pixar-blue text-[10px] sm:text-xs font-bold uppercase tracking-wider">Best</span>
+                    <span className="text-white font-bold text-sm">{topScore.toLocaleString()}</span>
+                  </div>
+                  <div className="flex items-center gap-2 px-4 py-1.5 rounded-full bg-pixar-navy-deep/70 border-2 border-pixar-yellow/30">
+                    <span className="text-pixar-yellow text-[10px] sm:text-xs font-bold uppercase tracking-wider">Streak</span>
+                    <span className="text-white font-bold text-sm">{currentStreak}</span>
+                  </div>
+                  <div className="flex items-center gap-2 px-4 py-1.5 rounded-full bg-pixar-navy-deep/70 border-2 border-white/15">
+                    <span className="text-white/60 text-[10px] sm:text-xs font-bold uppercase tracking-wider">XP</span>
+                    <span className="text-white font-bold text-sm">{totalPoints.toLocaleString()}</span>
+                  </div>
+                </motion.div>
+
+                {/* Pixar 3D Headline */}
                 <GameTitle />
-                
-                {/* Hero Section with CTA - closer to title */}
-                <HeroBlockDisplay>
-                  {/* Play button - HUGE vibrant green arcade style */}
-                  <Button
+
+                {/* Element rubber-tile row */}
+                <motion.div
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.9, duration: 0.5 }}
+                  className="flex items-center justify-center gap-3 sm:gap-4"
+                >
+                  {[
+                    { Icon: Flame, bg: 'bg-pixar-red', shadow: 'border-pixar-red-deep', iconColor: 'text-white' },
+                    { Icon: Droplets, bg: 'bg-pixar-blue', shadow: 'border-pixar-blue-deep', iconColor: 'text-white' },
+                    { Icon: TreeDeciduous, bg: 'bg-[hsl(140_55%_40%)]', shadow: 'border-[hsl(140_60%_22%)]', iconColor: 'text-white' },
+                    { Icon: Mountain, bg: 'bg-slate-400', shadow: 'border-slate-700', iconColor: 'text-white' },
+                    { Icon: Wind, bg: 'bg-pixar-yellow', shadow: 'border-pixar-yellow-deep', iconColor: 'text-pixar-navy-deep' },
+                  ].map(({ Icon, bg, shadow, iconColor }, i) => (
+                    <motion.div
+                      key={i}
+                      whileHover={{ y: -4 }}
+                      whileTap={{ y: 2 }}
+                      className={`relative w-14 h-14 sm:w-16 sm:h-16 ${bg} ${shadow} border-b-[6px] rounded-2xl flex items-center justify-center cursor-pointer transition-shadow`}
+                      style={{
+                        boxShadow:
+                          'inset 0 2px 4px rgba(255,255,255,0.4), inset 0 -2px 4px rgba(0,0,0,0.15), 0 4px 12px rgba(0,0,0,0.35)',
+                      }}
+                    >
+                      <Icon className={`w-7 h-7 sm:w-8 sm:h-8 ${iconColor}`} strokeWidth={2.5} />
+                      {/* Glossy highlight */}
+                      <span
+                        aria-hidden
+                        className="pointer-events-none absolute top-1.5 left-2 right-2 h-2 rounded-full bg-gradient-to-b from-white/55 to-transparent"
+                      />
+                    </motion.div>
+                  ))}
+                </motion.div>
+
+                {/* Pixar PLAY button */}
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: 1.1, type: 'spring', stiffness: 320, damping: 18 }}
+                  className="relative inline-block"
+                >
+                  <button
                     onClick={startGame}
-                    size="lg"
-                    className="relative bg-gradient-to-b from-emerald-400 via-emerald-500 to-emerald-600 hover:from-emerald-300 hover:via-emerald-400 hover:to-emerald-500 text-white font-black text-xl sm:text-2xl md:text-3xl px-12 sm:px-16 md:px-20 py-4 sm:py-5 md:py-6 rounded-full transition-all overflow-hidden border-0 active:translate-y-1 active:shadow-none"
-                    style={{
-                      boxShadow: '0 6px 0 #047857, 0 10px 30px rgba(16,185,129,0.5), inset 0 3px 8px rgba(255,255,255,0.5)',
-                      animation: 'pulse-glow 2s ease-in-out infinite',
-                    }}
+                    aria-label="Play"
+                    className="group relative inline-block focus:outline-none focus-visible:ring-4 focus-visible:ring-pixar-yellow/60 rounded-full"
                   >
-                    {/* Shine effect */}
-                    <div className="absolute top-0 left-0 right-0 h-1/2 bg-gradient-to-b from-white/40 to-transparent rounded-t-full" />
-                    {/* Animated neon shimmer band */}
+                    {/* Drop-shadow layer */}
                     <span
                       aria-hidden
-                      className="pointer-events-none absolute inset-0 rounded-full opacity-70"
-                      style={{
-                        background:
-                          'linear-gradient(100deg, transparent 30%, rgba(255,255,255,0.45) 50%, transparent 70%)',
-                        backgroundSize: '200% 100%',
-                        animation: 'neon-shimmer 3s linear infinite',
-                        mixBlendMode: 'screen',
-                      }}
+                      className="absolute inset-x-0 -bottom-2 top-0 bg-pixar-red-deep rounded-full"
                     />
-                    <span className="relative z-10 tracking-widest drop-shadow-lg">PLAY</span>
-                  </Button>
-                  
-                  {/* Daily Challenge button - subtle text link style */}
-                  <button
-                    onClick={() => setShowDailyChallenge(true)}
-                    className="flex items-center gap-2 text-amber-400/80 hover:text-amber-300 font-medium text-xs sm:text-sm md:text-base transition-colors mt-1 sm:mt-2"
-                  >
-                    <Calendar className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                    <span>Daily Challenge</span>
+                    {/* Button face */}
+                    <span className="relative block bg-pixar-red px-14 sm:px-16 md:px-20 py-4 sm:py-5 md:py-6 rounded-full overflow-hidden transition-transform active:translate-y-1 group-hover:brightness-110">
+                      {/* Top gloss */}
+                      <span
+                        aria-hidden
+                        className="absolute inset-x-0 top-0 h-1/2 bg-gradient-to-b from-white/35 to-transparent rounded-t-full"
+                      />
+                      {/* Bottom inner shadow */}
+                      <span
+                        aria-hidden
+                        className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/20 to-transparent rounded-b-full"
+                      />
+                      <span
+                        className="relative z-10 text-white text-3xl sm:text-4xl md:text-5xl tracking-widest uppercase block leading-none"
+                        style={{
+                          fontFamily: "'Abril Fatface', Georgia, serif",
+                          textShadow: '0 2px 0 hsl(var(--pixar-red-deep)), 0 4px 8px rgba(0,0,0,0.35)',
+                        }}
+                      >
+                        Play
+                      </span>
+                    </span>
                   </button>
-                </HeroBlockDisplay>
+                </motion.div>
 
-                {/* HUD stat chips — give the landing a game feel */}
-                <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3">
-                  <div className="neon-glass-chip flex items-center gap-2 rounded-full px-3 py-1.5 text-xs">
-                    <Trophy className="h-3.5 w-3.5 text-neon-amber" />
-                    <span className="font-bold uppercase tracking-wider text-white/70">Best</span>
-                    <span className="font-black text-neon-mint">{topScore.toLocaleString()}</span>
-                  </div>
-                  <div className="neon-glass-chip flex items-center gap-2 rounded-full px-3 py-1.5 text-xs">
-                    <Zap className="h-3.5 w-3.5 text-neon-magenta" />
-                    <span className="font-bold uppercase tracking-wider text-white/70">Streak</span>
-                    <span className="font-black text-neon-magenta">{currentStreak}</span>
-                  </div>
-                  <div className="neon-glass-chip flex items-center gap-2 rounded-full px-3 py-1.5 text-xs">
-                    <Award className="h-3.5 w-3.5 text-neon-violet" />
-                    <span className="font-bold uppercase tracking-wider text-white/70">XP</span>
-                    <span className="font-black text-neon-cyan">{totalPoints.toLocaleString()}</span>
-                  </div>
-                </div>
+                {/* Daily Challenge subtle link */}
+                <button
+                  onClick={() => setShowDailyChallenge(true)}
+                  className="flex items-center gap-2 text-pixar-yellow/80 hover:text-pixar-yellow font-bold text-xs sm:text-sm uppercase tracking-widest transition-colors"
+                  style={{ fontFamily: 'Cabin, system-ui, sans-serif' }}
+                >
+                  <Calendar className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                  <span>Daily Challenge</span>
+                </button>
               </div>
             )}
             
