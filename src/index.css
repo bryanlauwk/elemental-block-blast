@@ -97,6 +97,32 @@ All colors MUST be HSL.
       0 -1px 0 hsl(0 0% 100% / 0.04) inset,
       0 8px 24px hsl(var(--neon-bg-deep) / 0.55),
       0 0 0 1px hsl(var(--neon-mint) / 0.18);
+
+    /* ─── Pixar Toy Box landing palette ─── */
+    --pixar-navy: 222 65% 14%;
+    --pixar-navy-deep: 224 70% 8%;
+    --pixar-red: 8 82% 51%;
+    --pixar-red-deep: 8 78% 35%;
+    --pixar-yellow: 45 100% 51%;
+    --pixar-yellow-deep: 40 95% 32%;
+    --pixar-blue: 204 100% 56%;
+    --pixar-blue-deep: 207 80% 40%;
+    --pixar-mint: 158 70% 55%;
+    --gradient-pixar-stage: radial-gradient(
+        ellipse 60% 45% at 18% 20%,
+        hsl(var(--pixar-blue) / 0.18) 0%,
+        transparent 60%
+      ),
+      radial-gradient(
+        ellipse 55% 50% at 85% 90%,
+        hsl(var(--pixar-red) / 0.20) 0%,
+        transparent 65%
+      ),
+      linear-gradient(
+        180deg,
+        hsl(var(--pixar-navy)) 0%,
+        hsl(var(--pixar-navy-deep)) 100%
+      );
   }
 
   .dark {
@@ -409,6 +435,77 @@ All colors MUST be HSL.
   .neon-shockwave,
   .neon-flash-overlay,
   .neon-hud-panel--best-pop {
+    animation: none !important;
+  }
+}
+
+/* ─── Pixar Toy Box landing ─── */
+@keyframes pixar-title-bob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+
+@keyframes pixar-shimmer-sweep {
+  0% { transform: translateX(-120%) skewX(-12deg); opacity: 0; }
+  15% { opacity: 0.7; }
+  60% { opacity: 0.7; }
+  100% { transform: translateX(160%) skewX(-12deg); opacity: 0; }
+}
+
+.pixar-title-bob {
+  animation: pixar-title-bob 5.5s ease-in-out infinite;
+  will-change: transform;
+}
+
+.pixar-letter-shadow-yellow {
+  text-shadow:
+    0 1px 0 hsl(var(--pixar-yellow-deep)),
+    0 2px 0 hsl(var(--pixar-yellow-deep)),
+    0 3px 0 hsl(40 95% 25%),
+    0 4px 0 hsl(40 95% 20%),
+    0 8px 15px rgba(0, 0, 0, 0.6),
+    0 15px 30px rgba(0, 0, 0, 0.4);
+}
+
+.pixar-letter-shadow-red {
+  text-shadow:
+    0 1px 0 hsl(var(--pixar-red-deep)),
+    0 2px 0 hsl(8 78% 30%),
+    0 3px 0 hsl(8 78% 24%),
+    0 4px 0 hsl(8 78% 18%),
+    0 8px 15px rgba(0, 0, 0, 0.6),
+    0 15px 30px rgba(0, 0, 0, 0.4);
+}
+
+.pixar-shimmer-sweep {
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  border-radius: 1rem;
+}
+
+.pixar-shimmer-sweep::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 35%;
+  background: linear-gradient(
+    100deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.65) 50%,
+    transparent 100%
+  );
+  mix-blend-mode: screen;
+  filter: blur(2px);
+  animation: pixar-shimmer-sweep 4.5s ease-in-out infinite;
+  animation-delay: 1.2s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pixar-title-bob,
+  .pixar-shimmer-sweep::after {
     animation: none !important;
   }
 }
