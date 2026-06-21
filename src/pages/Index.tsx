@@ -30,7 +30,7 @@ import MarqueeRibbon from '@/components/game/MarqueeRibbon';
 import GameTitle from '@/components/game/GameTitle';
 import HeroBlockDisplay from '@/components/game/HeroBlockDisplay';
 import { Button } from '@/components/ui/button';
-import { Trophy, Play, RotateCcw, HelpCircle, Zap, Calendar, Volume2, Home, Award } from 'lucide-react';
+import { Trophy, Play, RotateCcw, HelpCircle, Zap, Calendar, Volume2, Home, Award, Flame, Droplets, TreeDeciduous, Mountain, Wind } from 'lucide-react';
 import { Position } from '@/game/types';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { playSound } from '@/game/sounds';
@@ -210,10 +210,13 @@ const Index = () => {
 
   return (
     <div
-      className="min-h-[100dvh] text-white flex flex-col relative overflow-hidden bg-gradient-stage"
+      className={`min-h-[100dvh] text-white flex flex-col relative overflow-hidden ${hasStarted ? 'bg-gradient-stage' : 'bg-gradient-pixar-stage'}`}
     >
-      {/* Subtle neon grid pattern */}
-      <div
+      {/* Neon overlays — only during gameplay */}
+      {hasStarted && (
+        <>
+          {/* Subtle neon grid pattern */}
+          <div
         className="absolute inset-0 pointer-events-none opacity-60"
         style={{
           backgroundImage: `
@@ -280,12 +283,19 @@ const Index = () => {
             'radial-gradient(ellipse 70% 50% at 50% 32%, hsl(var(--neon-violet) / 0.32) 0%, transparent 70%)',
         }}
       />
+        </>
+      )}
 
-      {/* Arcade marquee — only on landing for less noise during play */}
-      {!hasStarted && !isMobile && (
-        <div className="absolute top-16 left-0 right-0 z-10">
-          <MarqueeRibbon />
-        </div>
+      {/* Pixar soft cloud glow — landing only */}
+      {!hasStarted && (
+        <div
+          aria-hidden
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            background:
+              'radial-gradient(ellipse 70% 50% at 50% 28%, hsl(var(--pixar-blue) / 0.15) 0%, transparent 70%)',
+          }}
+        />
       )}
 
       {/* Tutorial overlay - shows on first game */}
