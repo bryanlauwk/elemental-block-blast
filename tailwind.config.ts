@@ -90,10 +90,27 @@ export default {
           violet: "hsl(var(--neon-violet))",
           amber: "hsl(var(--neon-amber))",
         },
+        // Pixar Toy Box landing palette
+        pixar: {
+          navy: "hsl(var(--pixar-navy))",
+          "navy-deep": "hsl(var(--pixar-navy-deep))",
+          red: "hsl(var(--pixar-red))",
+          "red-deep": "hsl(var(--pixar-red-deep))",
+          yellow: "hsl(var(--pixar-yellow))",
+          "yellow-deep": "hsl(var(--pixar-yellow-deep))",
+          blue: "hsl(var(--pixar-blue))",
+          "blue-deep": "hsl(var(--pixar-blue-deep))",
+          mint: "hsl(var(--pixar-mint))",
+        },
       },
       backgroundImage: {
         "gradient-neon": "var(--gradient-neon)",
         "gradient-stage": "var(--gradient-stage)",
+        "gradient-pixar-stage": "var(--gradient-pixar-stage)",
+      },
+      fontFamily: {
+        display: ["'Abril Fatface'", "Georgia", "serif"],
+        sans: ["Cabin", "system-ui", "-apple-system", "sans-serif"],
       },
       boxShadow: {
         "neon-mint": "var(--shadow-neon-mint)",
