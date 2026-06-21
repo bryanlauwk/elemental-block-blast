@@ -1,117 +1,44 @@
-## Goal
+# Pixar "Cinematic 3D Toybox" — Home Page Big Lift
 
-Push Elemental Block Blast to a maximalist **Neon Arcade** experience: deep violet stage, neon mint + hot magenta accents, glassy chrome HUD, and arcade-grade "juice" on every action. Touches three areas you picked: **In-game visuals**, **HUD & scoreboard**, **Landing/menu screen**.
+Rebuild the landing page (`/`) to match the approved prototype: a navy stage, an Abril Fatface 3D candy headline ("ELEMENTAL / BLOCK / BLAST"), a row of glossy rubber element tiles, and a red Pixar-style PLAY button. Locked taste: palette Toy Box Primary (`#0d1b3d`, `#e8341c`, `#ffc107`, `#1ea7ff`); type pair Abril Fatface (display) + Cabin (body); layout hero-grid.
 
----
+## What changes
 
-## 1. Neon Arcade design tokens
+1. **Fonts** — Add `@fontsource/abril-fatface` and `@fontsource/cabin`, import in `src/main.tsx`, register in `tailwind.config.ts` as `font-display` (Abril) and default `font-sans` (Cabin).
 
-Introduce new HSL tokens in `src/index.css` so components stay theme-driven (no hardcoded colors):
+2. **Design tokens** (`src/index.css`) — Add Pixar palette tokens (`--pixar-navy`, `--pixar-red`, `--pixar-yellow`, `--pixar-blue`) and a `--shadow-3d-letter-*` helper for the stacked text-shadow stack. Keep existing tokens; only the home page consumes the new ones.
 
-- `--neon-bg-deep: 245 70% 6%`, `--neon-bg-mid: 258 60% 12%`, `--neon-bg-glow: 285 65% 18%`
-- `--neon-mint: 165 80% 55%` (primary accent), `--neon-magenta: 325 95% 62%` (secondary), `--neon-cyan: 190 95% 60%`, `--neon-violet: 268 85% 65%`
-- Gradients: `--gradient-neon` (mint→cyan→magenta), `--gradient-stage` (deep violet radial)
-- Shadows: `--shadow-neon-mint`, `--shadow-neon-magenta`, `--shadow-hud-glass`
+3. **`GameTitle.tsx` — full rewrite** for the headline:
+   - Top eyebrow "ELEMENTAL" in blue, uppercase, `tracking-[0.4em]`, Cabin bold.
+   - Two stacked words "BLOCK" (yellow) and "BLAST" (red) in Abril Fatface, ~8xl, each with a 4-layer stacked `text-shadow` for chiseled 3D depth + soft drop shadow.
+   - Letter-by-letter pop-in via framer-motion (spring), one-time shimmer sweep across each word, gentle `hero-bob` loop (disabled on `prefers-reduced-motion` and mobile).
+   - Removes the current fire-ring background and rainbow text-shadow look.
 
-Mirror these into `tailwind.config.ts` as `neon-*` colors + `bg-gradient-neon`. Extend `src/game/theme.ts` with a `NEON` palette so `BlockBlastGrid`, `PieceTray`, `ElementBlock`, modals can opt in via tokens.
+4. **`Index.tsx` — landing layout** rebuilt around the prototype:
+   - Background: solid `#0d1b3d` with two soft radial glows (blue top-left, red bottom-right) using existing `gradient-stage` token swapped to Pixar values. Removes the violet neon scanline grid for the home page only (in-game grid untouched).
+   - Stat chips row (Best / Streak / XP) above the title using existing `useHighScores`, `useDailyStreak`, and XP hooks already wired in.
+   - Headline (new `GameTitle`).
+   - Element tile row: 5 chunky rounded-2xl tiles with `border-b-4` bottom shadow for the "rubber" feel, hover lift. Reuse existing element icons from `HeroBlockDisplay` / theme — colors map to fire/water/wood/stone/helium but in Pixar palette where they match.
+   - Primary PLAY button: red pill with stacked shadow layer (separate `<div>` for the dark red drop), white gradient gloss overlay, Abril Fatface label, `active:translate-y-1` press feel. Replaces the current green PLAY.
+   - Keep nav bar (logo + settings icons) but restyle chips/icons to white/10 glass on navy.
 
----
-
-## 2. Background stage upgrade (`src/pages/Index.tsx`)
-
-Replace the current blue radial + plain grid with a layered arcade stage:
-
-- Deep violet radial gradient using new tokens.
-- **Animated scanlines** (CSS-only `@keyframes scanline-drift`) sliding very slowly across.
-- **Perspective neon floor**: keep the perspective grid but switch lines to magenta→mint gradient with stronger horizon glow bar.
-- **Magic UI–style Particles / floating embers** (lightweight canvas, ~25 particles, paused on mobile + when `prefers-reduced-motion`) drifting upward — only when no modal is open.
-- Soft vignette so the grid + HUD pop.
-
----
-
-## 3. In-game visual juice
-
-### Grid (`BlockBlastGrid.tsx`, `ElementBlock.tsx`)
-- Cells get a subtle inner neon grid line + corner highlights.
-- Hover/preview cells: neon mint outline pulse using existing CSS keyframes (already perf-tuned).
-- Placed blocks: glossy gradient face + thin chromatic-aberration outline glow tinted to the element color; tiny **place stamp** (scale 1.15→1, 120ms spring) using framer-motion `initial/animate` only (no infinite loops).
-- **Screen shake** on clears scales with combo: extend existing `shakeIntensity` to drive a CSS transform on a wrapper around grid + HUD (not the whole page) so backgrounds stay steady.
-- **Slow-mo flash**: on combo ≥3, a 200ms full-grid white-flash overlay + chromatic split, then radial shock-ring expanding from the clear's centroid (single CSS-animated div, removed on end).
-
-### Reactions (`ReactionParticles.tsx`)
-- Add a **shockwave ring** (one absolutely-positioned div animating scale 0→2 + opacity 1→0, 350ms) per reaction source — cheap, single element per reaction.
-- Particle palette retuned to neon mint / magenta / cyan per reaction type.
-- Confetti burst on `clearedLines ≥ 2` (10 particles max, one-shot, CSS keyframes, respects reduced motion).
-
-### Combo & score popups (`ComboDisplay.tsx`, `ScorePopup.tsx`)
-- Combo: chrome-gradient text with magenta glow + 1 "thock" scale bounce per combo level; current infinite CSS pulse stays for the visible window only.
-- Score popup: rises with motion blur (CSS `filter: blur` keyframe), color-shifts mint→magenta by point value tier.
-
----
-
-## 4. HUD & Scoreboard upgrade
-
-### Top bar (`Index.tsx`)
-- Re-skin icon buttons with **glassmorphic chips** (`backdrop-blur`, neon mint border, mint glow on hover) using token-driven styles. No layout changes (mobile MobileMenu kept).
-- `BRYANLAUWK.FUN` logo gets a subtle gradient sweep on hover (CSS only).
-
-### Scoreboard (`BlockBlastScoreboard.tsx`)
-- Convert into a **neon HUD bar**: three glass panels (Score / Best / Combo-or-Streak) with thin neon mint top-border and bottom shadow.
-- Score uses a **rolling odometer** (framer-motion `animate` on each digit, swaps in <200ms when score changes) — instead of plain text mounts.
-- "Best" panel glows magenta when current score surpasses it (one-shot pulse).
-- Compact responsive layout: stacks to a single neon bar on mobile.
-
-### Next-piece preview
-- Add a faint mint glow around the next-piece slot when a tray piece is selected, signaling "ready".
-
----
-
-## 5. Landing / menu screen (`GameTitle.tsx`, `HeroBlockDisplay.tsx`, Index pre-start state)
-
-- Title `ELEMENTAL BLOCK BLAST` re-mastered: Bangers italic kept, but recolored with a chrome-mint-to-magenta gradient + thicker neon outer glow and a one-time **shimmer sweep** on mount (mask-image gradient animating left→right, 1.4s ease-out).
-- Crown on the "A" stays gold but gets a magenta rim light.
-- Hero block icons get a slow floating bob (CSS keyframe, 4s alternate) and a soft mint floor reflection.
-- **PLAY button**: keep green, add a perpetual but cheap shimmer (single linear-gradient overlay animating `background-position`) + magenta secondary shadow; on hover scale 1.04 and floor shadow grows; on press, the floor "shockwave" ring fires.
-- Below the PLAY button add three tiny **stat chips** (Best · Streak · Total points) so the landing already feels like a game HUD.
-- A subtle **arcade marquee** ribbon across the top horizon line ("INSERT COIN — DAILY CHALLENGE LIVE") that auto-scrolls right→left (CSS marquee), pauses on hover.
-
----
-
-## 6. Motion & performance guardrails
-
-- All new looping animations are **CSS keyframes with `will-change`**; no new `repeat: Infinity` framer loops.
-- Every effect checks `@media (prefers-reduced-motion: reduce)` and degrades to a static state.
-- Particles / scanlines / marquee disabled on mobile if `useIsMobile()` returns true (keeps the recent perf gains).
-- New shockwave / flash overlays are mounted only for their animation duration and cleaned up.
-- No changes to game logic, hooks, or backend.
-
----
-
-## Files to touch
-
-| File | Change |
-|------|--------|
-| `src/index.css` | New neon tokens, keyframes (scanline-drift, shockwave, marquee, shimmer, odometer-tick), reduced-motion guards |
-| `tailwind.config.ts` | Register `neon-*` colors + gradient utilities |
-| `src/game/theme.ts` | Add `NEON` palette + glass HUD style presets |
-| `src/pages/Index.tsx` | New layered stage background, glass icon buttons, mount marquee + particles, shake wrapper |
-| `src/components/game/GameTitle.tsx` | Chrome-neon gradient + shimmer sweep |
-| `src/components/game/HeroBlockDisplay.tsx` | Bob animation + mint floor reflection |
-| `src/components/game/BlockBlastScoreboard.tsx` | Neon HUD panels + odometer score |
-| `src/components/game/BlockBlastGrid.tsx` | Cell highlights, flash overlay, shockwave ring on clears |
-| `src/components/game/ElementBlock.tsx` | Glossy face + element-tinted outline glow + place stamp |
-| `src/components/game/ReactionParticles.tsx` | Neon palette + per-source shockwave ring + reduced confetti burst |
-| `src/components/game/ComboDisplay.tsx` | Chrome gradient + level-tier scale bounce |
-| `src/components/game/ScorePopup.tsx` | Motion-blur rise + tier color shift |
-| New: `src/components/game/NeonParticles.tsx` | Tiny canvas/CSS particle layer for the stage |
-| New: `src/components/game/MarqueeRibbon.tsx` | Auto-scrolling arcade marquee |
-
-No backend, no routing, no schema changes.
-
----
+5. **Keep untouched**: in-game grid (`BlockBlastGrid`), scoreboard, modals, sound, achievements, auth, all hooks, all routes. Only landing-page presentation.
 
 ## Out of scope
 
-- Modal redesigns (leaderboard / achievements / daily) — you didn't pick that focus area, so they keep their current look this round.
-- New sound design.
-- Asset generation (no new images unless you ask).
+- No changes to gameplay, animations inside the grid, or modals.
+- No backend / schema / RLS changes.
+- Mobile layout follows the same stack (chips → headline → tiles → PLAY) with smaller type ramps; no separate redesign.
+
+## Technical notes
+
+- Files touched: `src/main.tsx`, `tailwind.config.ts`, `src/index.css`, `src/components/game/GameTitle.tsx`, `src/pages/Index.tsx`. Possibly small tweaks to `src/components/game/HeroBlockDisplay.tsx` if its dark-stage background clashes (will restyle inline, not rewrite).
+- Fonts via `@fontsource/*` packages only — no Google Fonts `<link>` and no `index.html` edits.
+- All new colors come from CSS tokens, not hardcoded hex inside components (except prototype-faithful per-letter shadow stacks in `GameTitle`, which are intrinsic to the headline effect).
+- Motion uses framer-motion (already in deps) + CSS keyframes; all decorative loops gated by `prefers-reduced-motion`.
+
+## Acceptance
+
+- Home page renders the Pixar 3D headline, navy stage, rubber tiles, and red PLAY matching the chosen prototype.
+- Lighthouse/perf parity (no new heavy assets beyond two webfont families).
+- In-game experience unchanged.
