@@ -432,18 +432,9 @@ const Index = () => {
                   transition={{ delay: 0.05, duration: 0.4 }}
                   className="flex flex-wrap items-center justify-center gap-2 sm:gap-3"
                 >
-                  <div className="flex items-center gap-2 px-4 py-1.5 rounded-full bg-pixar-navy-deep/70 border-2 border-pixar-blue/30">
-                    <span className="text-pixar-blue text-[10px] sm:text-xs font-bold uppercase tracking-wider">Best</span>
-                    <span className="text-white font-bold text-sm">{topScore.toLocaleString()}</span>
-                  </div>
-                  <div className="flex items-center gap-2 px-4 py-1.5 rounded-full bg-pixar-navy-deep/70 border-2 border-pixar-yellow/30">
-                    <span className="text-pixar-yellow text-[10px] sm:text-xs font-bold uppercase tracking-wider">Streak</span>
-                    <span className="text-white font-bold text-sm">{currentStreak}</span>
-                  </div>
-                  <div className="flex items-center gap-2 px-4 py-1.5 rounded-full bg-pixar-navy-deep/70 border-2 border-white/15">
-                    <span className="text-white/60 text-[10px] sm:text-xs font-bold uppercase tracking-wider">XP</span>
-                    <span className="text-white font-bold text-sm">{totalPoints.toLocaleString()}</span>
-                  </div>
+                  <PixarStatChip label="Best" value={topScore.toLocaleString()} tone="blue" />
+                  <PixarStatChip label="Streak" value={currentStreak} tone="yellow" />
+                  <PixarStatChip label="XP" value={totalPoints.toLocaleString()} tone="neutral" />
                 </motion.div>
 
                 {/* Pixar 3D Headline */}
@@ -490,39 +481,9 @@ const Index = () => {
                   transition={{ delay: 1.1, type: 'spring', stiffness: 320, damping: 18 }}
                   className="relative inline-block"
                 >
-                  <button
-                    onClick={startGame}
-                    aria-label="Play"
-                    className="group relative inline-block focus:outline-none focus-visible:ring-4 focus-visible:ring-pixar-yellow/60 rounded-full"
-                  >
-                    {/* Drop-shadow layer */}
-                    <span
-                      aria-hidden
-                      className="absolute inset-x-0 -bottom-2 top-0 bg-pixar-red-deep rounded-full"
-                    />
-                    {/* Button face */}
-                    <span className="relative block bg-pixar-red px-14 sm:px-16 md:px-20 py-4 sm:py-5 md:py-6 rounded-full overflow-hidden transition-transform active:translate-y-1 group-hover:brightness-110">
-                      {/* Top gloss */}
-                      <span
-                        aria-hidden
-                        className="absolute inset-x-0 top-0 h-1/2 bg-gradient-to-b from-white/35 to-transparent rounded-t-full"
-                      />
-                      {/* Bottom inner shadow */}
-                      <span
-                        aria-hidden
-                        className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/20 to-transparent rounded-b-full"
-                      />
-                      <span
-                        className="relative z-10 text-white text-3xl sm:text-4xl md:text-5xl tracking-widest uppercase block leading-none"
-                        style={{
-                          fontFamily: "'Abril Fatface', Georgia, serif",
-                          textShadow: '0 2px 0 hsl(var(--pixar-red-deep)), 0 4px 8px rgba(0,0,0,0.35)',
-                        }}
-                      >
-                        Play
-                      </span>
-                    </span>
-                  </button>
+                  <PixarButton onClick={startGame} aria-label="Play" variant="primary" size="lg">
+                    Play
+                  </PixarButton>
                 </motion.div>
 
                 {/* Daily Challenge subtle link */}
