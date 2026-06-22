@@ -317,21 +317,17 @@ export function BlockBlastGrid({
         </motion.div>
       )}
       
-      {/* Grid container - neon arcade frame */}
-      <div
-        className="relative p-2 sm:p-3 rounded-2xl border border-neon-mint/30 shadow-2xl"
-        style={{
-          background:
-            'linear-gradient(180deg, hsl(var(--neon-bg-mid) / 0.95) 0%, hsl(var(--neon-bg-deep) / 0.98) 100%)',
-          boxShadow:
-            '0 0 0 1px hsl(var(--neon-mint) / 0.2), 0 0 32px hsl(var(--neon-mint) / 0.18), 0 0 60px hsl(var(--neon-magenta) / 0.12), inset 0 1px 0 hsl(var(--neon-mint) / 0.18)',
-        }}
-      >
-        {/* Top neon accent line */}
+      {/* Grid container — Pixar Toy Box frame */}
+      <div className="pixar-grid-frame relative p-2 sm:p-3 rounded-3xl">
+        {/* Top accent line — Pixar yellow→red */}
         <span
           aria-hidden
-          className="pointer-events-none absolute inset-x-3 top-0 h-px rounded-full"
-          style={{ background: 'var(--gradient-neon)', opacity: 0.7 }}
+          className="pointer-events-none absolute inset-x-4 top-0 h-[2px] rounded-full"
+          style={{
+            background:
+              'linear-gradient(90deg, transparent 0%, hsl(var(--pixar-yellow)) 30%, hsl(var(--pixar-red)) 70%, transparent 100%)',
+            opacity: 0.85,
+          }}
         />
 
         {/* Combo flash overlay — mounted only briefly */}

@@ -14,20 +14,23 @@ export function BlockBlastScoreboard({ score, topScore, compact = false }: Block
     return (
       <div className="w-full max-w-[420px]">
         <div
-          className={`neon-hud-panel relative grid grid-cols-2 gap-px overflow-hidden rounded-2xl ${
+          className={`pixar-hud-panel relative grid grid-cols-2 gap-px overflow-hidden rounded-3xl ${
             isNewHighScore ? 'neon-hud-panel--best-pop' : ''
           }`}
         >
-          {/* Top accent line */}
+          {/* Top accent line — Pixar yellow→red */}
           <span
             aria-hidden
-            className="pointer-events-none absolute inset-x-0 top-0 h-px"
-            style={{ background: 'var(--gradient-neon)' }}
+            className="pointer-events-none absolute inset-x-0 top-0 h-[2px]"
+            style={{
+              background:
+                'linear-gradient(90deg, hsl(var(--pixar-yellow)) 0%, hsl(var(--pixar-red)) 100%)',
+            }}
           />
 
           {/* SCORE panel */}
-          <div className="relative flex flex-col items-center justify-center px-3 py-2 bg-neon-bg-deep/40">
-            <span className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-[0.25em] text-neon-mint/80">
+          <div className="relative flex flex-col items-center justify-center px-3 py-2">
+            <span className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-[0.25em] font-sans text-pixar-yellow/90">
               <Flame className="h-3 w-3" /> Score
             </span>
             <motion.span
@@ -35,21 +38,21 @@ export function BlockBlastScoreboard({ score, topScore, compact = false }: Block
               initial={{ y: 8, opacity: 0, scale: 1.05 }}
               animate={{ y: 0, opacity: 1, scale: 1 }}
               transition={{ duration: 0.18, ease: 'easeOut' }}
-              className="mt-0.5 text-4xl sm:text-5xl font-black leading-none neon-shimmer-text"
+              className="mt-0.5 text-4xl sm:text-5xl font-display leading-none pixar-text-shimmer"
             >
               {score.toLocaleString()}
             </motion.span>
           </div>
 
           {/* BEST panel */}
-          <div className="relative flex flex-col items-center justify-center border-l border-neon-mint/15 px-3 py-2 bg-neon-bg-deep/40">
-            <span className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-[0.25em] text-neon-magenta/80">
+          <div className="relative flex flex-col items-center justify-center border-l border-pixar-blue/25 px-3 py-2">
+            <span className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-[0.25em] font-sans text-pixar-red/90">
               <Trophy className="h-3 w-3" /> Best
             </span>
             <span
-              className={`mt-0.5 text-2xl sm:text-3xl font-black leading-none ${
+              className={`mt-0.5 text-2xl sm:text-3xl font-display leading-none ${
                 isNewHighScore
-                  ? 'bg-gradient-to-r from-neon-magenta via-neon-violet to-neon-cyan bg-clip-text text-transparent'
+                  ? 'bg-gradient-to-r from-pixar-yellow via-white to-pixar-red bg-clip-text text-transparent'
                   : 'text-white/90'
               }`}
             >
@@ -61,7 +64,7 @@ export function BlockBlastScoreboard({ score, topScore, compact = false }: Block
                   initial={{ opacity: 0, scale: 0 }}
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0 }}
-                  className="mt-0.5 flex items-center gap-0.5 text-[9px] font-bold uppercase tracking-[0.3em] text-neon-magenta"
+                  className="mt-0.5 flex items-center gap-0.5 text-[9px] font-bold uppercase tracking-[0.3em] text-pixar-yellow"
                 >
                   <Sparkles className="h-2.5 w-2.5" /> New!
                 </motion.span>
