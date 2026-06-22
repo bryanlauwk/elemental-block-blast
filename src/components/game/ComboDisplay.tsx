@@ -18,14 +18,14 @@ export function ComboDisplay({ count, show }: ComboDisplayProps) {
           className="absolute inset-0 flex items-center justify-center pointer-events-none z-50"
         >
           <div
-            className="relative flex items-center gap-2 rounded-xl border border-neon-mint/50 bg-neon-bg-deep/85 px-5 py-3 backdrop-blur-md"
+            className="relative flex items-center gap-2 rounded-2xl border-2 border-pixar-yellow/60 bg-pixar-navy-deep/90 px-5 py-3 backdrop-blur-md"
             style={{
               boxShadow:
-                '0 0 28px hsl(var(--neon-magenta) / 0.5), 0 0 60px hsl(var(--neon-mint) / 0.3), inset 0 1px 0 hsl(var(--neon-mint) / 0.4)',
+                '0 6px 0 hsl(var(--pixar-navy-deep)), 0 12px 24px hsl(var(--pixar-red) / 0.35), inset 0 1px 0 hsl(0 0% 100% / 0.25)',
             }}
           >
-            <Zap className="h-6 w-6 text-neon-mint drop-shadow-[0_0_8px_hsl(var(--neon-mint))]" />
-            <span className="neon-shimmer-text text-3xl font-black uppercase tracking-[0.18em] animate-combo-pulse">
+            <Zap className="h-6 w-6 text-pixar-yellow drop-shadow-[0_0_8px_hsl(var(--pixar-yellow))]" />
+            <span className="pixar-text-shimmer text-3xl font-display uppercase tracking-[0.18em] animate-combo-pulse">
               Combo x{count}
             </span>
             <span className="neon-shockwave" />
