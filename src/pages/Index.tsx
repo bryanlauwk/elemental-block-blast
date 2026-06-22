@@ -281,14 +281,9 @@ const Index = () => {
         <div className="flex gap-2 items-center">
           {/* Exit/Home button - only during gameplay */}
           {hasStarted && !gameState.isGameOver && (
-            <button
-              onClick={() => setShowExitModal(true)}
-              className={iconButtonClass}
-              style={iconButtonStyle}
-              title="Exit Game"
-            >
+            <PixarChip onClick={() => setShowExitModal(true)} title="Exit Game">
               <Home className="w-5 h-5 text-white" />
-            </button>
+            </PixarChip>
           )}
           
           {/* Mobile: Hamburger Menu */}
@@ -314,24 +309,14 @@ const Index = () => {
           {!isMobile && (
             <>
               {/* Sound Settings button */}
-              <button
-                onClick={() => setShowSoundSettings(true)}
-                className={iconButtonClass}
-                style={iconButtonStyle}
-                title="Sound Settings"
-              >
+              <PixarChip onClick={() => setShowSoundSettings(true)} title="Sound Settings">
                 <Volume2 className="w-5 h-5 text-white" />
-              </button>
+              </PixarChip>
               
               {/* Daily Challenge button */}
-              <button
-                onClick={() => setShowDailyChallenge(true)}
-                className={iconButtonClass}
-                style={iconButtonStyle}
-                title="Daily Challenge"
-              >
-                <Calendar className="w-5 h-5 text-white" />
-              </button>
+              <PixarChip onClick={() => setShowDailyChallenge(true)} title="Daily Challenge">
+                <Calendar className="w-5 h-5 text-pixar-yellow" />
+              </PixarChip>
               
               {/* Streak badge */}
               {currentStreak > 0 && (
@@ -340,48 +325,36 @@ const Index = () => {
               
               {/* Reaction feed toggle (tablet) */}
               {hasStarted && (
-                <button
+                <PixarChip
                   onClick={() => setShowReactionFeed(!showReactionFeed)}
-                  className={`${iconButtonClass} lg:hidden`}
-                  style={iconButtonStyle}
+                  className="lg:hidden"
+                  active={showReactionFeed}
                   title="View Reactions"
                 >
-                  <Zap className={`w-5 h-5 ${showReactionFeed ? 'text-game-accent' : 'text-yellow-400'}`} />
-                </button>
+                  <Zap className={`w-5 h-5 ${showReactionFeed ? 'text-pixar-yellow' : 'text-white'}`} />
+                </PixarChip>
               )}
               
               {/* Achievements button */}
-              <button
-                onClick={() => setShowAchievements(true)}
-                className={iconButtonClass}
-                style={iconButtonStyle}
-                title="Achievements"
-              >
-                <Award className="w-5 h-5 text-amber-400" />
-              </button>
+              <PixarChip onClick={() => setShowAchievements(true)} title="Achievements">
+                <Award className="w-5 h-5 text-pixar-yellow" />
+              </PixarChip>
               
               {/* Leaderboard button */}
-              <button
-                onClick={() => setShowLeaderboard(true)}
-                className={iconButtonClass}
-                style={iconButtonStyle}
-                title="View High Scores"
-              >
-                <Trophy className="w-5 h-5" fill="#FBBF24" stroke="#F59E0B" />
-              </button>
+              <PixarChip onClick={() => setShowLeaderboard(true)} title="View High Scores">
+                <Trophy className="w-5 h-5" fill="hsl(var(--pixar-yellow))" stroke="hsl(var(--pixar-yellow-deep))" />
+              </PixarChip>
 
               {/* Help button */}
-              <button
+              <PixarChip
                 onClick={() => {
                   localStorage.removeItem('elemental-blast-tutorial-seen');
                   setTutorialComplete(false);
                 }}
-                className={iconButtonClass}
-                style={iconButtonStyle}
                 title="How to Play"
               >
                 <HelpCircle className="w-5 h-5 text-white" />
-              </button>
+              </PixarChip>
             </>
           )}
         </div>
