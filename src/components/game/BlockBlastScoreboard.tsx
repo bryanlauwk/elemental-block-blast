@@ -1,5 +1,6 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { Sparkles, Trophy, Flame } from 'lucide-react';
+import { PixarPanel } from '@/components/game/pixar';
 
 interface BlockBlastScoreboardProps {
   score: number;
@@ -13,21 +14,7 @@ export function BlockBlastScoreboard({ score, topScore, compact = false }: Block
   if (compact) {
     return (
       <div className="w-full max-w-[420px]">
-        <div
-          className={`pixar-hud-panel relative grid grid-cols-2 gap-px overflow-hidden rounded-3xl ${
-            isNewHighScore ? 'neon-hud-panel--best-pop' : ''
-          }`}
-        >
-          {/* Top accent line — Pixar yellow→red */}
-          <span
-            aria-hidden
-            className="pointer-events-none absolute inset-x-0 top-0 h-[2px]"
-            style={{
-              background:
-                'linear-gradient(90deg, hsl(var(--pixar-yellow)) 0%, hsl(var(--pixar-red)) 100%)',
-            }}
-          />
-
+        <PixarPanel highlight={isNewHighScore} className="grid grid-cols-2 gap-px">
           {/* SCORE panel */}
           <div className="relative flex flex-col items-center justify-center px-3 py-2">
             <span className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-[0.25em] font-sans text-pixar-yellow/90">
@@ -71,7 +58,7 @@ export function BlockBlastScoreboard({ score, topScore, compact = false }: Block
               )}
             </AnimatePresence>
           </div>
-        </div>
+        </PixarPanel>
       </div>
     );
   }

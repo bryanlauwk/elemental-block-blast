@@ -27,11 +27,11 @@ export function StreakBadge({ streak, isAtRisk = false, size = 'md' }: StreakBad
       initial={{ scale: 0, opacity: 0 }}
       animate={{ scale: 1, opacity: 1 }}
       className={`
-        inline-flex items-center font-bold rounded-full
+        inline-flex items-center font-bold font-sans rounded-full border-b-2
         ${sizeClasses[size]}
-        ${isAtRisk 
-          ? 'bg-amber-500/20 border border-amber-500/50 text-amber-400' 
-          : 'bg-orange-500/20 border border-orange-500/50 text-orange-400'
+        ${isAtRisk
+          ? 'bg-pixar-yellow text-pixar-navy-deep border-pixar-yellow-deep'
+          : 'bg-pixar-red text-white border-pixar-red-deep'
         }
       `}
     >
@@ -52,7 +52,7 @@ export function StreakBadge({ streak, isAtRisk = false, size = 'md' }: StreakBad
       </motion.div>
       <span>{streak}</span>
       {isAtRisk && size !== 'sm' && (
-        <span className="text-amber-400/70 text-[0.7em] ml-0.5">!</span>
+        <span className="text-pixar-navy-deep/70 text-[0.7em] ml-0.5">!</span>
       )}
     </motion.div>
   );

@@ -55,14 +55,14 @@ export function ScorePopup({ score, show, text, reactionType }: ScorePopupProps)
           >
             <span
               className={cn(
-                'text-5xl sm:text-6xl font-black bg-clip-text text-transparent drop-shadow-[0_4px_24px_hsl(var(--neon-magenta)/0.55)]',
+                'text-5xl sm:text-6xl font-display bg-clip-text text-transparent drop-shadow-[0_4px_24px_hsl(var(--pixar-red)/0.55)]',
                 score >= 500
-                  ? 'bg-gradient-to-r from-neon-magenta via-neon-violet to-neon-cyan'
+                  ? 'bg-gradient-to-r from-pixar-yellow via-white to-pixar-red'
                   : score >= 200
-                    ? 'bg-gradient-to-r from-neon-amber via-neon-magenta to-neon-violet'
-                    : 'bg-gradient-to-r from-neon-mint via-neon-cyan to-neon-magenta',
+                    ? 'bg-gradient-to-r from-pixar-yellow to-pixar-red'
+                    : 'bg-gradient-to-r from-pixar-blue to-pixar-yellow',
               )}
-              style={{ textShadow: '0 0 18px hsl(var(--neon-mint) / 0.45)' }}
+              style={{ textShadow: '0 2px 0 hsl(var(--pixar-red-deep)), 0 4px 12px rgba(0,0,0,0.3)' }}
             >
               +{score}
             </span>

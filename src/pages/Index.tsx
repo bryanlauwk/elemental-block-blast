@@ -31,6 +31,7 @@ import GameTitle from '@/components/game/GameTitle';
 import HeroBlockDisplay from '@/components/game/HeroBlockDisplay';
 import { Button } from '@/components/ui/button';
 import { Trophy, Play, RotateCcw, HelpCircle, Zap, Calendar, Volume2, Home, Award, Flame, Droplets, TreeDeciduous, Mountain, Wind } from 'lucide-react';
+import { PixarChip, PixarButton, PixarStatChip, PixarBadge, PixarOverlay } from '@/components/game/pixar';
 import { Position } from '@/game/types';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { playSound } from '@/game/sounds';
@@ -203,10 +204,6 @@ const Index = () => {
 
   const hasStarted = gameState.availablePieces.length > 0;
 
-  // Pixar glass icon chip — token-driven, no hardcoded colors
-  const iconButtonClass =
-    'pixar-glass-chip w-10 h-10 sm:w-11 sm:h-11 md:w-12 md:h-12 rounded-2xl flex items-center justify-center transition-all hover:-translate-y-0.5 active:translate-y-0';
-  const iconButtonStyle = undefined as React.CSSProperties | undefined;
 
   return (
     <div
@@ -284,14 +281,9 @@ const Index = () => {
         <div className="flex gap-2 items-center">
           {/* Exit/Home button - only during gameplay */}
           {hasStarted && !gameState.isGameOver && (
-            <button
-              onClick={() => setShowExitModal(true)}
-              className={iconButtonClass}
-              style={iconButtonStyle}
-              title="Exit Game"
-            >
+            <PixarChip onClick={() => setShowExitModal(true)} title="Exit Game">
               <Home className="w-5 h-5 text-white" />
-            </button>
+            </PixarChip>
           )}
           
           {/* Mobile: Hamburger Menu */}
@@ -317,24 +309,14 @@ const Index = () => {
           {!isMobile && (
             <>
               {/* Sound Settings button */}
-              <button
-                onClick={() => setShowSoundSettings(true)}
-                className={iconButtonClass}
-                style={iconButtonStyle}
-                title="Sound Settings"
-              >
+              <PixarChip onClick={() => setShowSoundSettings(true)} title="Sound Settings">
                 <Volume2 className="w-5 h-5 text-white" />
-              </button>
+              </PixarChip>
               
               {/* Daily Challenge button */}
-              <button
-                onClick={() => setShowDailyChallenge(true)}
-                className={iconButtonClass}
-                style={iconButtonStyle}
-                title="Daily Challenge"
-              >
-                <Calendar className="w-5 h-5 text-white" />
-              </button>
+              <PixarChip onClick={() => setShowDailyChallenge(true)} title="Daily Challenge">
+                <Calendar className="w-5 h-5 text-pixar-yellow" />
+              </PixarChip>
               
               {/* Streak badge */}
               {currentStreak > 0 && (
@@ -343,48 +325,36 @@ const Index = () => {
               
               {/* Reaction feed toggle (tablet) */}
               {hasStarted && (
-                <button
+                <PixarChip
                   onClick={() => setShowReactionFeed(!showReactionFeed)}
-                  className={`${iconButtonClass} lg:hidden`}
-                  style={iconButtonStyle}
+                  className="lg:hidden"
+                  active={showReactionFeed}
                   title="View Reactions"
                 >
-                  <Zap className={`w-5 h-5 ${showReactionFeed ? 'text-game-accent' : 'text-yellow-400'}`} />
-                </button>
+                  <Zap className={`w-5 h-5 ${showReactionFeed ? 'text-pixar-yellow' : 'text-white'}`} />
+                </PixarChip>
               )}
               
               {/* Achievements button */}
-              <button
-                onClick={() => setShowAchievements(true)}
-                className={iconButtonClass}
-                style={iconButtonStyle}
-                title="Achievements"
-              >
-                <Award className="w-5 h-5 text-amber-400" />
-              </button>
+              <PixarChip onClick={() => setShowAchievements(true)} title="Achievements">
+                <Award className="w-5 h-5 text-pixar-yellow" />
+              </PixarChip>
               
               {/* Leaderboard button */}
-              <button
-                onClick={() => setShowLeaderboard(true)}
-                className={iconButtonClass}
-                style={iconButtonStyle}
-                title="View High Scores"
-              >
-                <Trophy className="w-5 h-5" fill="#FBBF24" stroke="#F59E0B" />
-              </button>
+              <PixarChip onClick={() => setShowLeaderboard(true)} title="View High Scores">
+                <Trophy className="w-5 h-5" fill="hsl(var(--pixar-yellow))" stroke="hsl(var(--pixar-yellow-deep))" />
+              </PixarChip>
 
               {/* Help button */}
-              <button
+              <PixarChip
                 onClick={() => {
                   localStorage.removeItem('elemental-blast-tutorial-seen');
                   setTutorialComplete(false);
                 }}
-                className={iconButtonClass}
-                style={iconButtonStyle}
                 title="How to Play"
               >
                 <HelpCircle className="w-5 h-5 text-white" />
-              </button>
+              </PixarChip>
             </>
           )}
         </div>
@@ -462,18 +432,9 @@ const Index = () => {
                   transition={{ delay: 0.05, duration: 0.4 }}
                   className="flex flex-wrap items-center justify-center gap-2 sm:gap-3"
                 >
-                  <div className="flex items-center gap-2 px-4 py-1.5 rounded-full bg-pixar-navy-deep/70 border-2 border-pixar-blue/30">
-                    <span className="text-pixar-blue text-[10px] sm:text-xs font-bold uppercase tracking-wider">Best</span>
-                    <span className="text-white font-bold text-sm">{topScore.toLocaleString()}</span>
-                  </div>
-                  <div className="flex items-center gap-2 px-4 py-1.5 rounded-full bg-pixar-navy-deep/70 border-2 border-pixar-yellow/30">
-                    <span className="text-pixar-yellow text-[10px] sm:text-xs font-bold uppercase tracking-wider">Streak</span>
-                    <span className="text-white font-bold text-sm">{currentStreak}</span>
-                  </div>
-                  <div className="flex items-center gap-2 px-4 py-1.5 rounded-full bg-pixar-navy-deep/70 border-2 border-white/15">
-                    <span className="text-white/60 text-[10px] sm:text-xs font-bold uppercase tracking-wider">XP</span>
-                    <span className="text-white font-bold text-sm">{totalPoints.toLocaleString()}</span>
-                  </div>
+                  <PixarStatChip label="Best" value={topScore.toLocaleString()} tone="blue" />
+                  <PixarStatChip label="Streak" value={currentStreak} tone="yellow" />
+                  <PixarStatChip label="XP" value={totalPoints.toLocaleString()} tone="neutral" />
                 </motion.div>
 
                 {/* Pixar 3D Headline */}
@@ -520,39 +481,9 @@ const Index = () => {
                   transition={{ delay: 1.1, type: 'spring', stiffness: 320, damping: 18 }}
                   className="relative inline-block"
                 >
-                  <button
-                    onClick={startGame}
-                    aria-label="Play"
-                    className="group relative inline-block focus:outline-none focus-visible:ring-4 focus-visible:ring-pixar-yellow/60 rounded-full"
-                  >
-                    {/* Drop-shadow layer */}
-                    <span
-                      aria-hidden
-                      className="absolute inset-x-0 -bottom-2 top-0 bg-pixar-red-deep rounded-full"
-                    />
-                    {/* Button face */}
-                    <span className="relative block bg-pixar-red px-14 sm:px-16 md:px-20 py-4 sm:py-5 md:py-6 rounded-full overflow-hidden transition-transform active:translate-y-1 group-hover:brightness-110">
-                      {/* Top gloss */}
-                      <span
-                        aria-hidden
-                        className="absolute inset-x-0 top-0 h-1/2 bg-gradient-to-b from-white/35 to-transparent rounded-t-full"
-                      />
-                      {/* Bottom inner shadow */}
-                      <span
-                        aria-hidden
-                        className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/20 to-transparent rounded-b-full"
-                      />
-                      <span
-                        className="relative z-10 text-white text-3xl sm:text-4xl md:text-5xl tracking-widest uppercase block leading-none"
-                        style={{
-                          fontFamily: "'Abril Fatface', Georgia, serif",
-                          textShadow: '0 2px 0 hsl(var(--pixar-red-deep)), 0 4px 8px rgba(0,0,0,0.35)',
-                        }}
-                      >
-                        Play
-                      </span>
-                    </span>
-                  </button>
+                  <PixarButton onClick={startGame} aria-label="Play" variant="primary" size="lg">
+                    Play
+                  </PixarButton>
                 </motion.div>
 
                 {/* Daily Challenge subtle link */}
@@ -587,10 +518,9 @@ const Index = () => {
                       animate={{ opacity: 1, scale: 1 }}
                       className="mt-1"
                     >
-                      <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-gradient-to-r from-amber-500/20 to-orange-500/20 border border-amber-500/40 rounded-full text-xs text-amber-400 font-medium">
-                        <Calendar className="w-3 h-3" />
+                      <PixarBadge tone="yellow" icon={<Calendar className="w-3 h-3" />}>
                         Daily Challenge
-                      </span>
+                      </PixarBadge>
                     </motion.div>
                   )}
                 </motion.div>
@@ -634,12 +564,7 @@ const Index = () => {
                 {/* Game over overlay */}
                 <AnimatePresence>
                   {gameState.isGameOver && (
-                    <motion.div
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                      className="absolute inset-0 flex flex-col items-center justify-center bg-black/70 rounded-2xl z-20"
-                    >
+                    <PixarOverlay>
                       <motion.div
                         initial={{ scale: 0.8, opacity: 0 }}
                         animate={{ scale: 1, opacity: 1 }}
@@ -653,10 +578,9 @@ const Index = () => {
                             animate={{ opacity: 1, y: 0 }}
                             className="mb-2"
                           >
-                            <span className="inline-flex items-center gap-1 px-3 py-1 bg-gradient-to-r from-amber-500/20 to-orange-500/20 border border-amber-500/40 rounded-full text-sm text-amber-400 font-medium">
-                              <Calendar className="w-4 h-4" />
+                            <PixarBadge tone="yellow" icon={<Calendar className="w-4 h-4" />}>
                               Daily Challenge
-                            </span>
+                            </PixarBadge>
                           </motion.div>
                         )}
                         
@@ -668,21 +592,19 @@ const Index = () => {
                             transition={{ type: 'spring', stiffness: 300, damping: 15 }}
                             className="mb-3"
                           >
-                            <span className="inline-block px-4 py-1.5 bg-gradient-to-r from-yellow-400 via-amber-500 to-yellow-400 text-black font-black text-sm rounded-full shadow-lg animate-pulse">
-                              🏆 NEW HIGH SCORE! 🏆
-                            </span>
+                            <PixarBadge tone="yellow" className="text-sm animate-pulse">
+                              🏆 New High Score! 🏆
+                            </PixarBadge>
                           </motion.div>
                         )}
                         
-                        <p className="text-3xl font-black text-white mb-2">
+                        <p className="text-3xl font-display text-white mb-2 tracking-wide">
                           {isNewHighScore && !isDailyChallenge ? 'Amazing!' : 'Game Over'}
                         </p>
-                        <p className={`text-4xl font-black bg-clip-text text-transparent mb-2 ${
+                        <p className={`text-5xl font-display bg-clip-text text-transparent mb-2 ${
                           isNewHighScore && !isDailyChallenge
-                            ? 'bg-gradient-to-r from-yellow-400 via-amber-500 to-yellow-400' 
-                            : isDailyChallenge
-                              ? 'bg-gradient-to-r from-amber-400 via-orange-400 to-amber-400'
-                              : 'bg-gradient-to-r from-game-score-start via-game-score-mid to-game-score-end'
+                            ? 'bg-gradient-to-r from-pixar-yellow via-white to-pixar-red'
+                            : 'bg-gradient-to-r from-pixar-yellow to-pixar-red'
                         }`}>
                           {gameState.score.toLocaleString()}
                         </p>
@@ -695,12 +617,9 @@ const Index = () => {
                             transition={{ delay: 0.2 }}
                             className="mb-2"
                           >
-                            <span className="inline-block px-3 py-1 bg-game-accent/20 border border-game-accent/40 rounded-full text-sm">
-                              <Trophy className="w-4 h-4 inline-block mr-1 text-yellow-400" />
-                              <span className="text-white font-medium">
-                                {isDailyChallenge ? "Today's Rank" : 'Global Rank'}: #{globalRank}
-                              </span>
-                            </span>
+                            <PixarBadge tone="blue" icon={<Trophy className="w-4 h-4" />}>
+                              {isDailyChallenge ? "Today's Rank" : 'Global Rank'}: #{globalRank}
+                            </PixarBadge>
                           </motion.div>
                         )}
                         
@@ -710,7 +629,7 @@ const Index = () => {
                             initial={{ opacity: 0, y: 5 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: 0.3 }}
-                            className="text-sm text-game-text-muted mb-4"
+                            className="text-sm text-white/70 font-sans mb-4"
                           >
                             {gameState.score >= 5000 
                               ? "🔥 Top 5% of players!" 
@@ -740,37 +659,34 @@ const Index = () => {
                         
                         {/* Submit score button if not already submitted */}
                         {!submittedPlayerName && gameState.score >= 100 && (
-                          <Button
-                            onClick={() => setShowPlayerNameModal(true)}
-                            variant="outline"
-                            className="mb-3 border-game-accent/50 text-game-accent hover:bg-game-accent/10"
-                          >
-                            <Trophy className="w-4 h-4 mr-2" />
-                            Submit to Leaderboard
-                          </Button>
+                          <div className="mb-3">
+                            <PixarButton
+                              onClick={() => setShowPlayerNameModal(true)}
+                              variant="ghost"
+                              size="sm"
+                            >
+                              Submit Score
+                            </PixarButton>
+                          </div>
                         )}
                         
-                        <div className="flex flex-col gap-2">
-                          <Button
+                        <div className="flex flex-col items-center gap-3">
+                          <PixarButton
                             onClick={isDailyChallenge ? startDailyChallenge : startGame}
-                            className="bg-gradient-to-r from-game-accent to-emerald-400 hover:from-emerald-400 hover:to-game-accent text-black font-bold px-6 py-5 rounded-xl"
+                            variant="primary"
+                            size="md"
                           >
-                            <RotateCcw className="w-4 h-4 mr-2" />
                             Play Again
-                          </Button>
-                          
+                          </PixarButton>
+
                           {isDailyChallenge && (
-                            <Button
-                              onClick={startGame}
-                              variant="ghost"
-                              className="text-game-text-muted hover:text-white"
-                            >
-                              Play Regular Mode
-                            </Button>
+                            <PixarButton onClick={startGame} variant="ghost" size="sm">
+                              Regular Mode
+                            </PixarButton>
                           )}
                         </div>
                       </motion.div>
-                    </motion.div>
+                    </PixarOverlay>
                   )}
                 </AnimatePresence>
               </div>
