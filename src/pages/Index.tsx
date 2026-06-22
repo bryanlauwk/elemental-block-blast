@@ -203,84 +203,43 @@ const Index = () => {
 
   const hasStarted = gameState.availablePieces.length > 0;
 
-  // Neon glass icon chip — token-driven, no hardcoded colors
+  // Pixar glass icon chip — token-driven, no hardcoded colors
   const iconButtonClass =
-    'neon-glass-chip w-10 h-10 sm:w-11 sm:h-11 md:w-12 md:h-12 rounded-xl flex items-center justify-center transition-all hover:scale-105 active:scale-95';
+    'pixar-glass-chip w-10 h-10 sm:w-11 sm:h-11 md:w-12 md:h-12 rounded-2xl flex items-center justify-center transition-all hover:-translate-y-0.5 active:translate-y-0';
   const iconButtonStyle = undefined as React.CSSProperties | undefined;
 
   return (
     <div
-      className={`min-h-[100dvh] text-white flex flex-col relative overflow-hidden ${hasStarted ? 'bg-gradient-stage' : 'bg-gradient-pixar-stage'}`}
+      className="min-h-[100dvh] text-white flex flex-col relative overflow-hidden bg-gradient-pixar-stage"
     >
-      {/* Neon overlays — only during gameplay */}
+      {/* Pixar Toy Box gameplay overlays */}
       {hasStarted && (
         <>
-          {/* Subtle neon grid pattern */}
+          {/* Soft dot pattern */}
           <div
-        className="absolute inset-0 pointer-events-none opacity-60"
+        className="absolute inset-0 pointer-events-none opacity-40"
         style={{
-          backgroundImage: `
-            linear-gradient(hsl(var(--neon-mint) / 0.08) 1px, transparent 1px),
-            linear-gradient(90deg, hsl(var(--neon-magenta) / 0.06) 1px, transparent 1px)
-          `,
-          backgroundSize: '44px 44px',
+          backgroundImage:
+            'radial-gradient(hsl(var(--pixar-blue) / 0.18) 1.2px, transparent 1.2px)',
+          backgroundSize: '28px 28px',
         }}
       />
-
-      {/* Animated scanlines (desktop only — perf) */}
-      {!isMobile && (
-        <div className="neon-scanlines absolute inset-0 pointer-events-none opacity-50 mix-blend-screen" />
-      )}
 
       {/* Vignette */}
       <div
         className="absolute inset-0 pointer-events-none"
         style={{
           background:
-            'radial-gradient(ellipse 100% 70% at 50% 50%, transparent 40%, hsl(var(--neon-bg-deep) / 0.85) 100%)',
+            'radial-gradient(ellipse 100% 70% at 50% 50%, transparent 45%, hsl(var(--pixar-navy-deep) / 0.85) 100%)',
         }}
       />
-      
-      {/* Perspective floor grid - classic arcade depth effect */}
-      <div 
-        className="absolute bottom-0 left-0 right-0 h-[40vh] pointer-events-none overflow-hidden"
-        style={{
-          perspective: '500px',
-          perspectiveOrigin: '50% 0%',
-        }}
-      >
-        <div 
-          className="absolute inset-0"
-          style={{
-            transform: 'rotateX(75deg)',
-            transformOrigin: 'top center',
-            backgroundImage: `
-              linear-gradient(hsl(var(--neon-magenta) / 0.55) 2px, transparent 2px),
-              linear-gradient(90deg, hsl(var(--neon-mint) / 0.5) 2px, transparent 2px)
-            `,
-            backgroundSize: '60px 60px',
-            maskImage: 'linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.3) 50%, transparent 100%)',
-            WebkitMaskImage: 'linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.3) 50%, transparent 100%)',
-          }}
-        />
-        {/* Horizon glow line */}
-        <div 
-          className="absolute top-0 left-0 right-0 h-1"
-          style={{
-            background:
-              'linear-gradient(90deg, transparent 0%, hsl(var(--neon-mint) / 0.85) 30%, hsl(var(--neon-magenta) / 0.85) 70%, transparent 100%)',
-            boxShadow:
-              '0 0 30px hsl(var(--neon-mint) / 0.55), 0 0 60px hsl(var(--neon-magenta) / 0.4)',
-          }}
-        />
-      </div>
-      
-      {/* Spotlight glow behind hero area — magenta-violet */}
-      <div 
+
+      {/* Stage spotlight glow — Pixar blue/red */}
+      <div
         className="absolute inset-0 pointer-events-none"
         style={{
           background:
-            'radial-gradient(ellipse 70% 50% at 50% 32%, hsl(var(--neon-violet) / 0.32) 0%, transparent 70%)',
+            'radial-gradient(ellipse 60% 40% at 50% 25%, hsl(var(--pixar-blue) / 0.22) 0%, transparent 70%), radial-gradient(ellipse 55% 45% at 50% 95%, hsl(var(--pixar-red) / 0.18) 0%, transparent 70%)',
         }}
       />
         </>
