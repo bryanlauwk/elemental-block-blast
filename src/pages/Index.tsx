@@ -31,6 +31,7 @@ import GameTitle from '@/components/game/GameTitle';
 import HeroBlockDisplay from '@/components/game/HeroBlockDisplay';
 import { Button } from '@/components/ui/button';
 import { Trophy, Play, RotateCcw, HelpCircle, Zap, Calendar, Volume2, Home, Award, Flame, Droplets, TreeDeciduous, Mountain, Wind } from 'lucide-react';
+import { PixarChip, PixarButton, PixarStatChip, PixarBadge, PixarOverlay } from '@/components/game/pixar';
 import { Position } from '@/game/types';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { playSound } from '@/game/sounds';
@@ -203,10 +204,6 @@ const Index = () => {
 
   const hasStarted = gameState.availablePieces.length > 0;
 
-  // Pixar glass icon chip — token-driven, no hardcoded colors
-  const iconButtonClass =
-    'pixar-glass-chip w-10 h-10 sm:w-11 sm:h-11 md:w-12 md:h-12 rounded-2xl flex items-center justify-center transition-all hover:-translate-y-0.5 active:translate-y-0';
-  const iconButtonStyle = undefined as React.CSSProperties | undefined;
 
   return (
     <div
