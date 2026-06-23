@@ -1,4 +1,5 @@
 import { PhaseConfig } from "@/game/phases";
+import StageScene from "./StageScene";
 
 interface AdaptiveStageProps {
   phase: PhaseConfig;
@@ -92,9 +93,11 @@ export function AdaptiveStage({ phase }: AdaptiveStageProps) {
         transition: "background 1.2s ease",
       }}
     >
+      {/* painterly scenic backdrop for this universe */}
+      <StageScene phase={phase} />
       {/* dot pattern */}
       <div
-        className="absolute inset-0 opacity-40"
+        className="absolute inset-0 opacity-30"
         style={{
           backgroundImage: `radial-gradient(hsl(${phase.accent} / 0.18) 1.2px, transparent 1.2px)`,
           backgroundSize: "28px 28px",

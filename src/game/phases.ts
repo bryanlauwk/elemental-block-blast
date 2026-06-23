@@ -6,6 +6,15 @@ export type PhaseDecoration =
   | "embers"
   | "stars";
 
+// Painterly scenic backdrop drawn behind each universe (StageScene.tsx).
+export type PhaseScene =
+  | "sandbox"
+  | "factory"
+  | "sky"
+  | "caverns"
+  | "volcano"
+  | "cosmos";
+
 export interface PhaseConfig {
   id: number;
   name: string;
@@ -16,6 +25,7 @@ export interface PhaseConfig {
   glow: string;
   accent: string;
   decoration: PhaseDecoration;
+  scene: PhaseScene;
   unlocks: string; // short label for the phase-up overlay
 }
 
@@ -34,6 +44,7 @@ export const PHASES: PhaseConfig[] = [
     glow: "204 100% 56%",
     accent: "204 100% 56%",
     decoration: "blocks",
+    scene: "sandbox",
     unlocks: "Singles, pairs & straights",
   },
   {
@@ -46,6 +57,7 @@ export const PHASES: PhaseConfig[] = [
     glow: "38 100% 55%",
     accent: "45 100% 51%",
     decoration: "gears",
+    scene: "factory",
     unlocks: "Corners, S-pieces & 2×2 squares",
   },
   {
@@ -58,6 +70,7 @@ export const PHASES: PhaseConfig[] = [
     glow: "190 95% 62%",
     accent: "196 100% 60%",
     decoration: "clouds",
+    scene: "sky",
     unlocks: "Long bars & T-pieces",
   },
   {
@@ -70,6 +83,7 @@ export const PHASES: PhaseConfig[] = [
     glow: "286 90% 64%",
     accent: "275 90% 66%",
     decoration: "crystals",
+    scene: "caverns",
     unlocks: "Big L's & 5-bars",
   },
   {
@@ -82,6 +96,7 @@ export const PHASES: PhaseConfig[] = [
     glow: "8 90% 56%",
     accent: "18 92% 55%",
     decoration: "embers",
+    scene: "volcano",
     unlocks: "The mighty 3×3 block",
   },
   {
@@ -94,6 +109,7 @@ export const PHASES: PhaseConfig[] = [
     glow: "268 92% 68%",
     accent: "190 95% 62%",
     decoration: "stars",
+    scene: "cosmos",
     unlocks: "Master every shape",
   },
 ];
