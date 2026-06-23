@@ -28,14 +28,14 @@ const Decoration = ({ kind }: { kind: PhaseConfig["decoration"] }) => {
   if (kind === "embers") {
     return (
       <>
-        {Array.from({ length: 14 }).map((_, i) => (
+        {Array.from({ length: 26 }).map((_, i) => (
           <span
             key={i}
             className="stage-ember"
             style={{
-              left: `${(i * 7 + 5) % 100}%`,
-              animationDelay: `${(i % 7) * 0.6}s`,
-              animationDuration: `${5 + (i % 5)}s`,
+              left: `${(i * 11 + 3) % 100}%`,
+              animationDelay: `${(i % 9) * 0.45}s`,
+              animationDuration: `${4 + (i % 5)}s`,
             }}
           />
         ))}
@@ -55,7 +55,7 @@ const Decoration = ({ kind }: { kind: PhaseConfig["decoration"] }) => {
   if (kind === "stars") {
     return (
       <>
-        {Array.from({ length: 36 }).map((_, i) => (
+        {Array.from({ length: 54 }).map((_, i) => (
           <span
             key={i}
             className="stage-star"
@@ -95,23 +95,25 @@ export function AdaptiveStage({ phase }: AdaptiveStageProps) {
     >
       {/* painterly scenic backdrop for this universe */}
       <StageScene phase={phase} />
+      {/* light vignette — only gently darkens the far corners so the scene
+          stays bold and readable (sits BELOW the animated decorations) */}
+      <div
+        className="absolute inset-0"
+        style={{
+          background: `radial-gradient(ellipse 95% 75% at 50% 46%, transparent 62%, hsl(${phase.stageTo} / 0.5) 100%)`,
+          transition: "background 1.2s ease",
+        }}
+      />
       {/* dot pattern */}
       <div
-        className="absolute inset-0 opacity-30"
+        className="absolute inset-0 opacity-20"
         style={{
           backgroundImage: `radial-gradient(hsl(${phase.accent} / 0.18) 1.2px, transparent 1.2px)`,
           backgroundSize: "28px 28px",
         }}
       />
+      {/* animated decorations ride crisply on top of everything */}
       <Decoration kind={phase.decoration} />
-      {/* vignette — tinted with this universe's own dark tone */}
-      <div
-        className="absolute inset-0"
-        style={{
-          background: `radial-gradient(ellipse 100% 70% at 50% 50%, transparent 45%, hsl(${phase.stageTo} / 0.92) 100%)`,
-          transition: "background 1.2s ease",
-        }}
-      />
     </div>
   );
 }

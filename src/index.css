@@ -597,9 +597,9 @@ All colors MUST be HSL.
   to { transform: rotate(-360deg); }
 }
 @keyframes stage-drift {
-  0%   { transform: translateX(-10%) translateY(0); opacity: 0.35; }
-  50%  { transform: translateX(10%)  translateY(-8px); opacity: 0.55; }
-  100% { transform: translateX(-10%) translateY(0); opacity: 0.35; }
+  0%   { transform: translateX(-10%) translateY(0); opacity: 0.6; }
+  50%  { transform: translateX(10%)  translateY(-8px); opacity: 0.92; }
+  100% { transform: translateX(-10%) translateY(0); opacity: 0.6; }
 }
 @keyframes stage-ember-rise {
   0%   { transform: translateY(110vh) scale(0.6); opacity: 0; }
@@ -620,41 +620,42 @@ All colors MUST be HSL.
 }
 
 .stage-gear {
-  width: 220px; height: 220px;
+  width: 240px; height: 240px;
   border-radius: 50%;
-  border: 14px dashed hsl(var(--pixar-yellow) / 0.18);
-  opacity: 0.5;
+  border: 18px dashed hsl(var(--pixar-yellow) / 0.5);
+  box-shadow: 0 0 30px hsl(var(--pixar-yellow) / 0.25);
+  opacity: 0.8;
 }
-.stage-gear--a { top: -60px; left: -60px; animation: stage-spin-slow 38s linear infinite; }
-.stage-gear--b { bottom: -80px; right: -40px; width: 280px; height: 280px; animation: stage-spin-reverse 52s linear infinite; }
-.stage-gear--c { top: 30%; right: 8%; width: 140px; height: 140px; animation: stage-spin-slow 28s linear infinite; opacity: 0.35; }
+.stage-gear--a { top: -70px; left: -70px; animation: stage-spin-slow 38s linear infinite; }
+.stage-gear--b { bottom: -90px; right: -50px; width: 320px; height: 320px; animation: stage-spin-reverse 52s linear infinite; }
+.stage-gear--c { top: 28%; right: 6%; width: 160px; height: 160px; animation: stage-spin-slow 28s linear infinite; opacity: 0.6; }
 
 .stage-cloud {
-  width: 260px; height: 90px; border-radius: 999px;
-  background: radial-gradient(ellipse at center, hsl(var(--pixar-blue) / 0.35) 0%, transparent 70%);
-  filter: blur(6px);
+  width: 300px; height: 110px; border-radius: 999px;
+  background: radial-gradient(ellipse at center, hsl(0 0% 100% / 0.85) 0%, hsl(0 0% 100% / 0.5) 45%, transparent 72%);
+  filter: blur(2px);
 }
-.stage-cloud--a { top: 12%; left: -60px; animation: stage-drift 18s ease-in-out infinite; }
-.stage-cloud--b { top: 45%; right: -80px; width: 320px; animation: stage-drift 24s ease-in-out infinite reverse; }
-.stage-cloud--c { bottom: 18%; left: 20%; width: 200px; animation: stage-drift 22s ease-in-out infinite; }
+.stage-cloud--a { top: 10%; left: -70px; animation: stage-drift 18s ease-in-out infinite; }
+.stage-cloud--b { top: 42%; right: -90px; width: 360px; animation: stage-drift 24s ease-in-out infinite reverse; }
+.stage-cloud--c { bottom: 16%; left: 16%; width: 240px; animation: stage-drift 22s ease-in-out infinite; }
 
 .stage-ember {
   position: absolute;
   bottom: -20px;
-  width: 6px; height: 6px;
+  width: 10px; height: 10px;
   border-radius: 50%;
-  background: radial-gradient(circle, hsl(var(--pixar-yellow)) 0%, hsl(var(--pixar-red) / 0.6) 60%, transparent 100%);
-  box-shadow: 0 0 8px hsl(var(--pixar-red) / 0.7);
+  background: radial-gradient(circle, hsl(45 100% 70%) 0%, hsl(var(--pixar-red) / 0.85) 55%, transparent 100%);
+  box-shadow: 0 0 14px hsl(20 100% 55% / 0.9);
   animation: stage-ember-rise 6s linear infinite;
   pointer-events: none;
 }
 
 .stage-float-block {
-  width: 56px; height: 56px;
-  border-radius: 12px;
-  background: linear-gradient(180deg, hsl(var(--pixar-blue) / 0.55), hsl(var(--pixar-blue-deep) / 0.7));
-  box-shadow: inset 0 2px 0 rgba(255,255,255,0.25), 0 4px 0 hsl(var(--pixar-navy-deep));
-  opacity: 0.6;
+  width: 64px; height: 64px;
+  border-radius: 14px;
+  background: linear-gradient(180deg, hsl(var(--pixar-blue) / 0.85), hsl(var(--pixar-blue-deep) / 0.95));
+  box-shadow: inset 0 2px 0 rgba(255,255,255,0.4), 0 6px 0 hsl(var(--pixar-navy-deep)), 0 0 24px hsl(var(--pixar-blue) / 0.4);
+  opacity: 0.88;
 }
 .stage-float-block--a { top: 14%; left: 8%;  animation: stage-float-slow 7s ease-in-out infinite; }
 .stage-float-block--b { top: 28%; right: 10%; background: linear-gradient(180deg, hsl(var(--pixar-yellow) / 0.7), hsl(var(--pixar-yellow-deep) / 0.7)); animation: stage-float-slow 9s ease-in-out infinite 0.5s; }
@@ -662,34 +663,34 @@ All colors MUST be HSL.
 
 /* Crystal Caverns — slow-glinting angular shards */
 @keyframes stage-crystal-glint {
-  0%, 100% { opacity: 0.35; transform: rotate(var(--rot)) scale(1); }
-  50%      { opacity: 0.7;  transform: rotate(var(--rot)) scale(1.06); }
+  0%, 100% { opacity: 0.6;  transform: rotate(var(--rot)) scale(1); }
+  50%      { opacity: 0.95; transform: rotate(var(--rot)) scale(1.07); }
 }
 .stage-crystal {
   position: absolute;
   pointer-events: none;
-  width: 90px; height: 170px;
+  width: 110px; height: 200px;
   clip-path: polygon(50% 0%, 100% 32%, 78% 100%, 22% 100%, 0% 32%);
-  background: linear-gradient(160deg, hsl(286 90% 70% / 0.55), hsl(258 80% 45% / 0.25));
-  box-shadow: 0 0 40px hsl(286 90% 64% / 0.45);
+  background: linear-gradient(160deg, hsl(286 95% 75% / 0.85), hsl(266 85% 55% / 0.5));
+  box-shadow: 0 0 60px hsl(286 95% 66% / 0.7);
   will-change: opacity, transform;
 }
-.stage-crystal--a { top: -20px; left: 6%;  --rot: -8deg;  animation: stage-crystal-glint 7s ease-in-out infinite; }
-.stage-crystal--b { bottom: -30px; left: 18%; --rot: 6deg; width: 70px; height: 130px; animation: stage-crystal-glint 9s ease-in-out infinite 0.8s; }
-.stage-crystal--c { top: 22%; right: 8%; --rot: 12deg; width: 80px; height: 150px; animation: stage-crystal-glint 8s ease-in-out infinite 1.4s; }
-.stage-crystal--d { bottom: -40px; right: 22%; --rot: -10deg; width: 110px; height: 200px; opacity: 0.4; animation: stage-crystal-glint 11s ease-in-out infinite 0.4s; }
+.stage-crystal--a { top: -30px; left: 5%;  --rot: -8deg;  animation: stage-crystal-glint 7s ease-in-out infinite; }
+.stage-crystal--b { bottom: -40px; left: 16%; --rot: 6deg; width: 88px; height: 160px; animation: stage-crystal-glint 9s ease-in-out infinite 0.8s; }
+.stage-crystal--c { top: 20%; right: 7%; --rot: 12deg; width: 96px; height: 180px; animation: stage-crystal-glint 8s ease-in-out infinite 1.4s; }
+.stage-crystal--d { bottom: -50px; right: 20%; --rot: -10deg; width: 130px; height: 240px; opacity: 0.6; animation: stage-crystal-glint 11s ease-in-out infinite 0.4s; }
 
 /* Cosmic Void — twinkling starfield + an occasional shooting star */
 @keyframes stage-star-twinkle {
-  0%, 100% { opacity: 0.15; transform: scale(0.7); }
-  50%      { opacity: 0.95; transform: scale(1.15); }
+  0%, 100% { opacity: 0.25; transform: scale(0.7); }
+  50%      { opacity: 1;    transform: scale(1.25); }
 }
 .stage-star {
   position: absolute;
-  width: 3px; height: 3px;
+  width: 4px; height: 4px;
   border-radius: 50%;
   background: hsl(0 0% 100%);
-  box-shadow: 0 0 6px hsl(268 92% 80% / 0.9);
+  box-shadow: 0 0 10px hsl(268 92% 82% / 1), 0 0 4px hsl(0 0% 100%);
   animation: stage-star-twinkle 3s ease-in-out infinite;
   pointer-events: none;
 }
@@ -716,7 +717,7 @@ All colors MUST be HSL.
   to   { opacity: 1; transform: scale(1); }
 }
 .stage-scene {
-  opacity: 0.9;
+  opacity: 1;
   animation: stage-scene-in 1.4s ease-out both;
   will-change: opacity, transform;
 }
