@@ -29,6 +29,7 @@ import MarqueeRibbon from '@/components/game/MarqueeRibbon';
 
 import GameTitle from '@/components/game/GameTitle';
 import HeroBlockDisplay from '@/components/game/HeroBlockDisplay';
+import LottieBurst from '@/components/game/LottieBurst';
 import { Button } from '@/components/ui/button';
 import { Trophy, Play, RotateCcw, HelpCircle, Zap, Calendar, Volume2, Home, Award, Flame, Droplets, TreeDeciduous, Mountain, Wind, Lightbulb } from 'lucide-react';
 import { PixarChip, PixarButton, PixarStatChip, PixarBadge, PixarOverlay } from '@/components/game/pixar';
@@ -82,6 +83,8 @@ const Index = () => {
   const [showReactionFeed, setShowReactionFeed] = useState(false);
   const [showSoundSettings, setShowSoundSettings] = useState(false);
   const [isNewHighScore, setIsNewHighScore] = useState(false);
+  const [confettiTrigger, setConfettiTrigger] = useState(0);
+  const [sparkleTrigger, setSparkleTrigger] = useState(0);
   const isMobile = useIsMobile();
 
   // Phase progression (drives adaptive stage + HUD pill + phase-up celebration)
@@ -154,6 +157,24 @@ const Index = () => {
       checkAchievements({ reactionType: lastEvent.type, reactionCount: 1 });
     }
   }, [reactionEvents, checkAchievements]);
+
+  // Celebratory Lottie bursts: confetti on level-up + new high score,
+  // sparkles on satisfying combos.
+  useEffect(() => {
+    if (justAdvanced) setConfettiTrigger((t) => t + 1);
+  }, [justAdvanced]);
+
+  useEffect(() => {
+    if (gameState.isGameOver && isNewHighScore && !isDailyChallenge) {
+      setConfettiTrigger((t) => t + 1);
+    }
+  }, [gameState.isGameOver, isNewHighScore, isDailyChallenge]);
+
+  useEffect(() => {
+    if (comboDisplay.show && comboDisplay.count >= 2) {
+      setSparkleTrigger((t) => t + 1);
+    }
+  }, [comboDisplay.show, comboDisplay.count]);
 
   // Handle exit game
   const handleExitGame = useCallback(() => {
@@ -248,6 +269,10 @@ const Index = () => {
 
       {/* Phase-up celebration */}
       <PhaseUpOverlay phase={justAdvanced} onDone={clearJustAdvanced} />
+
+      {/* Celebratory Lottie bursts (confetti on level-up/high score, sparkles on combos) */}
+      <LottieBurst type="confetti" trigger={confettiTrigger} className="fixed" />
+      <LottieBurst type="sparkle" trigger={sparkleTrigger} className="fixed" />
 
       {/* Pixar soft cloud glow — landing only */}
       {!hasStarted && (
