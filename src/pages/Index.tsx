@@ -35,6 +35,11 @@ import { PixarChip, PixarButton, PixarStatChip, PixarBadge, PixarOverlay } from 
 import { Position } from '@/game/types';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { playSound } from '@/game/sounds';
+import { usePhase } from '@/hooks/usePhase';
+import AdaptiveStage from '@/components/game/AdaptiveStage';
+import PhasePill from '@/components/game/PhasePill';
+import PhaseUpOverlay from '@/components/game/PhaseUpOverlay';
+import heroMascot from '@/assets/hero-mascot.png';
 
 const Index = () => {
   const {
@@ -77,6 +82,9 @@ const Index = () => {
   const [showSoundSettings, setShowSoundSettings] = useState(false);
   const [isNewHighScore, setIsNewHighScore] = useState(false);
   const isMobile = useIsMobile();
+
+  // Phase progression (drives adaptive stage + HUD pill + phase-up celebration)
+  const { phase, next, progress, justAdvanced, clearJustAdvanced } = usePhase(gameState.score);
 
   // Load player's daily best score when opening daily challenge modal
   useEffect(() => {
@@ -211,36 +219,11 @@ const Index = () => {
     >
       {/* Pixar Toy Box gameplay overlays */}
       {hasStarted && (
-        <>
-          {/* Soft dot pattern */}
-          <div
-        className="absolute inset-0 pointer-events-none opacity-40"
-        style={{
-          backgroundImage:
-            'radial-gradient(hsl(var(--pixar-blue) / 0.18) 1.2px, transparent 1.2px)',
-          backgroundSize: '28px 28px',
-        }}
-      />
-
-      {/* Vignette */}
-      <div
-        className="absolute inset-0 pointer-events-none"
-        style={{
-          background:
-            'radial-gradient(ellipse 100% 70% at 50% 50%, transparent 45%, hsl(var(--pixar-navy-deep) / 0.85) 100%)',
-        }}
-      />
-
-      {/* Stage spotlight glow — Pixar blue/red */}
-      <div
-        className="absolute inset-0 pointer-events-none"
-        style={{
-          background:
-            'radial-gradient(ellipse 60% 40% at 50% 25%, hsl(var(--pixar-blue) / 0.22) 0%, transparent 70%), radial-gradient(ellipse 55% 45% at 50% 95%, hsl(var(--pixar-red) / 0.18) 0%, transparent 70%)',
-        }}
-      />
-        </>
+      <AdaptiveStage phase={phase} />
       )}
+
+      {/* Phase-up celebration */}
+      <PhaseUpOverlay phase={justAdvanced} onDone={clearJustAdvanced} />
 
       {/* Pixar soft cloud glow — landing only */}
       {!hasStarted && (
