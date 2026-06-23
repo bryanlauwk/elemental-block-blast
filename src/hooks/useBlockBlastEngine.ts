@@ -143,6 +143,7 @@ export interface BlockBlastEngine {
   canPlacePiece: (piece: DraggablePiece, pos: Position) => boolean;
   placePiece: (piece: DraggablePiece, pos: Position) => void;
   getReactionPreview: (piece: DraggablePiece, pos: Position) => ReactionPreview[];
+  findHint: () => { piece: DraggablePiece; pos: Position } | null;
 }
 
 export function useBlockBlastEngine(): BlockBlastEngine {
@@ -698,6 +699,51 @@ export function useBlockBlastEngine(): BlockBlastEngine {
     setReactionPreviewSummary(null);
   }, [resolveGrid, canAnyPieceFit, failedAttempts]);
 
+  // Find a helpful placement for the "Hint" button.
+  // Prefers a move that completes at least one line; otherwise returns the
+  // first valid placement found. Returns null only when the player is stuck.
+  const findHint = useCallback((): { piece: DraggablePiece; pos: Position } | null => {
+    const grid = gameState.grid;
+    const pieces = gameState.availablePieces;
+    let firstValid: { piece: DraggablePiece; pos: Position } | null = null;
+
+    for (const piece of pieces) {
+      for (let y = 0; y < GRID_HEIGHT; y++) {
+        for (let x = 0; x < GRID_WIDTH; x++) {
+          const fits = piece.shape.every((p) => {
+            const nx = x + p.x;
+            const ny = y + p.y;
+            return (
+              nx >= 0 && nx < GRID_WIDTH &&
+              ny >= 0 && ny < GRID_HEIGHT &&
+              grid[ny][nx].element === null
+            );
+          });
+          if (!fits) continue;
+
+          if (!firstValid) firstValid = { piece, pos: { x, y } };
+
+          // Does placing here complete a row or column? If so, it's a great hint.
+          const filled = new Set(piece.shape.map((p) => `${x + p.x},${y + p.y}`));
+          const occupied = (cx: number, cy: number) =>
+            grid[cy][cx].element !== null || filled.has(`${cx},${cy}`);
+
+          for (const p of piece.shape) {
+            const ny = y + p.y;
+            const nx = x + p.x;
+            let rowFull = true;
+            for (let c = 0; c < GRID_WIDTH; c++) if (!occupied(c, ny)) { rowFull = false; break; }
+            let colFull = true;
+            for (let r = 0; r < GRID_HEIGHT; r++) if (!occupied(nx, r)) { colFull = false; break; }
+            if (rowFull || colFull) return { piece, pos: { x, y } };
+          }
+        }
+      }
+    }
+
+    return firstValid;
+  }, [gameState.grid, gameState.availablePieces]);
+
   // Reset game - return to menu without saving score
   const resetGame = useCallback(() => {
     seededRngRef.current = null;
@@ -736,5 +782,6 @@ export function useBlockBlastEngine(): BlockBlastEngine {
     canPlacePiece,
     placePiece,
     getReactionPreview,
+    findHint,
   };
 }
