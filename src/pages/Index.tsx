@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, type CSSProperties } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useBlockBlastEngine } from '@/hooks/useBlockBlastEngine';
 import { useHighScores } from '@/hooks/useHighScores';
@@ -30,7 +30,7 @@ import MarqueeRibbon from '@/components/game/MarqueeRibbon';
 import GameTitle from '@/components/game/GameTitle';
 import HeroBlockDisplay from '@/components/game/HeroBlockDisplay';
 import { Button } from '@/components/ui/button';
-import { Trophy, Play, RotateCcw, HelpCircle, Zap, Calendar, Volume2, Home, Award, Flame, Droplets, TreeDeciduous, Mountain, Wind } from 'lucide-react';
+import { Trophy, Play, RotateCcw, HelpCircle, Zap, Calendar, Volume2, Home, Award, Flame, Droplets, TreeDeciduous, Mountain, Wind, Lightbulb } from 'lucide-react';
 import { PixarChip, PixarButton, PixarStatChip, PixarBadge, PixarOverlay } from '@/components/game/pixar';
 import { Position } from '@/game/types';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -59,6 +59,7 @@ const Index = () => {
     setDropPreview,
     canPlacePiece,
     placePiece,
+    findHint,
   } = useBlockBlastEngine();
 
   const { highScores, topScore, saveScore, clearScores } = useHighScores();
@@ -210,12 +211,35 @@ const Index = () => {
     setDropPreview(null);
   }, [setDropPreview]);
 
+  // "Hint" — ghost a helpful placement on the board for a moment.
+  const hintTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const handleHint = useCallback(() => {
+    const hint = findHint();
+    if (!hint) return;
+    playSound('select');
+    selectPiece(hint.piece);
+    setDropPreview(hint.pos);
+    if (hintTimer.current) clearTimeout(hintTimer.current);
+    hintTimer.current = setTimeout(() => setDropPreview(null), 1800);
+  }, [findHint, selectPiece, setDropPreview]);
+
+  useEffect(() => () => {
+    if (hintTimer.current) clearTimeout(hintTimer.current);
+  }, []);
+
   const hasStarted = gameState.availablePieces.length > 0;
 
 
   return (
     <div
       className="min-h-[100dvh] text-white flex flex-col relative overflow-hidden bg-gradient-pixar-stage"
+      style={{
+        // Drive per-universe theming (grid frame, accent line) from the
+        // current phase so the whole board travels through worlds, not just
+        // the backdrop.
+        ['--stage-accent' as string]: phase.accent,
+        ['--stage-glow' as string]: phase.glow,
+      } as CSSProperties}
     >
       {/* Pixar Toy Box gameplay overlays */}
       {hasStarted && (
@@ -560,6 +584,18 @@ const Index = () => {
 
                 {/* Phase progress indicator */}
                 <PhasePill phase={phase} next={next} progress={progress} />
+
+                {/* Hint — ghosts a helpful placement (works on desktop & mobile) */}
+                {!gameState.isGameOver && (
+                  <button
+                    onClick={handleHint}
+                    className="mt-2 flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-game-tray/60 border border-game-grid-border/30 text-xs font-bold text-game-text-muted hover:text-white hover:border-pixar-yellow/50 active:scale-95 transition-all"
+                    title="Show a helpful move"
+                  >
+                    <Lightbulb className="w-3.5 h-3.5 text-pixar-yellow" />
+                    Hint
+                  </button>
+                )}
 
                 {/* Game Grid */}
                 <div className="relative">

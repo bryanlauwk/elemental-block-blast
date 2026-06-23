@@ -183,32 +183,39 @@ export function BlockBlastGrid({
     });
   }, [onCellHover]);
 
-  // Get cell position from touch coordinates
+  // Get cell position from touch coordinates.
+  // We lift the targeted cell ~1.1 cells above the actual finger so the
+  // ghost preview (and the cell being targeted) stays visible instead of
+  // hiding under the thumb. The finger is also allowed to roam a little
+  // below the grid so the bottom rows remain reachable.
   const getCellFromTouch = useCallback((touchX: number, touchY: number): Position | null => {
     if (!gridRef.current) return null;
-    
+
     const gridElement = gridRef.current;
     const rect = gridElement.getBoundingClientRect();
-    
-    // Check if touch is within grid bounds
-    if (touchX < rect.left || touchX > rect.right || touchY < rect.top || touchY > rect.bottom) {
-      return null;
-    }
-    
-    // Calculate cell position based on grid layout
-    const relativeX = touchX - rect.left;
-    const relativeY = touchY - rect.top;
-    
+
     const cellWidth = rect.width / GRID_WIDTH;
     const cellHeight = rect.height / GRID_HEIGHT;
-    
-    const x = Math.floor(relativeX / cellWidth);
-    const y = Math.floor(relativeY / cellHeight);
-    
-    if (x >= 0 && x < GRID_WIDTH && y >= 0 && y < GRID_HEIGHT) {
-      return { x, y };
+    const fingerOffset = cellHeight * 1.1;
+
+    // Allow some slack around the grid so edge rows/cols stay reachable
+    // (extra room at the bottom to compensate for the upward finger offset).
+    if (
+      touchX < rect.left - cellWidth * 0.5 ||
+      touchX > rect.right + cellWidth * 0.5 ||
+      touchY < rect.top ||
+      touchY > rect.bottom + fingerOffset
+    ) {
+      return null;
     }
-    return null;
+
+    const relativeX = touchX - rect.left;
+    const relativeY = touchY - rect.top - fingerOffset;
+
+    const x = Math.min(GRID_WIDTH - 1, Math.max(0, Math.floor(relativeX / cellWidth)));
+    const y = Math.min(GRID_HEIGHT - 1, Math.max(0, Math.floor(relativeY / cellHeight)));
+
+    return { x, y };
   }, []);
 
   // Touch handlers for drag preview
@@ -325,8 +332,9 @@ export function BlockBlastGrid({
           className="pointer-events-none absolute inset-x-4 top-0 h-[2px] rounded-full"
           style={{
             background:
-              'linear-gradient(90deg, transparent 0%, hsl(var(--pixar-yellow)) 30%, hsl(var(--pixar-red)) 70%, transparent 100%)',
+              'linear-gradient(90deg, transparent 0%, hsl(var(--stage-accent, var(--pixar-yellow))) 30%, hsl(var(--pixar-red)) 70%, transparent 100%)',
             opacity: 0.85,
+            transition: 'background 1.2s ease',
           }}
         />
 

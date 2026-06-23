@@ -41,6 +41,35 @@ const Decoration = ({ kind }: { kind: PhaseConfig["decoration"] }) => {
       </>
     );
   }
+  if (kind === "crystals") {
+    return (
+      <>
+        <div className="stage-crystal stage-crystal--a" />
+        <div className="stage-crystal stage-crystal--b" />
+        <div className="stage-crystal stage-crystal--c" />
+        <div className="stage-crystal stage-crystal--d" />
+      </>
+    );
+  }
+  if (kind === "stars") {
+    return (
+      <>
+        {Array.from({ length: 36 }).map((_, i) => (
+          <span
+            key={i}
+            className="stage-star"
+            style={{
+              left: `${(i * 13 + 7) % 100}%`,
+              top: `${(i * 29 + 11) % 100}%`,
+              animationDelay: `${(i % 9) * 0.4}s`,
+              animationDuration: `${2.5 + (i % 4)}s`,
+            }}
+          />
+        ))}
+        <div className="stage-shooting-star" />
+      </>
+    );
+  }
   // "blocks" — soft floating block silhouettes
   return (
     <>
@@ -72,12 +101,12 @@ export function AdaptiveStage({ phase }: AdaptiveStageProps) {
         }}
       />
       <Decoration kind={phase.decoration} />
-      {/* vignette */}
+      {/* vignette — tinted with this universe's own dark tone */}
       <div
         className="absolute inset-0"
         style={{
-          background:
-            "radial-gradient(ellipse 100% 70% at 50% 50%, transparent 45%, hsl(var(--pixar-navy-deep) / 0.85) 100%)",
+          background: `radial-gradient(ellipse 100% 70% at 50% 50%, transparent 45%, hsl(${phase.stageTo} / 0.92) 100%)`,
+          transition: "background 1.2s ease",
         }}
       />
     </div>

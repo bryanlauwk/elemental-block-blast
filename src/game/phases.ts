@@ -1,4 +1,10 @@
-export type PhaseDecoration = "blocks" | "gears" | "clouds" | "embers";
+export type PhaseDecoration =
+  | "blocks"
+  | "gears"
+  | "clouds"
+  | "crystals"
+  | "embers"
+  | "stars";
 
 export interface PhaseConfig {
   id: number;
@@ -13,14 +19,17 @@ export interface PhaseConfig {
   unlocks: string; // short label for the phase-up overlay
 }
 
-// Thresholds aligned with shape-weight modifiers in useBlockBlastEngine.
+// Each phase is a distinct "universe" the puzzle travels through as the
+// score climbs. Palettes are intentionally varied (warm brass, bright sky,
+// crystal violet, volcanic red, deep cosmos) so the world visibly changes
+// from start to end instead of staying the same.
 export const PHASES: PhaseConfig[] = [
   {
     id: 1,
     name: "Sandbox",
     tagline: "Warm up the toy box",
     threshold: 0,
-    stageFrom: "222 65% 14%",
+    stageFrom: "222 62% 17%",
     stageTo: "224 70% 8%",
     glow: "204 100% 56%",
     accent: "204 100% 56%",
@@ -32,9 +41,9 @@ export const PHASES: PhaseConfig[] = [
     name: "Toy Factory",
     tagline: "Gears start turning",
     threshold: 500,
-    stageFrom: "222 65% 14%",
-    stageTo: "224 70% 8%",
-    glow: "45 100% 51%",
+    stageFrom: "30 58% 21%",
+    stageTo: "22 62% 9%",
+    glow: "38 100% 55%",
     accent: "45 100% 51%",
     decoration: "gears",
     unlocks: "Corners, S-pieces & 2×2 squares",
@@ -42,26 +51,50 @@ export const PHASES: PhaseConfig[] = [
   {
     id: 3,
     name: "Cloud City",
-    tagline: "Up into the sky",
+    tagline: "Up into the open sky",
     threshold: 1500,
-    stageFrom: "215 60% 22%",
-    stageTo: "224 70% 10%",
-    glow: "204 100% 56%",
-    accent: "204 100% 56%",
+    stageFrom: "203 68% 40%",
+    stageTo: "214 66% 15%",
+    glow: "190 95% 62%",
+    accent: "196 100% 60%",
     decoration: "clouds",
     unlocks: "Long bars & T-pieces",
   },
   {
     id: 4,
-    name: "Volcano Run",
-    tagline: "Things heat up",
+    name: "Crystal Caverns",
+    tagline: "Deep into the glow",
     threshold: 3000,
-    stageFrom: "8 50% 18%",
-    stageTo: "224 70% 8%",
-    glow: "8 82% 51%",
-    accent: "8 82% 51%",
+    stageFrom: "266 56% 24%",
+    stageTo: "258 66% 10%",
+    glow: "286 90% 64%",
+    accent: "275 90% 66%",
+    decoration: "crystals",
+    unlocks: "Big L's & 5-bars",
+  },
+  {
+    id: 5,
+    name: "Volcano Run",
+    tagline: "Everything heats up",
+    threshold: 5000,
+    stageFrom: "8 60% 22%",
+    stageTo: "10 66% 8%",
+    glow: "8 90% 56%",
+    accent: "18 92% 55%",
     decoration: "embers",
-    unlocks: "Big L's, 5-bars & the 3×3",
+    unlocks: "The mighty 3×3 block",
+  },
+  {
+    id: 6,
+    name: "Cosmic Void",
+    tagline: "Beyond the known board",
+    threshold: 9000,
+    stageFrom: "250 58% 16%",
+    stageTo: "246 78% 5%",
+    glow: "268 92% 68%",
+    accent: "190 95% 62%",
+    decoration: "stars",
+    unlocks: "Master every shape",
   },
 ];
 
