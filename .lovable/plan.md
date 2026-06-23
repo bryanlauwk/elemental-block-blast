@@ -1,44 +1,104 @@
-# Pixar "Cinematic 3D Toybox" — Home Page Big Lift
 
-Rebuild the landing page (`/`) to match the approved prototype: a navy stage, an Abril Fatface 3D candy headline ("ELEMENTAL / BLOCK / BLAST"), a row of glossy rubber element tiles, and a red Pixar-style PLAY button. Locked taste: palette Toy Box Primary (`#0d1b3d`, `#e8341c`, `#ffc107`, `#1ea7ff`); type pair Abril Fatface (display) + Cabin (body); layout hero-grid.
+# Make the Game Richer & the Home Page More Pixar
 
-## What changes
+Two threads: (1) a **phased gameplay progression** where shapes and backdrop evolve as the player scores, and (2) a **Pixar-style hero artwork** with a character on the landing page.
 
-1. **Fonts** — Add `@fontsource/abril-fatface` and `@fontsource/cabin`, import in `src/main.tsx`, register in `tailwind.config.ts` as `font-display` (Abril) and default `font-sans` (Cabin).
+---
 
-2. **Design tokens** (`src/index.css`) — Add Pixar palette tokens (`--pixar-navy`, `--pixar-red`, `--pixar-yellow`, `--pixar-blue`) and a `--shadow-3d-letter-*` helper for the stacked text-shadow stack. Keep existing tokens; only the home page consumes the new ones.
+## 1. Phased gameplay progression
 
-3. **`GameTitle.tsx` — full rewrite** for the headline:
-   - Top eyebrow "ELEMENTAL" in blue, uppercase, `tracking-[0.4em]`, Cabin bold.
-   - Two stacked words "BLOCK" (yellow) and "BLAST" (red) in Abril Fatface, ~8xl, each with a 4-layer stacked `text-shadow` for chiseled 3D depth + soft drop shadow.
-   - Letter-by-letter pop-in via framer-motion (spring), one-time shimmer sweep across each word, gentle `hero-bob` loop (disabled on `prefers-reduced-motion` and mobile).
-   - Removes the current fire-ring background and rainbow text-shadow look.
+Introduce 5 difficulty **phases** that unlock by score. Each phase changes which shapes appear, the background mood, and a small "phase intro" celebration.
 
-4. **`Index.tsx` — landing layout** rebuilt around the prototype:
-   - Background: solid `#0d1b3d` with two soft radial glows (blue top-left, red bottom-right) using existing `gradient-stage` token swapped to Pixar values. Removes the violet neon scanline grid for the home page only (in-game grid untouched).
-   - Stat chips row (Best / Streak / XP) above the title using existing `useHighScores`, `useDailyStreak`, and XP hooks already wired in.
-   - Headline (new `GameTitle`).
-   - Element tile row: 5 chunky rounded-2xl tiles with `border-b-4` bottom shadow for the "rubber" feel, hover lift. Reuse existing element icons from `HeroBlockDisplay` / theme — colors map to fire/water/wood/stone/helium but in Pixar palette where they match.
-   - Primary PLAY button: red pill with stacked shadow layer (separate `<div>` for the dark red drop), white gradient gloss overlay, Abril Fatface label, `active:translate-y-1` press feel. Replaces the current green PLAY.
-   - Keep nav bar (logo + settings icons) but restyle chips/icons to white/10 glass on navy.
+### Phases
 
-5. **Keep untouched**: in-game grid (`BlockBlastGrid`), scoreboard, modals, sound, achievements, auth, all hooks, all routes. Only landing-page presentation.
+| Phase | Unlocks at | Theme name | Shape pool bias | Backdrop |
+|-------|-----------|------------|-----------------|----------|
+| 1 | 0 pts | **Sandbox** | Singles, 2- and 3-block straights (easy) | Navy stage, soft blue glow |
+| 2 | 500 | **Toy Factory** | Adds L/J/S corners, 2×2 squares | Adds warm yellow glow + floating gear silhouettes |
+| 3 | 1,500 | **Cloud City** | Adds 4-block straights, T pieces | Red→blue gradient, drifting cloud shapes |
+| 4 | 3,500 | **Volcano Run** | Adds 5-block straights, big L's | Red-dominant, pulsing ember particles |
+| 5 | 7,000 | **Cosmic Toybox** | Adds 3×3 square (rare), full chaos | Deep navy + starfield, slow parallax |
+
+Shape pool changes by **re-weighting** `SHAPE_WEIGHTS` from `src/game/types.ts` per phase (no new shapes needed — they already exist). Element weights stay the same so reactions feel familiar.
+
+### How phase is computed
+
+- New hook `usePhase(score: number)` returns `{ phase, name, nextThreshold, progressToNext }`.
+- `useBlockBlastEngine` reads current phase and passes the active shape-weight table into its piece generator (small refactor: extract `pickShape(weights)` so it accepts a weights arg instead of importing the constant).
+- On phase change, fire a one-time event so the UI can play a "Phase Up!" celebration.
+
+### Phase-up celebration
+
+New `PhaseUpOverlay` (built on existing `PixarOverlay`):
+- 1.2s overlay: big Abril Fatface phase name, sub-label "New shapes unlocked", thumbnail row of the 2–3 newly added shapes.
+- Plays existing `playLevelUp` sound (already in `src/game/sounds.ts`).
+- Auto-dismiss; gated by `prefers-reduced-motion` (instant flash + label, no scale anim).
+
+### Phase indicator in HUD
+
+Add a slim `PhasePill` inside the scoreboard area:
+- Shows phase number + name + progress bar to next phase.
+- Uses existing `PixarPanel` + yellow→red gradient bar.
+
+---
+
+## 2. Adaptive background
+
+Rebuild the in-game background as a single `AdaptiveStage` component keyed by phase, replacing the current static navy stage on `/` when `hasStarted` is true.
+
+- Base layer: CSS gradient that **transitions** (1.2s ease) between per-phase palettes defined as CSS vars (`--stage-from`, `--stage-to`, `--stage-glow`).
+- Decoration layer: phase-specific lightweight SVG/CSS elements (gears, clouds, embers, stars). All pure CSS keyframes — no JS rAF loops — to keep the 60fps rule in Core memory.
+- All decorative motion gated by `prefers-reduced-motion`.
+
+Files: new `src/components/game/AdaptiveStage.tsx` and a small `src/game/phases.ts` for phase config (thresholds, palettes, shape weights, decoration kind). Used by `src/pages/Index.tsx` in place of the current inline background block during gameplay.
+
+---
+
+## 3. Pixar hero artwork on the landing page
+
+Add a **character/mascot illustration** to the landing hero so it feels less empty and more "movie poster."
+
+### Approach
+
+- Generate one **premium-tier illustration**: a chunky 3D Pixar-style mascot built from the game's element blocks — e.g. a smiling stack-of-blocks character with a fire tuft on top, water-drop eyes, holding a glowing block. Navy/red/yellow/blue palette to match tokens. Transparent PNG so it floats on the stage.
+- Saved to `src/assets/hero-mascot.png` (no externalization; standard image import).
+- Placed in `src/pages/Index.tsx` landing layout to the right of the headline on desktop, below the headline on mobile.
+- Subtle framer-motion: gentle bob loop + entrance scale-in.
+
+### Supporting hero polish
+
+- Add 3–4 **floating decorative props** behind the mascot (small CSS-only shapes: a yellow star, a blue cloud puff, a red block, a sparkle) with staggered float animations — keeps the "toybox" feel without another image.
+- Tighten the existing headline + stat-chip + element-tile stack so the mascot has room without breaking the hero-grid layout.
+
+---
+
+## Files touched
+
+**New**
+- `src/game/phases.ts` — phase configs (thresholds, palettes, shape weights, decoration kind, intro labels).
+- `src/hooks/usePhase.ts` — derive phase from score, expose change events.
+- `src/components/game/AdaptiveStage.tsx` — adaptive in-game background.
+- `src/components/game/PhaseUpOverlay.tsx` — phase-up celebration.
+- `src/components/game/PhasePill.tsx` — HUD phase indicator.
+- `src/assets/hero-mascot.png` — generated Pixar mascot (premium imagegen).
+
+**Modified**
+- `src/hooks/useBlockBlastEngine.ts` — accept phase-driven shape weights.
+- `src/game/types.ts` — export `pickShape(weights)` helper (extract from current logic; keep `SHAPE_WEIGHTS` as Phase-1 default).
+- `src/pages/Index.tsx` — mount `AdaptiveStage` during gameplay, mount `PhaseUpOverlay`, add mascot + floating props to landing hero.
+- `src/components/game/BlockBlastScoreboard.tsx` — add `PhasePill`.
+- `src/index.css` — add `--stage-*` CSS vars and phase-decoration keyframes.
 
 ## Out of scope
 
-- No changes to gameplay, animations inside the grid, or modals.
-- No backend / schema / RLS changes.
-- Mobile layout follows the same stack (chips → headline → tiles → PLAY) with smaller type ramps; no separate redesign.
-
-## Technical notes
-
-- Files touched: `src/main.tsx`, `tailwind.config.ts`, `src/index.css`, `src/components/game/GameTitle.tsx`, `src/pages/Index.tsx`. Possibly small tweaks to `src/components/game/HeroBlockDisplay.tsx` if its dark-stage background clashes (will restyle inline, not rewrite).
-- Fonts via `@fontsource/*` packages only — no Google Fonts `<link>` and no `index.html` edits.
-- All new colors come from CSS tokens, not hardcoded hex inside components (except prototype-faithful per-letter shadow stacks in `GameTitle`, which are intrinsic to the headline effect).
-- Motion uses framer-motion (already in deps) + CSS keyframes; all decorative loops gated by `prefers-reduced-motion`.
+- No new shapes invented; we only re-weight existing ones from `BLOCK_SHAPES`.
+- No backend, schema, or auth changes.
+- No changes to combos, scoring math, achievements, or leaderboard.
+- No changes to the in-grid block rendering — only the stage behind it and the piece pool.
 
 ## Acceptance
 
-- Home page renders the Pixar 3D headline, navy stage, rubber tiles, and red PLAY matching the chosen prototype.
-- Lighthouse/perf parity (no new heavy assets beyond two webfont families).
-- In-game experience unchanged.
+- Score crossing each threshold visibly changes the backdrop and the shapes the tray serves up, with a brief "Phase Up!" celebration.
+- HUD shows current phase + progress to next.
+- Landing page shows a Pixar-style mascot beside the headline with subtle bob, plus a couple of floating toy props.
+- 60fps maintained (CSS keyframes only for decorative motion); `prefers-reduced-motion` respected throughout.
