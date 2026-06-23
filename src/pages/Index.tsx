@@ -423,6 +423,49 @@ const Index = () => {
                 {/* Pixar 3D Headline */}
                 <GameTitle />
 
+                {/* Pixar mascot + floating props */}
+                <div className="relative w-full flex items-center justify-center pointer-events-none">
+                  {/* Floating decorative props */}
+                  <span
+                    aria-hidden
+                    className="hero-prop absolute left-[8%] top-2 w-8 h-8 rounded-lg shadow-lg"
+                    style={{
+                      background: 'linear-gradient(180deg, hsl(var(--pixar-yellow)), hsl(var(--pixar-yellow-deep)))',
+                      boxShadow: 'inset 0 2px 0 rgba(255,255,255,0.5), 0 4px 0 hsl(var(--pixar-yellow-deep))',
+                      animationDelay: '0.4s',
+                    }}
+                  />
+                  <span
+                    aria-hidden
+                    className="hero-prop absolute right-[10%] top-8 w-6 h-6 rounded-md"
+                    style={{
+                      background: 'linear-gradient(180deg, hsl(var(--pixar-blue)), hsl(var(--pixar-blue-deep)))',
+                      boxShadow: 'inset 0 2px 0 rgba(255,255,255,0.5), 0 3px 0 hsl(var(--pixar-blue-deep))',
+                      animationDelay: '1.1s',
+                    }}
+                  />
+                  <span
+                    aria-hidden
+                    className="hero-prop absolute left-[18%] bottom-2 w-4 h-4 rounded-sm"
+                    style={{
+                      background: 'linear-gradient(180deg, hsl(var(--pixar-red)), hsl(var(--pixar-red-deep)))',
+                      boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.5), 0 2px 0 hsl(var(--pixar-red-deep))',
+                      animationDelay: '1.8s',
+                    }}
+                  />
+                  <motion.img
+                    src={heroMascot}
+                    alt="Elemental Block Blast mascot — a stack of toy blocks with a flame and a star"
+                    width={1024}
+                    height={1536}
+                    initial={{ opacity: 0, scale: 0.7, y: 30 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    transition={{ delay: 0.8, type: 'spring', stiffness: 220, damping: 18 }}
+                    className="mascot-bob relative z-10 w-32 sm:w-40 md:w-48 h-auto pointer-events-auto select-none drop-shadow-[0_18px_30px_rgba(0,0,0,0.45)]"
+                    draggable={false}
+                  />
+                </div>
+
                 {/* Element rubber-tile row */}
                 <motion.div
                   initial={{ opacity: 0, y: 12 }}
@@ -514,6 +557,9 @@ const Index = () => {
                   topScore={isDailyChallenge ? (playerDailyBest || 0) : topScore}
                   compact
                 />
+
+                {/* Phase progress indicator */}
+                <PhasePill phase={phase} next={next} progress={progress} />
 
                 {/* Game Grid */}
                 <div className="relative">
