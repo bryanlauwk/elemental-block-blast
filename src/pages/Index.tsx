@@ -653,6 +653,8 @@ const Index = () => {
                   reactionPreviews={reactionPreviews}
                   phase={phase}
                   clearSignal={comboDisplay.count}
+                  critterPos={critterPos}
+                  critterFacing={critterFacing}
                 />
                 
                 {/* Reaction Particles */}
