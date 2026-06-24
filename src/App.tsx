@@ -11,6 +11,8 @@ import NotFound from "./pages/NotFound";
 // out of the main game bundle.
 const AdminLogin = lazy(() => import("./pages/AdminLogin"));
 const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
+// Experimental 3D cube mode — lazy so Three-free CSS-3D code stays off the main path.
+const CubeGame = lazy(() => import("./pages/CubeGame"));
 
 const queryClient = new QueryClient();
 
@@ -25,6 +27,7 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/admin/login" element={<AdminLogin />} />
             <Route path="/admin" element={<AdminDashboard />} />
+            <Route path="/cube" element={<CubeGame />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
