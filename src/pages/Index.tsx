@@ -91,6 +91,22 @@ const Index = () => {
   // Phase progression (drives adaptive stage + HUD pill + phase-up celebration)
   const { phase, next, progress, justAdvanced, clearJustAdvanced } = usePhase(gameState.score);
 
+  // Per-phase critter that occupies one empty cell as a placement blocker.
+  const { pos: critterPos, facing: critterFacing, isBlocked: isCritterBlocked } =
+    useStageCritter(gameState.grid, comboDisplay.count);
+
+  // Wrap the engine's canPlacePiece so the critter's cell is treated as blocked.
+  const canPlacePiece = useCallback(
+    (piece: typeof gameState.selectedPiece, pos: Position) => {
+      if (!piece) return false;
+      if (!rawCanPlacePiece(piece, pos)) return false;
+      return piece.shape.every(
+        (p) => !isCritterBlocked(pos.x + p.x, pos.y + p.y),
+      );
+    },
+    [rawCanPlacePiece, isCritterBlocked],
+  );
+
   // Load player's daily best score when opening daily challenge modal
   useEffect(() => {
     const loadDailyBest = async () => {
