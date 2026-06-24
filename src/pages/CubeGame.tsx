@@ -36,6 +36,9 @@ const FACES = [
 ] as const;
 
 const FEVER_MS = 9000;
+// Fixed isometric viewing offset so the playing face is always seen at an
+// angle (depth + edges of adjacent faces) instead of flat like the 2D board.
+const ISO = { x: -16, y: 20 };
 
 const placeInto = (grid: Cell[][], piece: DraggablePiece, pos: Position): Cell[][] => {
   const ng = grid.map((r) => r.map((c) => ({ ...c })));
@@ -149,19 +152,16 @@ const CubeGame = () => {
     if (!nextBoards.some((b) => canAnyPieceFit(b, nextPieces))) { setIsGameOver(true); playSound('gameOver'); }
   }, [isGameOver, boards, activeFace, score, pieces, refill, activateFever]);
 
-  // ── Map a screen point to a cell on the (flat, front-facing) active face ──
+  // Map a screen point to a board cell using the browser's real 3D hit-testing
+  // (works at any cube angle, unlike flat-rect math). On touch, sample a little
+  // above the finger so the target cell isn't hidden under it.
   const cellFromPoint = useCallback((clientX: number, clientY: number, pointerType: string): Position | null => {
-    const el = document.getElementById('cube-active-grid');
-    if (!el) return null;
-    const rect = el.getBoundingClientRect();
-    const cw = rect.width / FACE;
-    const ch = rect.height / FACE;
-    const offY = pointerType === 'mouse' ? 0 : ch * 1.1;
-    if (clientX < rect.left - cw * 0.5 || clientX > rect.right + cw * 0.5 || clientY < rect.top || clientY > rect.bottom + offY) return null;
-    const x = Math.min(FACE - 1, Math.max(0, Math.floor((clientX - rect.left) / cw)));
-    const y = Math.min(FACE - 1, Math.max(0, Math.floor((clientY - rect.top - offY) / ch)));
-    return { x, y };
-  }, []);
+    const sy = pointerType === 'mouse' ? clientY : clientY - cellPx;
+    const el = document.elementFromPoint(clientX, sy) as HTMLElement | null;
+    const cellEl = el?.closest('[data-cube-cell]') as HTMLElement | null;
+    if (!cellEl) return null;
+    return { x: Number(cellEl.dataset.x), y: Number(cellEl.dataset.y) };
+  }, [cellPx]);
 
   const handleDragHover = useCallback((piece: DraggablePiece, cx: number, cy: number, pt: string) => {
     setSelected(piece);
@@ -289,7 +289,7 @@ const CubeGame = () => {
           className="relative"
           style={{
             width: size, height: size, transformStyle: 'preserve-3d',
-            transform: `rotateX(${rot.x}deg) rotateY(${rot.y}deg)`,
+            transform: `rotateX(${rot.x + ISO.x}deg) rotateY(${rot.y + ISO.y}deg)`,
             transition: snapping ? 'transform 0.5s cubic-bezier(0.4, 0, 0.2, 1)' : 'none',
           }}
         >
@@ -322,12 +322,15 @@ const CubeGame = () => {
                       return (
                         <div
                           key={k}
+                          data-cube-cell={isActive ? '' : undefined}
+                          data-x={x}
+                          data-y={y}
                           className={`flex items-center justify-center rounded-lg ${rType ? REACTION_RING[rType] : ''}`}
                           style={{ background: cell.element ? 'transparent' : 'hsl(var(--game-cell) / 0.6)' }}
                           onMouseEnter={isActive ? () => setHover({ x, y }) : undefined}
                           onClick={isActive ? () => { if (!movedRef.current && selected) placePieceAt(selected, { x, y }); } : undefined}
                         >
-                          {cell.element && <ElementBlock element={cell.element} size={blockPx} showSymbol={false} />}
+                          {cell.element && <ElementBlock element={cell.element} size={blockPx} />}
                           {!cell.element && isGhost && selected && (
                             <ElementBlock element={selected.elements[0]} size={blockPx} isPreview showSymbol={false} />
                           )}
