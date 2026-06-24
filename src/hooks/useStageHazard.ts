@@ -17,7 +17,7 @@ function pickEmptyCell(
     }
   }
   if (empty.length === 0) return null;
-  // Prefer cells the critter is allowed to sit on (i.e. that don't block the
+  // Prefer cells the hazard is allowed to sit on (i.e. that don't block the
   // player's only remaining move); fall back to any empty cell if none qualify.
   const allowed = canOccupy ? empty.filter((p) => canOccupy(p)) : empty;
   const pool = allowed.length > 0 ? allowed : empty;
@@ -25,61 +25,37 @@ function pickEmptyCell(
 }
 
 /**
- * Tracks a single critter cell that hops between EMPTY cells and acts as
- * a placement blocker. Returns the current critter position (or null when
- * the board is full).
+ * Tracks a single terrain-hazard cell that blocks placement. It stays put
+ * (terrain-like) and only relocates when a line clears, when its cell gets
+ * filled, or when it would otherwise block the player's only legal move.
  *
- * `canOccupy` lets the caller veto cells, which keeps the critter from
- * parking on the player's only legal move.
+ * `canOccupy` lets the caller veto cells, which keeps the hazard from sitting
+ * on the player's only move.
  */
-export function useStageCritter(
+export function useStageHazard(
   grid: Cell[][],
   clearSignal: number,
   canOccupy?: CanOccupy,
 ) {
   const [pos, setPos] = useState<Position | null>(() => pickEmptyCell(grid));
-  const [facing, setFacing] = useState<1 | -1>(1);
 
-  // If the cell the critter sits on becomes filled, or it now blocks the
-  // player's only move, hop to a fresh allowed cell.
+  // If the hazard's cell becomes filled, or it now blocks the only move,
+  // relocate to a fresh allowed cell.
   useEffect(() => {
     const sittingFilled = pos && grid[pos.y]?.[pos.x]?.element;
     const blockingOnlyMove = pos && canOccupy && !canOccupy(pos);
     if (sittingFilled || blockingOnlyMove) {
       const next = pickEmptyCell(grid, pos ?? undefined, canOccupy);
-      if (next && pos) {
-        setFacing(next.x === pos.x ? facing : next.x > pos.x ? 1 : -1);
-      }
       if (next) setPos(next);
     } else if (!pos) {
       const next = pickEmptyCell(grid, undefined, canOccupy);
       if (next) setPos(next);
     }
-  }, [grid, pos, facing, canOccupy]);
+  }, [grid, pos, canOccupy]);
 
-  // Idle hops between empty cells every 3-4s.
+  // Reshape the terrain on line clears: move to a brand new empty cell.
   useEffect(() => {
-    const id = window.setTimeout(() => {
-      setPos((prev) => {
-        const next = pickEmptyCell(grid, prev ?? undefined, canOccupy);
-        if (next && prev) {
-          setFacing(next.x === prev.x ? facing : next.x > prev.x ? 1 : -1);
-        }
-        return next ?? prev;
-      });
-    }, 3000 + Math.random() * 1500);
-    return () => window.clearTimeout(id);
-  }, [pos, grid, facing, canOccupy]);
-
-  // React to line clears: jump to a brand new empty cell.
-  useEffect(() => {
-    setPos((prev) => {
-      const next = pickEmptyCell(grid, prev ?? undefined, canOccupy);
-      if (next && prev) {
-        setFacing(next.x === prev.x ? facing : next.x > prev.x ? 1 : -1);
-      }
-      return next ?? prev;
-    });
+    setPos((prev) => pickEmptyCell(grid, prev ?? undefined, canOccupy) ?? prev);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [clearSignal]);
 
@@ -88,5 +64,5 @@ export function useStageCritter(
     [pos],
   );
 
-  return { pos, facing, isBlocked };
+  return { pos, isBlocked };
 }
