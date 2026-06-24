@@ -215,10 +215,11 @@ const Index = () => {
   }, [justAdvanced]);
 
   useEffect(() => {
-    if (gameState.isGameOver && isNewHighScore && !isDailyChallenge) {
+    // Celebrate a new high score, or simply finishing a daily challenge.
+    if (gameState.isGameOver && gameState.score > 0 && (isNewHighScore || isDailyChallenge)) {
       setConfettiTrigger((t) => t + 1);
     }
-  }, [gameState.isGameOver, isNewHighScore, isDailyChallenge]);
+  }, [gameState.isGameOver, gameState.score, isNewHighScore, isDailyChallenge]);
 
   useEffect(() => {
     if (comboDisplay.show && comboDisplay.count >= 2) {
@@ -617,7 +618,7 @@ const Index = () => {
                   transition={{ delay: 1.1, type: 'spring', stiffness: 320, damping: 18 }}
                   className="relative inline-block"
                 >
-                  <PixarButton onClick={handleStartGame} aria-label="Play" variant="primary" size="lg">
+                  <PixarButton onClick={handleStartGame} aria-label="Play" variant="primary" size="lg" shine>
                     Play
                   </PixarButton>
                 </motion.div>
@@ -751,8 +752,27 @@ const Index = () => {
                           </motion.div>
                         )}
                         
+                        {/* Mascot reaction */}
+                        <motion.img
+                          src={heroMascot}
+                          alt=""
+                          initial={{ scale: 0.6, opacity: 0, y: 10 }}
+                          animate={{ scale: 1, opacity: 1, y: 0 }}
+                          transition={{ type: 'spring', stiffness: 260, damping: 16, delay: 0.05 }}
+                          className="mascot-bob w-20 sm:w-24 h-auto mx-auto mb-1 select-none pointer-events-none drop-shadow-[0_10px_18px_rgba(0,0,0,0.45)]"
+                          draggable={false}
+                        />
+
                         <p className="text-3xl font-display text-white mb-2 tracking-wide">
-                          {isNewHighScore && !isDailyChallenge ? 'Amazing!' : 'Game Over'}
+                          {isNewHighScore && !isDailyChallenge
+                            ? 'Amazing!'
+                            : isDailyChallenge
+                              ? 'Daily Done!'
+                              : gameState.score >= 2000
+                                ? 'Great run!'
+                                : gameState.score >= 1000
+                                  ? 'Nice run!'
+                                  : 'Good game!'}
                         </p>
                         <p className={`text-5xl font-display bg-clip-text text-transparent mb-2 ${
                           isNewHighScore && !isDailyChallenge
@@ -828,6 +848,7 @@ const Index = () => {
                             onClick={isDailyChallenge ? handleStartDaily : handleStartGame}
                             variant="primary"
                             size="md"
+                          shine
                           >
                             Play Again
                           </PixarButton>
