@@ -518,7 +518,7 @@ const Index = () => {
       />
 
       {/* Main content wrapper - proper spacing zones */}
-      <main className="flex-1 flex flex-col items-center justify-between px-3 sm:px-4 py-4 sm:py-6 pt-16 sm:pt-20 md:pt-24 min-h-[calc(100dvh-60px)]">
+      <main className="flex-1 flex flex-col items-center justify-between px-3 sm:px-4 py-2 sm:py-6 pt-14 sm:pt-20 md:pt-24 min-h-[calc(100dvh-60px)]">
         <div className="flex gap-4 sm:gap-6 items-start max-w-4xl w-full justify-center flex-1">
           {/* Main game column */}
           <div className="flex flex-col items-center w-full max-w-[400px] h-full">
@@ -655,12 +655,13 @@ const Index = () => {
             {/* Game screen - when playing */}
             {hasStarted && (
               <>
-                <motion.div 
+                <motion.div
                   className="text-center"
                   initial={{ opacity: 0, y: -20 }}
                   animate={{ opacity: 1, y: 0 }}
                 >
-                  <h1 className="text-xl sm:text-2xl font-black tracking-tight">
+                  {/* Hidden on phones to save vertical space (top bar already brands it) */}
+                  <h1 className="hidden sm:block text-xl sm:text-2xl font-black tracking-tight">
                     <span className="bg-gradient-to-r from-game-score-start via-game-score-mid to-game-score-end bg-clip-text text-transparent">
                       Elemental Block Blast
                     </span>
@@ -895,9 +896,9 @@ const Index = () => {
               />
             )}
 
-            {/* Element Legend - Tablet/Mobile only (below tray) */}
+            {/* Element Legend - tablets only (hidden on phones to save height; in the sidebar on desktop) */}
             {hasStarted && (
-              <div className="mt-2 lg:hidden">
+              <div className="mt-2 hidden sm:block lg:hidden">
                 <ElementLegend />
               </div>
             )}

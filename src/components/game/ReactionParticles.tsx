@@ -24,22 +24,22 @@ interface ReactionParticlesProps {
   gridOffset?: { x: number; y: number };
 }
 
-// Reduced particle counts for better performance
+// Subtle, quick particle bursts so they don't obscure the board.
 const particleConfig = {
   burn: {
-    emojis: ['🔥', '✨', '💥', '⚡'],
+    emojis: ['✨', '🔥'],
     colors: ['#ff6b35', '#ff9f1c', '#ffcd3c'],
-    count: 4, // Reduced from 8
+    count: 3,
   },
   extinguish: {
-    emojis: ['💧', '💦', '🌊', '❄️'],
+    emojis: ['💧', '✨'],
     colors: ['#00b4d8', '#48cae4', '#90e0ef'],
-    count: 5, // Reduced from 10
+    count: 3,
   },
   dissolve: {
-    emojis: ['🫧', '💀', '☠️', '🧪'],
+    emojis: ['✨', '🧪'],
     colors: ['#52b788', '#40916c', '#74c69d'],
-    count: 3, // Reduced from 6
+    count: 2,
   },
 };
 
@@ -65,18 +65,18 @@ const ReactionParticles: React.FC<ReactionParticlesProps> = ({
 
       for (let i = 0; i < config.count; i++) {
         const angle = (Math.PI * 2 * i) / config.count + Math.random() * 0.5;
-        const distance = 30 + Math.random() * 50;
-        
+        const distance = 22 + Math.random() * 30;
+
         newParticles.push({
           id: `${trigger.timestamp}-${pos.x}-${pos.y}-${i}`,
           x: centerX,
           y: centerY,
           type: trigger.type,
           emoji: config.emojis[Math.floor(Math.random() * config.emojis.length)],
-          delay: Math.random() * 0.15,
+          delay: Math.random() * 0.1,
           angle,
           distance,
-          size: 12 + Math.random() * 10,
+          size: 10 + Math.random() * 6,
         });
       }
     });
@@ -95,10 +95,10 @@ const ReactionParticles: React.FC<ReactionParticlesProps> = ({
       setShockwaves((prev) => prev.filter((s) => !newShocks.some((ns) => ns.id === s.id)));
     }, 600);
 
-    // Clean up particles after animation
+    // Clean up particles after the (now shorter) animation
     const timeout = setTimeout(() => {
       setParticles(prev => prev.filter(p => !newParticles.some(np => np.id === p.id)));
-    }, 1500);
+    }, 800);
 
     return () => {
       clearTimeout(timeout);
@@ -137,16 +137,16 @@ const ReactionParticles: React.FC<ReactionParticlesProps> = ({
                 scale: 0,
                 opacity: 1,
               }}
-              animate={{ 
+              animate={{
                 x: particle.x + endX,
                 y: particle.y + endY,
-                scale: [0, 1.2, 0.8],
-                opacity: [1, 1, 0],
-                rotate: particle.type === 'dissolve' ? [0, 180] : [0, 45],
+                scale: [0, 1, 0.6],
+                opacity: [0.9, 0.8, 0],
+                rotate: particle.type === 'dissolve' ? [0, 120] : [0, 30],
               }}
               exit={{ opacity: 0 }}
-              transition={{ 
-                duration: 0.8 + Math.random() * 0.4,
+              transition={{
+                duration: 0.45 + Math.random() * 0.25,
                 delay: particle.delay,
                 ease: 'easeOut',
               }}
