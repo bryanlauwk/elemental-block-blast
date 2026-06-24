@@ -48,9 +48,9 @@ type AffectedGroup = { type: ReactionType; positions: Position[] };
 // Elements acid cannot dissolve (inert / treasure / itself).
 const ACID_IMMUNE = new Set<ElementType>(['stone', 'helium', 'acid', 'gold', 'goldCracked']);
 
-export const createEmptyGrid = (): Cell[][] => {
-  return Array.from({ length: GRID_HEIGHT }, (_, y) =>
-    Array.from({ length: GRID_WIDTH }, (_, x) => ({
+export const createEmptyGrid = (width: number = GRID_WIDTH, height: number = GRID_HEIGHT): Cell[][] => {
+  return Array.from({ length: height }, (_, y) =>
+    Array.from({ length: width }, (_, x) => ({
       element: null,
       id: `${x}-${y}-${Date.now()}`,
     }))
@@ -131,6 +131,7 @@ export const createRandomPiece = (
 
 // Can a piece be placed at a position on this grid?
 export const canPlacePieceAt = (grid: Cell[][], piece: DraggablePiece, pos: Position): boolean => {
+  const GRID_WIDTH = grid[0].length, GRID_HEIGHT = grid.length;
   return piece.shape.every((p) => {
     const newX = pos.x + p.x;
     const newY = pos.y + p.y;
@@ -143,6 +144,7 @@ export const canPlacePieceAt = (grid: Cell[][], piece: DraggablePiece, pos: Posi
 
 // Can any of the pieces be placed anywhere on the grid?
 export const canAnyPieceFit = (grid: Cell[][], pieces: DraggablePiece[]): boolean => {
+  const GRID_WIDTH = grid[0].length, GRID_HEIGHT = grid.length;
   for (const piece of pieces) {
     for (let y = 0; y < GRID_HEIGHT; y++) {
       for (let x = 0; x < GRID_WIDTH; x++) {
@@ -157,6 +159,7 @@ export const canAnyPieceFit = (grid: Cell[][], pieces: DraggablePiece[]): boolea
 // Gold is treasure: a line clear only CRACKS gold (it survives as goldCracked);
 // clearing through it again shatters it for a bonus (counted as goldCleared).
 export const clearLines = (grid: Cell[][]): { grid: Cell[][]; linesCleared: number; goldCleared: number } => {
+  const GRID_WIDTH = grid[0].length, GRID_HEIGHT = grid.length;
   const newGrid = grid.map(row => row.map(cell => ({ ...cell })));
   let linesCleared = 0;
   let goldCleared = 0;
@@ -211,6 +214,7 @@ export const clearLines = (grid: Cell[][]): { grid: Cell[][]; linesCleared: numb
 export const processReactions = (
   grid: Cell[][],
 ): { grid: Cell[][]; reacted: boolean; reactionCount: number; events: ReactionEvent[]; affectedPositions: AffectedGroup[] } => {
+  const GRID_WIDTH = grid[0].length, GRID_HEIGHT = grid.length;
   const newGrid = grid.map(row => row.map(cell => ({ ...cell })));
   let reacted = false;
   let reactionCount = 0;
@@ -421,6 +425,7 @@ export const getComboText = (combo: number, linesCleared: number): string => {
 
 // Reaction preview when hovering a piece over a position.
 export const getReactionPreview = (grid: Cell[][], piece: DraggablePiece, pos: Position): ReactionPreview[] => {
+  const GRID_WIDTH = grid[0].length, GRID_HEIGHT = grid.length;
   const previews: ReactionPreview[] = [];
 
   piece.shape.forEach((p, i) => {
@@ -486,6 +491,7 @@ export const findHint = (
   pieces: DraggablePiece[],
   blocked?: Position | null,
 ): { piece: DraggablePiece; pos: Position } | null => {
+  const GRID_WIDTH = grid[0].length, GRID_HEIGHT = grid.length;
   const isBlocked = (x: number, y: number) => !!blocked && blocked.x === x && blocked.y === y;
   let firstValid: { piece: DraggablePiece; pos: Position } | null = null;
 
