@@ -37,6 +37,7 @@ import { Position } from '@/game/types';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { playSound } from '@/game/sounds';
 import { usePhase } from '@/hooks/usePhase';
+import { useStageCritter } from '@/hooks/useStageCritter';
 import AdaptiveStage from '@/components/game/AdaptiveStage';
 import PhasePill from '@/components/game/PhasePill';
 import PhaseUpOverlay from '@/components/game/PhaseUpOverlay';
@@ -58,7 +59,7 @@ const Index = () => {
     resetGame,
     selectPiece,
     setDropPreview,
-    canPlacePiece,
+    canPlacePiece: rawCanPlacePiece,
     placePiece,
     findHint,
   } = useBlockBlastEngine();
