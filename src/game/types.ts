@@ -111,31 +111,3 @@ export const ELEMENT_WEIGHTS: { element: ElementType; weight: number }[] = [
 
 export const GRID_WIDTH = 8;
 export const GRID_HEIGHT = 8;
-export const LIFE_SPREAD_INTERVAL = 15000; // 15 seconds
-
-// Legacy types for compatibility
-export interface Block {
-  positions: Position[];
-  elements: ElementType[];
-  rotation: number;
-}
-
-export interface Tetromino {
-  shape: Position[][];
-  elements: ElementType[];
-}
-
-export interface GameState {
-  grid: Cell[][];
-  currentPiece: Block | null;
-  currentPosition: Position;
-  nextPieces: Tetromino[];
-  score: number;
-  combo: number;
-  isGameOver: boolean;
-  isPaused: boolean;
-  lastLifeTick: number;
-}
-
-export const TETROMINO_SHAPES: Position[][][] = [];
-export const BASE_TICK_SPEED = 1000;
