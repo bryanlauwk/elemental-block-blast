@@ -80,7 +80,7 @@ export function LeaderboardModal({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/70 backdrop-blur-sm z-40"
+            className="fixed inset-0 bg-pixar-navy-deep/80 backdrop-blur-md z-40"
             onClick={onClose}
           />
           
