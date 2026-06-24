@@ -1,5 +1,4 @@
 import { PhaseConfig } from "@/game/phases";
-import StageScene from "./StageScene";
 
 interface AdaptiveStageProps {
   phase: PhaseConfig;
@@ -93,8 +92,6 @@ export function AdaptiveStage({ phase }: AdaptiveStageProps) {
         transition: "background 1.2s ease",
       }}
     >
-      {/* painterly scenic backdrop for this universe */}
-      <StageScene phase={phase} />
       {/* light vignette — only gently darkens the far corners so the scene
           stays bold and readable (sits BELOW the animated decorations) */}
       <div

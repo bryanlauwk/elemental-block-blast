@@ -5,6 +5,8 @@ import { ElementBlock } from './ElementBlock';
 import { cn } from '@/lib/utils';
 import { ReactionPreview } from '@/hooks/useBlockBlastEngine';
 import { Flame, Droplets, FlaskConical } from 'lucide-react';
+import { PhaseConfig } from '@/game/phases';
+import StageCritter from './StageCritter';
 
 interface BlockBlastGridProps {
   grid: Cell[][];
@@ -16,6 +18,8 @@ interface BlockBlastGridProps {
   onCellClick: (pos: Position) => void;
   onGridLeave: () => void;
   reactionPreviews?: ReactionPreview[];
+  phase?: PhaseConfig;
+  clearSignal?: number;
 }
 
 const reactionIcons = {
@@ -139,6 +143,8 @@ export function BlockBlastGrid({
   onCellClick,
   onGridLeave,
   reactionPreviews = [],
+  phase,
+  clearSignal = 0,
 }: BlockBlastGridProps) {
   const gridRef = useRef<HTMLDivElement>(null);
   const lastTouchCell = useRef<Position | null>(null);
@@ -381,6 +387,9 @@ export function BlockBlastGrid({
                 />
               );
             })
+          )}
+          {phase && (
+            <StageCritter phase={phase} grid={grid} clearSignal={clearSignal} />
           )}
         </div>
       </div>

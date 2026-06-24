@@ -634,6 +634,8 @@ const Index = () => {
                   onCellClick={handleCellClick}
                   onGridLeave={handleGridLeave}
                   reactionPreviews={reactionPreviews}
+                  phase={phase}
+                  clearSignal={comboDisplay.count}
                 />
                 
                 {/* Reaction Particles */}
