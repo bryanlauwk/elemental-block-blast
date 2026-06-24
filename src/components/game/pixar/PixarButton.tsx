@@ -8,6 +8,8 @@ type Size = "sm" | "md" | "lg";
 interface PixarButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: Variant;
   size?: Size;
+  /** Adds an animated light sweep across the face (a "press me" cue). */
+  shine?: boolean;
 }
 
 const variantFace: Record<Variant, string> = {
@@ -39,7 +41,7 @@ const sizeMap: Record<Size, { pad: string; text: string; offset: string }> = {
  */
 export const PixarButton = forwardRef<HTMLButtonElement, PixarButtonProps>(
   (
-    { className, variant = "primary", size = "md", children, onClick, ...props },
+    { className, variant = "primary", size = "md", shine = false, children, onClick, ...props },
     ref,
   ) => {
     const s = sizeMap[size];
@@ -88,6 +90,8 @@ export const PixarButton = forwardRef<HTMLButtonElement, PixarButtonProps>(
             aria-hidden
             className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/20 to-transparent rounded-b-full"
           />
+          {/* Animated light sweep */}
+          {shine && <span aria-hidden className="pixar-shine" />}
           <span
             className={cn(
               "relative z-10 block leading-none uppercase tracking-widest font-display",
