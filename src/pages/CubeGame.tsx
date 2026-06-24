@@ -3,6 +3,9 @@ import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Home, RotateCcw, Rotate3d, Lightbulb } from 'lucide-react';
 import { ElementBlock } from '@/components/game/ElementBlock';
+import { PieceTray } from '@/components/game/PieceTray';
+import { BlockBlastScoreboard } from '@/components/game/BlockBlastScoreboard';
+import PhasePill from '@/components/game/PhasePill';
 import { PixarChip, PixarButton, PixarOverlay } from '@/components/game/pixar';
 import { ScorePopup } from '@/components/game/ScorePopup';
 import ReactionParticles from '@/components/game/ReactionParticles';
@@ -11,14 +14,18 @@ import { FeverMeter } from '@/components/game/FeverMeter';
 import { usePhase } from '@/hooks/usePhase';
 import { Cell, DraggablePiece, Position } from '@/game/types';
 import {
-  createEmptyGrid, createRandomPiece, canPlacePieceAt, canAnyPieceFit, resolveGrid, findHint, getComboText,
+  createEmptyGrid, createRandomPiece, canPlacePieceAt, canAnyPieceFit, resolveGrid, findHint, getComboText, getReactionPreview,
 } from '@/game/engine';
 import { playSound, startMusic } from '@/game/sounds';
 
 const FACE = 6;
 type ReactionType = 'burn' | 'extinguish' | 'dissolve';
+const REACTION_RING: Record<ReactionType, string> = {
+  burn: 'ring-2 ring-orange-400/80',
+  extinguish: 'ring-2 ring-blue-400/80',
+  dissolve: 'ring-2 ring-green-400/80',
+};
 
-// Six faces of the cube; `place` positions each face on the cube body.
 const FACES = [
   { id: 0, name: 'Front',  place: 'translateZ(H)' },
   { id: 1, name: 'Right',  place: 'rotateY(90deg) translateZ(H)' },
@@ -45,13 +52,18 @@ const CubeGame = () => {
   const [selected, setSelected] = useState<DraggablePiece | null>(null);
   const [hover, setHover] = useState<Position | null>(null);
   const [score, setScore] = useState(0);
+  const [best, setBest] = useState<number>(() => Number(localStorage.getItem('cube-best') || 0));
   const [isGameOver, setIsGameOver] = useState(false);
   const [particle, setParticle] = useState<{ type: ReactionType; positions: Position[]; timestamp: number } | null>(null);
   const [popup, setPopup] = useState<{ score: number; show: boolean; text: string; reactionType?: ReactionType }>({ score: 0, show: false, text: '' });
   const [flashKey, setFlashKey] = useState(0);
-  const { phase } = usePhase(score);
+  const { phase, next, progress } = usePhase(score);
 
-  // ── Reaction Fever (mirrors the classic engine) ──
+  useEffect(() => {
+    if (score > best) { setBest(score); localStorage.setItem('cube-best', String(score)); }
+  }, [score, best]);
+
+  // ── Reaction Fever ──
   const [feverMeter, setFeverMeter] = useState(0);
   const [feverActive, setFeverActive] = useState(false);
   const [feverEndsAt, setFeverEndsAt] = useState(0);
@@ -83,7 +95,6 @@ const CubeGame = () => {
   const dragRef = useRef<{ x: number; y: number; rx: number; ry: number } | null>(null);
   const movedRef = useRef(false);
 
-  // Responsive cube size in px.
   const [size, setSize] = useState(320);
   useEffect(() => {
     const calc = () => setSize(Math.min(window.innerWidth * 0.8, Math.min(window.innerHeight * 0.5, 360)));
@@ -102,26 +113,24 @@ const CubeGame = () => {
   const refill = useCallback((remaining: DraggablePiece[], forScore: number) =>
     remaining.length > 0 ? remaining : [createRandomPiece(forScore), createRandomPiece(forScore), createRandomPiece(forScore)], []);
 
-  const handleCell = useCallback((fx: number, fy: number) => {
-    if (!selected || isGameOver) return;
+  const placePieceAt = useCallback((piece: DraggablePiece, pos: Position) => {
+    if (isGameOver) return;
     const board = boards[activeFace];
-    if (!canPlacePieceAt(board, selected, { x: fx, y: fy })) return;
+    if (!canPlacePieceAt(board, piece, pos)) return;
     playSound('drop');
 
-    const r = resolveGrid(placeInto(board, selected, { x: fx, y: fy }));
+    const r = resolveGrid(placeInto(board, piece, pos));
     const mult = feverActiveRef.current ? 2 : 1;
-    const gained = Math.floor(r.totalScore * mult) + selected.shape.length * 10;
+    const gained = Math.floor(r.totalScore * mult) + piece.shape.length * 10;
     const nextBoards = boards.map((b, i) => (i === activeFace ? r.grid : b));
     const nextScore = score + gained;
     setBoards(nextBoards);
     setScore(nextScore);
 
-    // Fever charge
     if (!feverActiveRef.current) {
       const gain = r.linesCleared * 10 + r.allReactionEvents.length * 6;
       if (gain > 0) setFeverMeter((m) => { const nm = m + gain; if (nm >= 100) { activateFever(); return 100; } return nm; });
     }
-
     if (r.allAffectedPositions.length > 0) {
       setParticle({ type: (r.primaryReactionType ?? r.allAffectedPositions[0].type) as ReactionType, positions: r.allAffectedPositions.flatMap((a) => a.positions), timestamp: Date.now() });
     }
@@ -133,29 +142,44 @@ const CubeGame = () => {
       window.setTimeout(() => setPopup((p) => ({ ...p, show: false })), 1200);
     }
 
-    const remaining = pieces.filter((p) => p.id !== selected.id);
-    const nextPieces = refill(remaining, nextScore);
+    const nextPieces = refill(pieces.filter((p) => p.id !== piece.id), nextScore);
     setPieces(nextPieces);
     setSelected(null);
     setHover(null);
+    if (!nextBoards.some((b) => canAnyPieceFit(b, nextPieces))) { setIsGameOver(true); playSound('gameOver'); }
+  }, [isGameOver, boards, activeFace, score, pieces, refill, activateFever]);
 
-    // Game over only when NO face can fit ANY remaining piece.
-    const anyMove = nextBoards.some((b) => canAnyPieceFit(b, nextPieces));
-    if (!anyMove) { setIsGameOver(true); playSound('gameOver'); }
-  }, [selected, isGameOver, boards, activeFace, score, pieces, refill, activateFever]);
+  // ── Map a screen point to a cell on the (flat, front-facing) active face ──
+  const cellFromPoint = useCallback((clientX: number, clientY: number, pointerType: string): Position | null => {
+    const el = document.getElementById('cube-active-grid');
+    if (!el) return null;
+    const rect = el.getBoundingClientRect();
+    const cw = rect.width / FACE;
+    const ch = rect.height / FACE;
+    const offY = pointerType === 'mouse' ? 0 : ch * 1.1;
+    if (clientX < rect.left - cw * 0.5 || clientX > rect.right + cw * 0.5 || clientY < rect.top || clientY > rect.bottom + offY) return null;
+    const x = Math.min(FACE - 1, Math.max(0, Math.floor((clientX - rect.left) / cw)));
+    const y = Math.min(FACE - 1, Math.max(0, Math.floor((clientY - rect.top - offY) / ch)));
+    return { x, y };
+  }, []);
 
-  // ── Hint: ghost a helpful move on the active face ──
-  const hintTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const handleDragHover = useCallback((piece: DraggablePiece, cx: number, cy: number, pt: string) => {
+    setSelected(piece);
+    setHover(cellFromPoint(cx, cy, pt));
+  }, [cellFromPoint]);
+  const handleDragDrop = useCallback((piece: DraggablePiece, cx: number, cy: number, pt: string) => {
+    const cell = cellFromPoint(cx, cy, pt);
+    if (cell) placePieceAt(piece, cell);
+    setHover(null);
+  }, [cellFromPoint, placePieceAt]);
+
   const handleHint = useCallback(() => {
     const h = findHint(boards[activeFace], pieces);
     if (!h) return;
     playSound('select');
     setSelected(h.piece);
     setHover(h.pos);
-    if (hintTimer.current) clearTimeout(hintTimer.current);
-    hintTimer.current = setTimeout(() => setHover(null), 1700);
   }, [boards, activeFace, pieces]);
-  useEffect(() => () => { if (hintTimer.current) clearTimeout(hintTimer.current); }, []);
 
   // ── Orbit / snap ──
   const faceFromRot = (rx: number, ry: number) => {
@@ -199,6 +223,7 @@ const CubeGame = () => {
     setBoards(FACES.map(() => createEmptyGrid(FACE, FACE)));
     setPieces([createRandomPiece(0), createRandomPiece(0), createRandomPiece(0)]);
     setSelected(null);
+    setHover(null);
     setScore(0);
     setActiveFace(0);
     setIsGameOver(false);
@@ -208,10 +233,19 @@ const CubeGame = () => {
     setSnapping(true);
   };
 
+  // Placement ghost + reaction preview on the active face.
   const ghost = useMemo(() => {
-    if (!selected || !hover) return new Set<string>();
-    if (!canPlacePieceAt(boards[activeFace], selected, hover)) return new Set<string>();
+    if (!selected || !hover || !canPlacePieceAt(boards[activeFace], selected, hover)) return new Set<string>();
     return new Set(selected.shape.map((p) => `${hover.x + p.x},${hover.y + p.y}`));
+  }, [selected, hover, boards, activeFace]);
+
+  const reactionMap = useMemo(() => {
+    const m = new Map<string, ReactionType>();
+    if (!selected || !hover || !canPlacePieceAt(boards[activeFace], selected, hover)) return m;
+    getReactionPreview(boards[activeFace], selected, hover).forEach((pv) => {
+      pv.affectedPositions.forEach((ap) => m.set(`${ap.x},${ap.y}`, pv.type));
+    });
+    return m;
   }, [selected, hover, boards, activeFace]);
 
   return (
@@ -221,25 +255,24 @@ const CubeGame = () => {
     >
       <AdaptiveStage phase={phase} />
 
-      <div className="pointer-events-none fixed inset-0 z-40 flex items-start justify-center pt-24">
+      <div className="pointer-events-none fixed inset-0 z-40 flex items-start justify-center pt-28">
         <ScorePopup score={popup.score} show={popup.show} text={popup.text} reactionType={popup.reactionType} />
       </div>
 
       {/* Top bar */}
       <div className="w-full flex items-center justify-between px-4 pt-4 z-20">
         <Link to="/"><PixarChip title="Back to classic"><Home className="w-5 h-5 text-white" /></PixarChip></Link>
-        <div className="text-center">
-          <p className="text-[10px] uppercase tracking-[0.3em] text-pixar-yellow/80 font-bold">Cube Mode</p>
-          <p className="font-display text-2xl leading-none bg-gradient-to-r from-pixar-yellow to-pixar-red bg-clip-text text-transparent">{score.toLocaleString()}</p>
-        </div>
+        <p className="text-[10px] uppercase tracking-[0.3em] text-pixar-yellow/80 font-bold">Cube Mode</p>
         <div className="flex gap-2">
           <PixarChip title="Hint" onClick={handleHint}><Lightbulb className="w-5 h-5 text-pixar-yellow" /></PixarChip>
           <PixarChip title="Restart" onClick={reset}><RotateCcw className="w-5 h-5 text-white" /></PixarChip>
         </div>
       </div>
 
-      {/* Fever meter */}
-      <div className="z-20 w-full max-w-[420px] px-4 mt-1">
+      {/* Classic HUD: scoreboard + phase pill + fever */}
+      <div className="z-20 w-full max-w-[420px] px-4 flex flex-col items-center mt-1">
+        <BlockBlastScoreboard score={score} topScore={best} compact />
+        <PhasePill phase={phase} next={next} progress={progress} />
         <FeverMeter meter={feverMeter} active={feverActive} endsAt={feverEndsAt} />
       </div>
 
@@ -280,17 +313,19 @@ const CubeGame = () => {
                   style={{ background: 'linear-gradient(90deg, transparent, hsl(var(--stage-accent, var(--pixar-yellow))) 30%, hsl(var(--pixar-red)) 70%, transparent)', opacity: 0.85 }} />
                 {isActive && flashKey > 0 && <span key={flashKey} className="neon-flash-overlay rounded-2xl" aria-hidden />}
                 {isActive && <ReactionParticles trigger={particle} cellSize={cellPx + gap} gridOffset={{ x: pad, y: pad }} />}
-                <div className="grid h-full w-full" style={{ gridTemplateColumns: `repeat(${FACE}, 1fr)`, gridTemplateRows: `repeat(${FACE}, 1fr)`, gap }}>
+                <div id={isActive ? 'cube-active-grid' : undefined} className="grid h-full w-full" style={{ gridTemplateColumns: `repeat(${FACE}, 1fr)`, gridTemplateRows: `repeat(${FACE}, 1fr)`, gap }}>
                   {board.map((row, y) =>
                     row.map((cell, x) => {
-                      const isGhost = isActive && ghost.has(`${x},${y}`);
+                      const k = `${x},${y}`;
+                      const isGhost = isActive && ghost.has(k);
+                      const rType = isActive ? reactionMap.get(k) : undefined;
                       return (
                         <div
-                          key={`${x}-${y}`}
-                          className="flex items-center justify-center rounded-lg"
+                          key={k}
+                          className={`flex items-center justify-center rounded-lg ${rType ? REACTION_RING[rType] : ''}`}
                           style={{ background: cell.element ? 'transparent' : 'hsl(var(--game-cell) / 0.6)' }}
                           onMouseEnter={isActive ? () => setHover({ x, y }) : undefined}
-                          onClick={isActive ? () => { if (!movedRef.current) handleCell(x, y); } : undefined}
+                          onClick={isActive ? () => { if (!movedRef.current && selected) placePieceAt(selected, { x, y }); } : undefined}
                         >
                           {cell.element && <ElementBlock element={cell.element} size={blockPx} showSymbol={false} />}
                           {!cell.element && isGhost && selected && (
@@ -315,42 +350,16 @@ const CubeGame = () => {
         <span className="text-xs uppercase tracking-widest font-bold text-white/90">{FACES[activeFace].name}</span>
       </div>
 
-      {/* Piece tray */}
+      {/* Full classic piece tray (tap-to-select or drag onto the front face) */}
       <div className="z-20 w-full max-w-md px-4 pb-6">
-        <div className="flex justify-center items-center gap-4">
-          {pieces.map((piece) => {
-            const isSel = selected?.id === piece.id;
-            const minX = Math.min(...piece.shape.map((p) => p.x));
-            const minY = Math.min(...piece.shape.map((p) => p.y));
-            const w = Math.max(...piece.shape.map((p) => p.x)) - minX + 1;
-            const h = Math.max(...piece.shape.map((p) => p.y)) - minY + 1;
-            return (
-              <motion.button
-                key={piece.id}
-                onClick={() => { playSound('select'); setSelected(isSel ? null : piece); }}
-                whileTap={{ scale: 0.95 }}
-                animate={{ scale: isSel ? 1.08 : 1 }}
-                className={`relative p-2 rounded-xl border bg-game-tray/50 ${isSel ? 'border-pixar-yellow ring-2 ring-pixar-yellow/60' : 'border-game-grid-border/30'}`}
-              >
-                <div className="grid gap-[2px]" style={{ gridTemplateColumns: `repeat(${w}, 20px)`, gridTemplateRows: `repeat(${h}, 20px)` }}>
-                  {Array.from({ length: h }, (_, row) =>
-                    Array.from({ length: w }, (_, col) => {
-                      const idx = piece.shape.findIndex((p) => p.x - minX === col && p.y - minY === row);
-                      return (
-                        <div key={`${row}-${col}`} className="flex items-center justify-center" style={{ width: 20, height: 20 }}>
-                          {idx !== -1 && <ElementBlock element={piece.elements[idx]} size={18} isPreview showSymbol={false} />}
-                        </div>
-                      );
-                    })
-                  )}
-                </div>
-              </motion.button>
-            );
-          })}
-        </div>
-        <p className="text-center text-xs text-game-text-muted/60 mt-3">
-          {selected ? 'Tap a square on the front face to place' : 'Pick a piece — drag the cube to play all 6 faces'}
-        </p>
+        <PieceTray
+          pieces={pieces}
+          selectedPiece={selected}
+          onSelectPiece={setSelected}
+          onDragHover={handleDragHover}
+          onDragDrop={handleDragDrop}
+          disabled={isGameOver}
+        />
       </div>
 
       {/* Game over */}
