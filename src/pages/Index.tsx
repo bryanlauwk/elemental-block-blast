@@ -34,7 +34,7 @@ import { FeverMeter } from '@/components/game/FeverMeter';
 import { Button } from '@/components/ui/button';
 import { Trophy, Play, RotateCcw, HelpCircle, Zap, Calendar, Volume2, Home, Award, Flame, Droplets, TreeDeciduous, Mountain, Wind, Lightbulb } from 'lucide-react';
 import { PixarChip, PixarButton, PixarStatChip, PixarBadge, PixarOverlay } from '@/components/game/pixar';
-import { Position } from '@/game/types';
+import { Position, DraggablePiece, GRID_WIDTH, GRID_HEIGHT } from '@/game/types';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { playSound, startMusic } from '@/game/sounds';
 import { usePhase } from '@/hooks/usePhase';
@@ -242,6 +242,36 @@ const Index = () => {
   const handleGridLeave = useCallback(() => {
     setDropPreview(null);
   }, [setDropPreview]);
+
+  // Map a screen point to a board cell (used by tray drag-and-drop). On touch
+  // the target is lifted ~1.1 cells above the finger so it isn't hidden.
+  const cellFromPoint = useCallback((clientX: number, clientY: number, pointerType: string): Position | null => {
+    const el = document.getElementById('bb-grid');
+    if (!el) return null;
+    const rect = el.getBoundingClientRect();
+    const cellW = rect.width / GRID_WIDTH;
+    const cellH = rect.height / GRID_HEIGHT;
+    const offsetY = pointerType === 'mouse' ? 0 : cellH * 1.1;
+    if (
+      clientX < rect.left - cellW * 0.5 ||
+      clientX > rect.right + cellW * 0.5 ||
+      clientY < rect.top ||
+      clientY > rect.bottom + offsetY
+    ) return null;
+    const x = Math.min(GRID_WIDTH - 1, Math.max(0, Math.floor((clientX - rect.left) / cellW)));
+    const y = Math.min(GRID_HEIGHT - 1, Math.max(0, Math.floor((clientY - rect.top - offsetY) / cellH)));
+    return { x, y };
+  }, []);
+
+  const handleDragHover = useCallback((_piece: DraggablePiece, clientX: number, clientY: number, pointerType: string) => {
+    setDropPreview(cellFromPoint(clientX, clientY, pointerType));
+  }, [cellFromPoint, setDropPreview]);
+
+  const handleDragDrop = useCallback((piece: DraggablePiece, clientX: number, clientY: number, pointerType: string) => {
+    const cell = cellFromPoint(clientX, clientY, pointerType);
+    if (cell && canPlacePiece(piece, cell)) placePiece(piece, cell);
+    setDropPreview(null);
+  }, [cellFromPoint, canPlacePiece, placePiece, setDropPreview]);
 
   // "Hint" — ghost a helpful placement on the board for a moment.
   const hintTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -859,6 +889,8 @@ const Index = () => {
                 pieces={gameState.availablePieces}
                 selectedPiece={gameState.selectedPiece}
                 onSelectPiece={selectPiece}
+                onDragHover={handleDragHover}
+                onDragDrop={handleDragDrop}
                 disabled={gameState.isGameOver}
               />
             )}

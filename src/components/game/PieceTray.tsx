@@ -1,4 +1,5 @@
 import { motion } from 'framer-motion';
+import { useRef } from 'react';
 import { DraggablePiece, Position } from '@/game/types';
 import { ElementBlock } from './ElementBlock';
 import { cn } from '@/lib/utils';
@@ -6,16 +7,55 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { X } from 'lucide-react';
 import { playSound } from '@/game/sounds';
 
+type PointerKind = string;
+
 interface PieceTrayProps {
   pieces: DraggablePiece[];
   selectedPiece: DraggablePiece | null;
   onSelectPiece: (piece: DraggablePiece | null) => void;
+  /** Called continuously while dragging a piece over the board. */
+  onDragHover?: (piece: DraggablePiece, clientX: number, clientY: number, pointerType: PointerKind) => void;
+  /** Called when a dragged piece is released. */
+  onDragDrop?: (piece: DraggablePiece, clientX: number, clientY: number, pointerType: PointerKind) => void;
   disabled?: boolean;
 }
 
-export function PieceTray({ pieces, selectedPiece, onSelectPiece, disabled }: PieceTrayProps) {
+export function PieceTray({ pieces, selectedPiece, onSelectPiece, onDragHover, onDragDrop, disabled }: PieceTrayProps) {
   const isMobile = useIsMobile();
-  
+
+  // Pointer-drag: press a piece and drag it onto the board (mouse + touch).
+  // A press without movement falls back to tap-to-select.
+  const drag = useRef<{ piece: DraggablePiece; startX: number; startY: number; moved: boolean; pointerId: number; pointerType: PointerKind } | null>(null);
+
+  const handlePointerDown = (e: React.PointerEvent<HTMLButtonElement>, piece: DraggablePiece) => {
+    if (disabled) return;
+    try { e.currentTarget.setPointerCapture(e.pointerId); } catch { /* ignore */ }
+    drag.current = { piece, startX: e.clientX, startY: e.clientY, moved: false, pointerId: e.pointerId, pointerType: e.pointerType };
+  };
+
+  const handlePointerMove = (e: React.PointerEvent<HTMLButtonElement>) => {
+    const d = drag.current;
+    if (!d || e.pointerId !== d.pointerId) return;
+    if (!d.moved && Math.hypot(e.clientX - d.startX, e.clientY - d.startY) > 6) {
+      d.moved = true;
+      playSound('select');
+      onSelectPiece(d.piece);
+    }
+    if (d.moved) onDragHover?.(d.piece, e.clientX, e.clientY, d.pointerType);
+  };
+
+  const handlePointerUp = (e: React.PointerEvent<HTMLButtonElement>) => {
+    const d = drag.current;
+    if (!d || e.pointerId !== d.pointerId) return;
+    drag.current = null;
+    if (d.moved) {
+      onDragDrop?.(d.piece, e.clientX, e.clientY, d.pointerType);
+    } else {
+      playSound('select');
+      onSelectPiece(selectedPiece?.id === d.piece.id ? null : d.piece);
+    }
+  };
+
   const getPieceBounds = (shape: Position[]) => {
     const minX = Math.min(...shape.map(p => p.x));
     const maxX = Math.max(...shape.map(p => p.x));
@@ -47,11 +87,10 @@ export function PieceTray({ pieces, selectedPiece, onSelectPiece, disabled }: Pi
                 disabled && 'opacity-40 cursor-not-allowed',
                 !disabled && !isSelected && 'hover:bg-game-tray hover:border-game-grid-border/50 active:scale-95'
               )}
-              onClick={() => {
-                if (disabled) return;
-                playSound('select');
-                onSelectPiece(isSelected ? null : piece);
-              }}
+              style={{ touchAction: 'none' }}
+              onPointerDown={(e) => handlePointerDown(e, piece)}
+              onPointerMove={handlePointerMove}
+              onPointerUp={handlePointerUp}
               whileTap={!disabled ? { scale: 0.95 } : {}}
               animate={isSelected ? { 
                 scale: 1.05,
@@ -129,9 +168,9 @@ export function PieceTray({ pieces, selectedPiece, onSelectPiece, disabled }: Pi
       
       {/* Instruction hint */}
       <p className="text-center text-xs text-game-text-muted/60 mt-3">
-        {selectedPiece 
-          ? (isMobile ? 'Drag on grid to preview, lift to place' : 'Tap grid to place') 
-          : 'Select a piece'}
+        {selectedPiece
+          ? (isMobile ? 'Drag onto the board, lift to place' : 'Tap the board to place')
+          : 'Drag a piece onto the board — or tap to select'}
       </p>
     </div>
   );
