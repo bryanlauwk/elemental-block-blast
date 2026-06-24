@@ -209,6 +209,27 @@ export const processReactions = (
 
   const posKey = (x: number, y: number) => `${x},${y}`;
 
+  // Wildfire: a fire touching wood ignites the WHOLE connected wood cluster,
+  // not just the adjacent cell. Flood-fill (4-connectivity) through wood,
+  // burning every reachable wood cell to ash in one cascade. Each wood cell
+  // burns at most once per resolution.
+  const burnedWood = new Set<string>();
+  const floodWood = (sx: number, sy: number): Position[] => {
+    const region: Position[] = [];
+    const stack: Position[] = [{ x: sx, y: sy }];
+    while (stack.length) {
+      const { x, y } = stack.pop()!;
+      if (x < 0 || x >= GRID_WIDTH || y < 0 || y >= GRID_HEIGHT) continue;
+      const k = posKey(x, y);
+      if (burnedWood.has(k)) continue;
+      if (newGrid[y][x].element !== 'wood') continue;
+      burnedWood.add(k);
+      region.push({ x, y });
+      stack.push({ x: x - 1, y }, { x: x + 1, y }, { x, y: y - 1 }, { x, y: y + 1 });
+    }
+    return region;
+  };
+
   for (let y = 0; y < GRID_HEIGHT; y++) {
     for (let x = 0; x < GRID_WIDTH; x++) {
       const cell = newGrid[y][x];
@@ -221,28 +242,30 @@ export const processReactions = (
         { pos: { x, y: y + 1 }, cell: y < GRID_HEIGHT - 1 ? newGrid[y + 1][x] : { element: null, id: '' } },
       ];
 
-      // Fire + Wood → Fire remains, Wood becomes Ash
+      // Fire + Wood → wildfire through the connected wood cluster (each → Ash)
       if (cell.element === 'fire') {
         const burnPositions: Position[] = [];
         neighbors.forEach(({ pos, cell: neighbor }) => {
           if (neighbor.element === 'wood') {
-            toRemove.add(posKey(pos.x, pos.y));
-            toAdd.push({ pos, element: 'ash' });
-            burnPositions.push(pos);
-            reacted = true;
-            reactionCount++;
-            events.push({
-              id: `burn-${Date.now()}-${Math.random()}`,
-              type: 'burn',
-              source: 'fire',
-              target: 'wood',
-              points: 50,
-              timestamp: Date.now(),
+            floodWood(pos.x, pos.y).forEach((wp) => {
+              toRemove.add(posKey(wp.x, wp.y));
+              toAdd.push({ pos: wp, element: 'ash' });
+              burnPositions.push(wp);
+              reacted = true;
+              reactionCount++;
+              events.push({
+                id: `burn-${Date.now()}-${Math.random()}`,
+                type: 'burn',
+                source: 'fire',
+                target: 'wood',
+                points: 50,
+                timestamp: Date.now(),
+              });
             });
-            playSound('sizzle');
           }
         });
         if (burnPositions.length > 0) {
+          playSound('sizzle');
           affectedPositions.push({ type: 'burn', positions: burnPositions });
         }
       }
@@ -320,9 +343,11 @@ export const processReactions = (
 };
 
 // Resolve grid - LINE CLEARS FIRST, then reactions (strategic order)
+export const PERFECT_CLEAR_BONUS = 1000;
+
 export const resolveGrid = (
   grid: Cell[][],
-): { grid: Cell[][]; totalScore: number; maxCombo: number; linesCleared: number; allReactionEvents: ReactionEvent[]; primaryReactionType?: ReactionType; allAffectedPositions: AffectedGroup[] } => {
+): { grid: Cell[][]; totalScore: number; maxCombo: number; linesCleared: number; allReactionEvents: ReactionEvent[]; primaryReactionType?: ReactionType; allAffectedPositions: AffectedGroup[]; perfectClear: boolean } => {
   let currentGrid = grid;
   let totalScore = 0;
   let combo = 0;
@@ -360,7 +385,14 @@ export const resolveGrid = (
     }
   }
 
-  return { grid: currentGrid, totalScore, maxCombo: combo, linesCleared: totalLinesCleared, allReactionEvents, primaryReactionType, allAffectedPositions };
+  // Perfect Clear: a clear emptied the entire board → big bonus.
+  const perfectClear =
+    totalLinesCleared > 0 && currentGrid.every((row) => row.every((c) => c.element === null));
+  if (perfectClear) {
+    totalScore += PERFECT_CLEAR_BONUS;
+  }
+
+  return { grid: currentGrid, totalScore, maxCombo: combo, linesCleared: totalLinesCleared, allReactionEvents, primaryReactionType, allAffectedPositions, perfectClear };
 };
 
 export const getComboText = (combo: number, linesCleared: number): string => {
@@ -391,9 +423,26 @@ export const getReactionPreview = (grid: Cell[][], piece: DraggablePiece, pos: P
     ].filter(n => n.x >= 0 && n.x < GRID_WIDTH && n.y >= 0 && n.y < GRID_HEIGHT);
 
     if (element === 'fire') {
-      const burnTargets = neighbors.filter(n => grid[n.y][n.x].element === 'wood');
+      // Preview the full wildfire: the whole connected wood cluster that
+      // would catch, not just the directly-adjacent cells.
+      const woodNeighbors = neighbors.filter(n => grid[n.y][n.x].element === 'wood');
+      if (woodNeighbors.length > 0) {
+        const seen = new Set<string>();
+        const burnTargets: Position[] = [];
+        const stack = [...woodNeighbors];
+        while (stack.length) {
+          const n = stack.pop()!;
+          const k = `${n.x},${n.y}`;
+          if (seen.has(k)) continue;
+          if (n.x < 0 || n.x >= GRID_WIDTH || n.y < 0 || n.y >= GRID_HEIGHT) continue;
+          if (grid[n.y][n.x].element !== 'wood') continue;
+          seen.add(k);
+          burnTargets.push({ x: n.x, y: n.y });
+          stack.push({ x: n.x - 1, y: n.y }, { x: n.x + 1, y: n.y }, { x: n.x, y: n.y - 1 }, { x: n.x, y: n.y + 1 });
+        }
+        previews.push({ pos: { x, y }, type: 'burn', affectedPositions: burnTargets });
+      }
       const extinguishTargets = neighbors.filter(n => grid[n.y][n.x].element === 'water');
-      if (burnTargets.length > 0) previews.push({ pos: { x, y }, type: 'burn', affectedPositions: burnTargets });
       if (extinguishTargets.length > 0) previews.push({ pos: { x, y }, type: 'extinguish', affectedPositions: extinguishTargets });
     }
 

@@ -61,6 +61,7 @@ const Index = () => {
     canPlacePiece,
     placePiece,
     findHint,
+    perfectClearSignal,
   } = useBlockBlastEngine();
 
   const { highScores, topScore, saveScore, clearScores } = useHighScores();
@@ -176,6 +177,11 @@ const Index = () => {
       setSparkleTrigger((t) => t + 1);
     }
   }, [comboDisplay.show, comboDisplay.count]);
+
+  // Perfect Clear → full confetti celebration.
+  useEffect(() => {
+    if (perfectClearSignal > 0) setConfettiTrigger((t) => t + 1);
+  }, [perfectClearSignal]);
 
   // Handle exit game
   const handleExitGame = useCallback(() => {
