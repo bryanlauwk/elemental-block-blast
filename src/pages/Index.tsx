@@ -33,11 +33,10 @@ import LottieBurst from '@/components/game/LottieBurst';
 import { Button } from '@/components/ui/button';
 import { Trophy, Play, RotateCcw, HelpCircle, Zap, Calendar, Volume2, Home, Award, Flame, Droplets, TreeDeciduous, Mountain, Wind, Lightbulb } from 'lucide-react';
 import { PixarChip, PixarButton, PixarStatChip, PixarBadge, PixarOverlay } from '@/components/game/pixar';
-import { Position, GRID_WIDTH, GRID_HEIGHT, DraggablePiece } from '@/game/types';
+import { Position } from '@/game/types';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { playSound, startMusic } from '@/game/sounds';
 import { usePhase } from '@/hooks/usePhase';
-import { useStageHazard } from '@/hooks/useStageHazard';
 import AdaptiveStage from '@/components/game/AdaptiveStage';
 import PhasePill from '@/components/game/PhasePill';
 import PhaseUpOverlay from '@/components/game/PhaseUpOverlay';
@@ -59,7 +58,7 @@ const Index = () => {
     resetGame,
     selectPiece,
     setDropPreview,
-    canPlacePiece: rawCanPlacePiece,
+    canPlacePiece,
     placePiece,
     findHint,
   } = useBlockBlastEngine();
@@ -90,55 +89,6 @@ const Index = () => {
 
   // Phase progression (drives adaptive stage + HUD pill + phase-up celebration)
   const { phase, next, progress, justAdvanced, clearJustAdvanced } = usePhase(gameState.score);
-
-  // Monotonic signal that ticks once per clearing event so the hazard reshapes
-  // the terrain on clears (not on the combo counter resetting 0 -> N -> 0).
-  const [hazardClearSignal, setHazardClearSignal] = useState(0);
-  const prevComboShow = useRef(false);
-  useEffect(() => {
-    if (comboDisplay.show && !prevComboShow.current) {
-      setHazardClearSignal((s) => s + 1);
-    }
-    prevComboShow.current = comboDisplay.show;
-  }, [comboDisplay.show]);
-
-  // A cell is OK for the hazard only if, with it blocked, the player still has
-  // at least one legal move — so the hazard never parks on the only move.
-  const canHazardOccupy = useCallback(
-    (cell: Position) => {
-      const pieces = gameState.availablePieces;
-      if (pieces.length === 0) return true;
-      return pieces.some((piece) => {
-        for (let y = 0; y < GRID_HEIGHT; y++) {
-          for (let x = 0; x < GRID_WIDTH; x++) {
-            const coversHazard = piece.shape.some(
-              (s) => x + s.x === cell.x && y + s.y === cell.y,
-            );
-            if (coversHazard) continue;
-            if (rawCanPlacePiece(piece, { x, y })) return true;
-          }
-        }
-        return false;
-      });
-    },
-    [gameState.availablePieces, rawCanPlacePiece],
-  );
-
-  // Per-phase terrain hazard that occupies one empty cell as a placement blocker.
-  const { pos: hazardPos, isBlocked: isHazardBlocked } =
-    useStageHazard(gameState.grid, hazardClearSignal, canHazardOccupy);
-
-  // Wrap the engine's canPlacePiece so the hazard's cell is treated as blocked.
-  const canPlacePiece = useCallback(
-    (piece: DraggablePiece | null, pos: Position) => {
-      if (!piece) return false;
-      if (!rawCanPlacePiece(piece, pos)) return false;
-      return piece.shape.every(
-        (p) => !isHazardBlocked(pos.x + p.x, pos.y + p.y),
-      );
-    },
-    [rawCanPlacePiece, isHazardBlocked],
-  );
 
   // Load player's daily best score when opening daily challenge modal
   useEffect(() => {
@@ -286,14 +236,14 @@ const Index = () => {
   // "Hint" — ghost a helpful placement on the board for a moment.
   const hintTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const handleHint = useCallback(() => {
-    const hint = findHint(hazardPos);
+    const hint = findHint();
     if (!hint) return;
     playSound('select');
     selectPiece(hint.piece);
     setDropPreview(hint.pos);
     if (hintTimer.current) clearTimeout(hintTimer.current);
     hintTimer.current = setTimeout(() => setDropPreview(null), 1800);
-  }, [findHint, selectPiece, setDropPreview, hazardPos]);
+  }, [findHint, selectPiece, setDropPreview]);
 
   useEffect(() => () => {
     if (hintTimer.current) clearTimeout(hintTimer.current);
@@ -707,8 +657,6 @@ const Index = () => {
                   onCellClick={handleCellClick}
                   onGridLeave={handleGridLeave}
                   reactionPreviews={reactionPreviews}
-                  phase={phase}
-                  hazardPos={hazardPos}
                 />
                 
                 {/* Reaction Particles */}

@@ -750,41 +750,6 @@ All colors MUST be HSL.
   .mascot-bob, .hero-prop { animation: none !important; }
 }
 
-/* ─── Stage hazard (animated terrain holes) ─── */
-.hz-el {
-  transform-box: fill-box;
-  transform-origin: center;
-  will-change: transform, opacity;
-}
-@keyframes hz-spin { to { transform: rotate(360deg); } }
-@keyframes hz-spin-rev { to { transform: rotate(-360deg); } }
-@keyframes hz-pulse { 0%, 100% { opacity: 0.4; } 50% { opacity: 0.95; } }
-@keyframes hz-breathe { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.06); } }
-@keyframes hz-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-2px); } }
-@keyframes hz-bubble {
-  0% { transform: translateY(8px) scale(0.4); opacity: 0; }
-  25% { opacity: 1; }
-  80% { opacity: 0.9; }
-  100% { transform: translateY(-16px) scale(1); opacity: 0; }
-}
-@keyframes hz-fall {
-  0% { transform: translateY(-11px); opacity: 0; }
-  20% { opacity: 1; }
-  100% { transform: translateY(13px); opacity: 0; }
-}
-.hz-spin { animation: hz-spin 14s linear infinite; }
-.hz-spin-rev { animation: hz-spin-rev 22s linear infinite; }
-.hz-pulse { animation: hz-pulse 2.2s ease-in-out infinite; }
-.hz-breathe { animation: hz-breathe 3.4s ease-in-out infinite; }
-.hz-bob { animation: hz-bob 3s ease-in-out infinite; }
-.hz-bubble { animation: hz-bubble 2.6s ease-in-out infinite; }
-.hz-fall { animation: hz-fall 3.4s ease-in infinite; }
-
-@media (prefers-reduced-motion: reduce) {
-  .hz-spin, .hz-spin-rev, .hz-pulse, .hz-breathe, .hz-bob, .hz-bubble, .hz-fall {
-    animation: none !important;
-  }
-}
 
 /* ─── Pixar button shine sweep ─── */
 @keyframes pixar-shine {
@@ -805,17 +770,3 @@ All colors MUST be HSL.
   .pixar-shine { animation: none; opacity: 0; }
 }
 
-/* ─── Hazard 3D extras: receding tunnel + boiling churn ─── */
-@keyframes hz-recede {
-  0% { transform: scale(1); opacity: 0.85; }
-  100% { transform: scale(0.08); opacity: 0; }
-}
-@keyframes hz-churn {
-  0%, 100% { transform: scaleY(1) translateY(0); }
-  50% { transform: scaleY(1.12) translateY(-1px); }
-}
-.hz-recede { animation: hz-recede 3s ease-in infinite; }
-.hz-churn { animation: hz-churn 2s ease-in-out infinite; }
-@media (prefers-reduced-motion: reduce) {
-  .hz-recede, .hz-churn { animation: none !important; }
-}
