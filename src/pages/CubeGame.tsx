@@ -1,12 +1,16 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState, type CSSProperties } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ChevronLeft, ChevronRight, ChevronUp, ChevronDown, Home, RotateCcw } from 'lucide-react';
 import { ElementBlock } from '@/components/game/ElementBlock';
 import { PixarChip } from '@/components/game/pixar';
+import { ScorePopup } from '@/components/game/ScorePopup';
+import ReactionParticles from '@/components/game/ReactionParticles';
+import AdaptiveStage from '@/components/game/AdaptiveStage';
+import { usePhase } from '@/hooks/usePhase';
 import { Position } from '@/game/types';
 import {
-  CBoard, CPiece, FACE, emptyBoard, randomPiece, canPlace, place, clearLines, canAnyFit,
+  CBoard, CPiece, FACE, emptyBoard, randomPiece, canPlace, place, resolve6, canAnyFit, ReactionType,
 } from '@/cube/board6';
 import { playSound, startMusic } from '@/game/sounds';
 
@@ -21,8 +25,6 @@ const FACES = [
   { id: 5, name: 'Bottom', place: 'rotateX(-90deg) translateZ(H)', view: 'rotateX(90deg)' },
 ] as const;
 
-const lineBonus = (n: number) => (n === 1 ? 100 : n === 2 ? 300 : n >= 3 ? n * 200 : 0);
-
 const CubeGame = () => {
   const [boards, setBoards] = useState<CBoard[]>(() => FACES.map(() => emptyBoard()));
   const [activeFace, setActiveFace] = useState(0);
@@ -30,6 +32,10 @@ const CubeGame = () => {
   const [selected, setSelected] = useState<CPiece | null>(null);
   const [hover, setHover] = useState<Position | null>(null);
   const [score, setScore] = useState(0);
+  const [particle, setParticle] = useState<{ type: ReactionType; positions: Position[]; timestamp: number } | null>(null);
+  const [popup, setPopup] = useState<{ score: number; show: boolean; text: string; reactionType?: ReactionType }>({ score: 0, show: false, text: '' });
+  const [flashKey, setFlashKey] = useState(0);
+  const { phase } = usePhase(score);
 
   // Responsive cube size in px (so ElementBlock cells get a concrete size).
   const [size, setSize] = useState(320);
@@ -56,11 +62,22 @@ const CubeGame = () => {
     const board = boards[activeFace];
     if (!canPlace(board, selected, fx, fy)) return;
     playSound('drop');
-    const placed = place(board, selected, fx, fy);
-    const { board: cleared, cleared: lines } = clearLines(placed);
-    if (lines > 0) playSound('lineClear');
-    setBoards((prev) => prev.map((b, i) => (i === activeFace ? cleared : b)));
-    setScore((s) => s + selected.shape.length * 5 + lineBonus(lines));
+    const r = resolve6(place(board, selected, fx, fy));
+    const gained = selected.shape.length * 5 + r.gained;
+    setBoards((prev) => prev.map((b, i) => (i === activeFace ? r.board : b)));
+    setScore((s) => s + gained);
+    if (r.lines > 0) playSound('lineClear');
+    if (r.affected.length > 0) {
+      playSound(r.affected[0].type === 'extinguish' ? 'splash' : r.affected[0].type === 'dissolve' ? 'dissolve' : 'sizzle');
+      setParticle({ type: r.affected[0].type, positions: r.affected.flatMap((a) => a.positions), timestamp: Date.now() });
+    }
+    if (r.lines > 0 || r.reactions > 0) {
+      const text = r.perfectClear ? 'PERFECT CLEAR!' : r.combo >= 3 ? 'INCREDIBLE!' : r.combo >= 2 ? 'AMAZING!' : r.lines >= 2 ? 'GREAT!' : 'NICE!';
+      setPopup({ score: gained, show: true, text, reactionType: r.affected[0]?.type });
+      setFlashKey((k) => k + 1);
+      if (r.combo > 1 || r.lines >= 2) playSound('combo');
+      window.setTimeout(() => setPopup((p) => ({ ...p, show: false })), 1200);
+    }
     setPieces((prev) => refill(prev.filter((p) => p.id !== selected.id)));
     setSelected(null);
     setHover(null);
@@ -98,7 +115,18 @@ const CubeGame = () => {
   }, [selected, hover, activeBoard]);
 
   return (
-    <div className="min-h-[100dvh] w-full flex flex-col items-center bg-gradient-pixar-stage text-white overflow-hidden">
+    <div
+      className="min-h-[100dvh] w-full flex flex-col items-center bg-gradient-pixar-stage text-white overflow-hidden relative"
+      style={{ ['--stage-accent' as string]: phase.accent, ['--stage-glow' as string]: phase.glow } as CSSProperties}
+    >
+      {/* Animated per-universe backdrop (same as the classic game) */}
+      <AdaptiveStage phase={phase} />
+
+      {/* Combo / score popup */}
+      <div className="pointer-events-none fixed inset-0 z-40 flex items-start justify-center pt-24">
+        <ScorePopup score={popup.score} show={popup.show} text={popup.text} reactionType={popup.reactionType} />
+      </div>
+
       {/* Top bar */}
       <div className="w-full flex items-center justify-between px-4 pt-4 z-20">
         <Link to="/">
@@ -114,7 +142,7 @@ const CubeGame = () => {
       </div>
 
       {/* 3D stage */}
-      <div className="flex-1 w-full flex items-center justify-center" style={{ perspective: '1100px' }}>
+      <div className="relative z-10 flex-1 w-full flex items-center justify-center" style={{ perspective: '1100px' }}>
         <div
           className="relative"
           style={{
@@ -143,6 +171,17 @@ const CubeGame = () => {
                   transition: 'opacity 0.4s',
                 }}
               >
+                {/* Top accent line (matches the classic board frame) */}
+                <span
+                  aria-hidden
+                  className="pointer-events-none absolute inset-x-4 top-1 h-[2px] rounded-full"
+                  style={{ background: 'linear-gradient(90deg, transparent, hsl(var(--stage-accent, var(--pixar-yellow))) 30%, hsl(var(--pixar-red)) 70%, transparent)', opacity: 0.85 }}
+                />
+                {/* Line-clear flash + reaction particles on the active face */}
+                {isActive && flashKey > 0 && <span key={flashKey} className="neon-flash-overlay rounded-2xl" aria-hidden />}
+                {isActive && (
+                  <ReactionParticles trigger={particle} cellSize={cellPx + gap} gridOffset={{ x: pad, y: pad }} />
+                )}
                 <div
                   className="grid h-full w-full"
                   style={{ gridTemplateColumns: `repeat(${FACE}, 1fr)`, gridTemplateRows: `repeat(${FACE}, 1fr)`, gap }}
