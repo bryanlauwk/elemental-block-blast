@@ -36,6 +36,8 @@ export interface BlockBlastEngine {
   reactionEvents: ReactionEvent[];
   reactionPreviewSummary: ReactionPreviewSummary | null;
   particleTrigger: ParticleTrigger | null;
+  /** Increments each time the board is fully cleared (Perfect Clear). */
+  perfectClearSignal: number;
   isDailyChallenge: boolean;
   startGame: () => void;
   startDailyChallenge: () => void;
@@ -61,6 +63,7 @@ export function useBlockBlastEngine(): BlockBlastEngine {
   });
 
   const [shakeIntensity, setShakeIntensity] = useState(0);
+  const [perfectClearSignal, setPerfectClearSignal] = useState(0);
   const [comboDisplay, setComboDisplay] = useState({ count: 0, show: false, text: '' });
   const [scorePopup, setScorePopup] = useState<{ score: number; show: boolean; reactionType?: 'burn' | 'extinguish' | 'dissolve' }>({ score: 0, show: false });
   const [reactionPreviews, setReactionPreviews] = useState<ReactionPreview[]>([]);
@@ -196,7 +199,12 @@ export function useBlockBlastEngine(): BlockBlastEngine {
       playSound('drop');
 
       // Resolve grid (line clears FIRST, then reactions)
-      const { grid: resolvedGrid, totalScore, maxCombo, linesCleared, allReactionEvents, primaryReactionType, allAffectedPositions } = resolveGrid(newGrid);
+      const { grid: resolvedGrid, totalScore, maxCombo, linesCleared, allReactionEvents, primaryReactionType, allAffectedPositions, perfectClear } = resolveGrid(newGrid);
+
+      if (perfectClear) {
+        setPerfectClearSignal(s => s + 1);
+        playSound('highScore');
+      }
 
       if (allReactionEvents.length > 0) {
         setReactionEvents(prevEvents => [...prevEvents, ...allReactionEvents].slice(-20));
@@ -213,7 +221,7 @@ export function useBlockBlastEngine(): BlockBlastEngine {
       }
 
       if (maxCombo > 0 || linesCleared > 0) {
-        const text = getComboText(maxCombo, linesCleared);
+        const text = perfectClear ? 'PERFECT CLEAR!' : getComboText(maxCombo, linesCleared);
         setComboDisplay({ count: maxCombo, show: true, text });
         setScorePopup({ score: totalScore, show: true, reactionType: primaryReactionType });
 
@@ -301,6 +309,7 @@ export function useBlockBlastEngine(): BlockBlastEngine {
     reactionEvents,
     reactionPreviewSummary,
     particleTrigger,
+    perfectClearSignal,
     isDailyChallenge,
     startGame,
     startDailyChallenge,

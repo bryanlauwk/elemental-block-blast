@@ -90,6 +90,16 @@ describe('processReactions', () => {
     expect(grid[0][1].element).toBe('ash');
   });
 
+  it('wildfire: fire ignites the whole connected wood cluster', () => {
+    // fire at (0,0); an L-shaped wood cluster of 3 cells, all connected.
+    const { grid, reactionCount } = processReactions(gridFrom(['FOO', '.O.']));
+    expect(reactionCount).toBe(3);
+    expect(grid[0][1].element).toBe('ash');
+    expect(grid[0][2].element).toBe('ash');
+    expect(grid[1][1].element).toBe('ash');
+    expect(grid[0][0].element).toBe('fire'); // fire remains
+  });
+
   it('fire + water mutually destroy', () => {
     const { grid, reacted } = processReactions(gridFrom(['FW']));
     expect(reacted).toBe(true);
@@ -111,22 +121,30 @@ describe('processReactions', () => {
 
 describe('resolveGrid (scoring + chaining)', () => {
   it('scores 100 for a single line clear', () => {
-    const { totalScore, linesCleared, maxCombo } = resolveGrid(gridFrom(['SSSSSSSS']));
+    // stray block on row 2 so the board is NOT fully cleared (no perfect-clear bonus).
+    const { totalScore, linesCleared, maxCombo, perfectClear } = resolveGrid(gridFrom(['SSSSSSSS', '........', 'S.......']));
     expect(linesCleared).toBe(1);
     expect(totalScore).toBe(100);
     expect(maxCombo).toBe(1);
+    expect(perfectClear).toBe(false);
   });
 
   it('scores 300 for clearing two lines at once', () => {
-    const { totalScore, linesCleared } = resolveGrid(gridFrom(['SSSSSSSS', 'SSSSSSSS']));
+    const { totalScore, linesCleared } = resolveGrid(gridFrom(['SSSSSSSS', 'SSSSSSSS', 'S.......']));
     expect(linesCleared).toBe(2);
     expect(totalScore).toBe(300);
   });
 
   it('adds a reaction bonus when elements react', () => {
-    const { totalScore, allReactionEvents } = resolveGrid(gridFrom(['FO']));
+    const { totalScore, allReactionEvents } = resolveGrid(gridFrom(['FO', '.S']));
     expect(allReactionEvents.length).toBeGreaterThan(0);
     expect(totalScore).toBe(50); // one burn, no lines
+  });
+
+  it('awards a Perfect Clear bonus when a clear empties the board', () => {
+    const { totalScore, perfectClear } = resolveGrid(gridFrom(['SSSSSSSS']));
+    expect(perfectClear).toBe(true);
+    expect(totalScore).toBe(1100); // 100 line + 1000 perfect-clear
   });
 });
 
