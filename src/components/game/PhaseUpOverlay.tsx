@@ -56,7 +56,7 @@ export function PhaseUpOverlay({ phase, onDone }: PhaseUpOverlayProps) {
             </p>
             <p className="mt-2 text-sm font-sans text-white/80">{phase.tagline}</p>
             <p className="mt-1 text-xs font-sans text-white/55 italic">
-              New shapes: {phase.unlocks}
+              {phase.unlocks}
             </p>
           </motion.div>
         </motion.div>
