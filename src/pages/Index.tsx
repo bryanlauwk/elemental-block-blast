@@ -33,7 +33,7 @@ import LottieBurst from '@/components/game/LottieBurst';
 import { Button } from '@/components/ui/button';
 import { Trophy, Play, RotateCcw, HelpCircle, Zap, Calendar, Volume2, Home, Award, Flame, Droplets, TreeDeciduous, Mountain, Wind, Lightbulb } from 'lucide-react';
 import { PixarChip, PixarButton, PixarStatChip, PixarBadge, PixarOverlay } from '@/components/game/pixar';
-import { Position } from '@/game/types';
+import { Position, GRID_WIDTH, GRID_HEIGHT, DraggablePiece } from '@/game/types';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { playSound } from '@/game/sounds';
 import { usePhase } from '@/hooks/usePhase';
@@ -91,13 +91,46 @@ const Index = () => {
   // Phase progression (drives adaptive stage + HUD pill + phase-up celebration)
   const { phase, next, progress, justAdvanced, clearJustAdvanced } = usePhase(gameState.score);
 
+  // Monotonic signal that ticks once per clearing event so the critter reacts
+  // to clears without the double-hop the combo counter caused (0 -> N -> 0).
+  const [critterClearSignal, setCritterClearSignal] = useState(0);
+  const prevComboShow = useRef(false);
+  useEffect(() => {
+    if (comboDisplay.show && !prevComboShow.current) {
+      setCritterClearSignal((s) => s + 1);
+    }
+    prevComboShow.current = comboDisplay.show;
+  }, [comboDisplay.show]);
+
+  // A cell is OK for the critter only if, with it blocked, the player still has
+  // at least one legal move — so the critter never parks on the only move.
+  const canCritterOccupy = useCallback(
+    (cell: Position) => {
+      const pieces = gameState.availablePieces;
+      if (pieces.length === 0) return true;
+      return pieces.some((piece) => {
+        for (let y = 0; y < GRID_HEIGHT; y++) {
+          for (let x = 0; x < GRID_WIDTH; x++) {
+            const coversCritter = piece.shape.some(
+              (s) => x + s.x === cell.x && y + s.y === cell.y,
+            );
+            if (coversCritter) continue;
+            if (rawCanPlacePiece(piece, { x, y })) return true;
+          }
+        }
+        return false;
+      });
+    },
+    [gameState.availablePieces, rawCanPlacePiece],
+  );
+
   // Per-phase critter that occupies one empty cell as a placement blocker.
   const { pos: critterPos, facing: critterFacing, isBlocked: isCritterBlocked } =
-    useStageCritter(gameState.grid, comboDisplay.count);
+    useStageCritter(gameState.grid, critterClearSignal, canCritterOccupy);
 
   // Wrap the engine's canPlacePiece so the critter's cell is treated as blocked.
   const canPlacePiece = useCallback(
-    (piece: typeof gameState.selectedPiece, pos: Position) => {
+    (piece: DraggablePiece | null, pos: Position) => {
       if (!piece) return false;
       if (!rawCanPlacePiece(piece, pos)) return false;
       return piece.shape.every(
@@ -252,14 +285,14 @@ const Index = () => {
   // "Hint" — ghost a helpful placement on the board for a moment.
   const hintTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const handleHint = useCallback(() => {
-    const hint = findHint();
+    const hint = findHint(critterPos);
     if (!hint) return;
     playSound('select');
     selectPiece(hint.piece);
     setDropPreview(hint.pos);
     if (hintTimer.current) clearTimeout(hintTimer.current);
     hintTimer.current = setTimeout(() => setDropPreview(null), 1800);
-  }, [findHint, selectPiece, setDropPreview]);
+  }, [findHint, selectPiece, setDropPreview, critterPos]);
 
   useEffect(() => () => {
     if (hintTimer.current) clearTimeout(hintTimer.current);
@@ -652,7 +685,7 @@ const Index = () => {
                   onGridLeave={handleGridLeave}
                   reactionPreviews={reactionPreviews}
                   phase={phase}
-                  clearSignal={comboDisplay.count}
+                  clearSignal={critterClearSignal}
                   critterPos={critterPos}
                   critterFacing={critterFacing}
                 />
