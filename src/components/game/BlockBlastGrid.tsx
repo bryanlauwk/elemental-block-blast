@@ -6,7 +6,7 @@ import { cn } from '@/lib/utils';
 import { ReactionPreview } from '@/hooks/useBlockBlastEngine';
 import { Flame, Droplets, FlaskConical } from 'lucide-react';
 import { PhaseConfig } from '@/game/phases';
-import StageCritter from './StageCritter';
+import StageHazard from './StageHazard';
 
 interface BlockBlastGridProps {
   grid: Cell[][];
@@ -19,9 +19,7 @@ interface BlockBlastGridProps {
   onGridLeave: () => void;
   reactionPreviews?: ReactionPreview[];
   phase?: PhaseConfig;
-  clearSignal?: number;
-  critterPos?: Position | null;
-  critterFacing?: 1 | -1;
+  hazardPos?: Position | null;
 }
 
 const reactionIcons = {
@@ -146,9 +144,7 @@ export function BlockBlastGrid({
   onGridLeave,
   reactionPreviews = [],
   phase,
-  clearSignal = 0,
-  critterPos = null,
-  critterFacing = 1,
+  hazardPos = null,
 }: BlockBlastGridProps) {
   const gridRef = useRef<HTMLDivElement>(null);
   const lastTouchCell = useRef<Position | null>(null);
@@ -392,14 +388,7 @@ export function BlockBlastGrid({
               );
             })
           )}
-          {phase && (
-            <StageCritter
-              phase={phase}
-              pos={critterPos}
-              facing={critterFacing}
-              clearSignal={clearSignal}
-            />
-          )}
+          {phase && <StageHazard phase={phase} pos={hazardPos} />}
         </div>
       </div>
     </motion.div>

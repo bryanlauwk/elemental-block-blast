@@ -702,7 +702,7 @@ export function useBlockBlastEngine(): BlockBlastEngine {
   // Find a helpful placement for the "Hint" button.
   // Prefers a move that completes at least one line; otherwise returns the
   // first valid placement found. Returns null only when the player is stuck.
-  // `blocked` (the critter's cell) is treated as occupied so hints never
+  // `blocked` (the hazard's cell) is treated as occupied so hints never
   // point at a square the player can't actually use.
   const findHint = useCallback((blocked?: Position | null): { piece: DraggablePiece; pos: Position } | null => {
     const grid = gameState.grid;
