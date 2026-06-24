@@ -30,6 +30,7 @@ import MarqueeRibbon from '@/components/game/MarqueeRibbon';
 import GameTitle from '@/components/game/GameTitle';
 import HeroBlockDisplay from '@/components/game/HeroBlockDisplay';
 import LottieBurst from '@/components/game/LottieBurst';
+import { FeverMeter } from '@/components/game/FeverMeter';
 import { Button } from '@/components/ui/button';
 import { Trophy, Play, RotateCcw, HelpCircle, Zap, Calendar, Volume2, Home, Award, Flame, Droplets, TreeDeciduous, Mountain, Wind, Lightbulb } from 'lucide-react';
 import { PixarChip, PixarButton, PixarStatChip, PixarBadge, PixarOverlay } from '@/components/game/pixar';
@@ -62,6 +63,9 @@ const Index = () => {
     placePiece,
     findHint,
     perfectClearSignal,
+    feverMeter,
+    feverActive,
+    feverEndsAt,
   } = useBlockBlastEngine();
 
   const { highScores, topScore, saveScore, clearScores } = useHighScores();
@@ -291,6 +295,22 @@ const Index = () => {
       {/* Celebratory Lottie bursts (confetti on level-up/high score, sparkles on combos) */}
       <LottieBurst type="confetti" trigger={confettiTrigger} className="fixed" />
       <LottieBurst type="sparkle" trigger={sparkleTrigger} className="fixed" />
+
+      {/* Reaction Fever overdrive glow */}
+      {feverActive && (
+        <motion.div
+          aria-hidden
+          className="fixed inset-0 z-0 pointer-events-none"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: [0.5, 0.85, 0.5] }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 1.2, repeat: Infinity }}
+          style={{
+            background:
+              'radial-gradient(ellipse 90% 60% at 50% 100%, hsl(var(--pixar-red) / 0.28) 0%, transparent 70%)',
+          }}
+        />
+      )}
 
       {/* Pixar soft cloud glow — landing only */}
       {!hasStarted && (
@@ -638,6 +658,9 @@ const Index = () => {
 
                 {/* Phase progress indicator */}
                 <PhasePill phase={phase} next={next} progress={progress} />
+
+                {/* Reaction Fever meter */}
+                <FeverMeter meter={feverMeter} active={feverActive} endsAt={feverEndsAt} />
 
                 {/* Hint — ghosts a helpful placement (works on desktop & mobile) */}
                 {!gameState.isGameOver && (

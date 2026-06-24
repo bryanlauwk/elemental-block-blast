@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import {
   Cell,
   BlockBlastState,
@@ -38,6 +38,10 @@ export interface BlockBlastEngine {
   particleTrigger: ParticleTrigger | null;
   /** Increments each time the board is fully cleared (Perfect Clear). */
   perfectClearSignal: number;
+  /** Reaction Fever: charge 0-100, whether active, and when it ends (ms). */
+  feverMeter: number;
+  feverActive: boolean;
+  feverEndsAt: number;
   isDailyChallenge: boolean;
   startGame: () => void;
   startDailyChallenge: () => void;
@@ -64,6 +68,38 @@ export function useBlockBlastEngine(): BlockBlastEngine {
 
   const [shakeIntensity, setShakeIntensity] = useState(0);
   const [perfectClearSignal, setPerfectClearSignal] = useState(0);
+
+  // ── Reaction Fever ──
+  // The meter (0-100) charges from reactions & line clears. At full it triggers
+  // Fever: ~9s of double score with a HUD overdrive. feverActiveRef mirrors the
+  // state so placePiece can read it without re-creating the callback.
+  const FEVER_MS = 9000;
+  const [feverMeter, setFeverMeter] = useState(0);
+  const [feverActive, setFeverActive] = useState(false);
+  const [feverEndsAt, setFeverEndsAt] = useState(0);
+  const feverActiveRef = useRef(false);
+  const feverTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const endFever = useCallback(() => {
+    if (feverTimer.current) clearTimeout(feverTimer.current);
+    feverTimer.current = null;
+    feverActiveRef.current = false;
+    setFeverActive(false);
+    setFeverEndsAt(0);
+    setFeverMeter(0);
+  }, []);
+
+  const activateFever = useCallback(() => {
+    feverActiveRef.current = true;
+    setFeverActive(true);
+    setFeverEndsAt(Date.now() + FEVER_MS);
+    setFeverMeter(100);
+    playSound('combo');
+    if (feverTimer.current) clearTimeout(feverTimer.current);
+    feverTimer.current = setTimeout(endFever, FEVER_MS);
+  }, [endFever]);
+
+  useEffect(() => () => { if (feverTimer.current) clearTimeout(feverTimer.current); }, []);
   const [comboDisplay, setComboDisplay] = useState({ count: 0, show: false, text: '' });
   const [scorePopup, setScorePopup] = useState<{ score: number; show: boolean; reactionType?: 'burn' | 'extinguish' | 'dissolve' }>({ score: 0, show: false });
   const [reactionPreviews, setReactionPreviews] = useState<ReactionPreview[]>([]);
@@ -107,7 +143,8 @@ export function useBlockBlastEngine(): BlockBlastEngine {
     setReactionEvents([]);
     setReactionPreviewSummary(null);
     setFailedAttempts(0);
-  }, []);
+    endFever();
+  }, [endFever]);
 
   // Start daily challenge (seeded pieces - same for everyone today)
   const startDailyChallenge = useCallback(() => {
@@ -136,7 +173,8 @@ export function useBlockBlastEngine(): BlockBlastEngine {
     setReactionEvents([]);
     setReactionPreviewSummary(null);
     setFailedAttempts(0);
-  }, []);
+    endFever();
+  }, [endFever]);
 
   // Select piece
   const selectPiece = useCallback((piece: DraggablePiece | null) => {
@@ -237,9 +275,23 @@ export function useBlockBlastEngine(): BlockBlastEngine {
         }, 1200);
       }
 
+      // Reaction Fever: double score while active; otherwise charge the meter
+      // from this move's reactions and line clears (and trigger Fever at full).
+      const feverMult = feverActiveRef.current ? 2 : 1;
+      if (!feverActiveRef.current) {
+        const gain = linesCleared * 10 + allReactionEvents.length * 6;
+        if (gain > 0) {
+          setFeverMeter(m => {
+            const nm = m + gain;
+            if (nm >= 100) { activateFever(); return 100; }
+            return nm;
+          });
+        }
+      }
+
       // Remove placed piece from available
       const remainingPieces = prev.availablePieces.filter(p => p.id !== piece.id);
-      const newScore = prev.score + totalScore + piece.shape.length * 10;
+      const newScore = prev.score + Math.floor(totalScore * feverMult) + piece.shape.length * 10;
 
       // Refill with dynamic difficulty; first piece may be easier in comeback mode.
       const needsComeback = failedAttempts >= 3;
@@ -273,7 +325,7 @@ export function useBlockBlastEngine(): BlockBlastEngine {
 
     setReactionPreviews([]);
     setReactionPreviewSummary(null);
-  }, [failedAttempts]);
+  }, [failedAttempts, activateFever]);
 
   const findHint = useCallback(
     (blocked?: Position | null) => computeHint(gameState.grid, gameState.availablePieces, blocked),
@@ -298,7 +350,8 @@ export function useBlockBlastEngine(): BlockBlastEngine {
     setReactionEvents([]);
     setReactionPreviewSummary(null);
     setFailedAttempts(0);
-  }, []);
+    endFever();
+  }, [endFever]);
 
   return {
     gameState,
@@ -310,6 +363,9 @@ export function useBlockBlastEngine(): BlockBlastEngine {
     reactionPreviewSummary,
     particleTrigger,
     perfectClearSignal,
+    feverMeter,
+    feverActive,
+    feverEndsAt,
     isDailyChallenge,
     startGame,
     startDailyChallenge,
