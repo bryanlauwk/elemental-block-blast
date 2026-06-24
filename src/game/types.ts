@@ -1,5 +1,5 @@
 // Element types for the periodic table of chaos
-export type ElementType = 'fire' | 'water' | 'wood' | 'acid' | 'life' | 'helium' | 'stone' | 'ash';
+export type ElementType = 'fire' | 'water' | 'wood' | 'acid' | 'life' | 'helium' | 'stone' | 'ash' | 'gold' | 'goldCracked';
 
 export interface Cell {
   element: ElementType | null;
@@ -106,6 +106,7 @@ export const ELEMENT_WEIGHTS: { element: ElementType; weight: number }[] = [
   { element: 'water', weight: 15 },   // Defensive counter
   { element: 'acid', weight: 5 },     // Rare but powerful
   { element: 'helium', weight: 5 },   // Rare "safe" block
+  { element: 'gold', weight: 6 },     // Treasure - must be cleared twice for a bonus
   { element: 'life', weight: 0 },     // Disabled - too chaotic for Block Blast
 ];
 

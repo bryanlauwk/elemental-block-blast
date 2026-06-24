@@ -106,4 +106,28 @@ export const ELEMENT_INFO: Record<ElementType, ElementInfo> = {
       'Can be cleared by line clear',
     ],
   },
+  gold: {
+    name: 'Gold',
+    symbol: '🪙',
+    color: 'hsl(45, 90%, 50%)',
+    glowColor: 'hsl(45, 100%, 62%)',
+    description: 'Treasure! Clear it twice to bank a big bonus.',
+    rules: [
+      'Immune to elemental reactions',
+      'First line clear only CRACKS it',
+      'Clear it again for a treasure bonus',
+    ],
+  },
+  goldCracked: {
+    name: 'Cracked Gold',
+    symbol: '🪙',
+    color: 'hsl(42, 65%, 40%)',
+    glowColor: 'hsl(45, 90%, 55%)',
+    description: 'One more clear to crack it open!',
+    rules: [
+      'A gold block that has been cracked once',
+      'The next line clear shatters it',
+      'Banks the treasure bonus',
+    ],
+  },
 };

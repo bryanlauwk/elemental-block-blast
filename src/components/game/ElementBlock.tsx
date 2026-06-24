@@ -57,8 +57,21 @@ export function ElementBlock({ element, size = 36, isPreview = false, showSymbol
           }}
         />
       )}
+      {/* Crack overlay for cracked gold */}
+      {element === 'goldCracked' && (
+        <svg aria-hidden viewBox="0 0 40 40" className="pointer-events-none absolute inset-0 z-20 h-full w-full">
+          <polyline
+            points="20,2 17,14 23,20 16,26 19,38"
+            fill="none"
+            stroke="rgba(0,0,0,0.55)"
+            strokeWidth={size * 0.07}
+            strokeLinejoin="round"
+            strokeLinecap="round"
+          />
+        </svg>
+      )}
       {showSymbol && (
-        <span 
+        <span
           className="relative z-10 font-bold text-white/95"
           style={{ 
             fontSize: size * 0.45,

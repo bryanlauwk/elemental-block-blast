@@ -45,6 +45,9 @@ export interface ParticleTrigger {
 type ReactionType = 'burn' | 'extinguish' | 'dissolve';
 type AffectedGroup = { type: ReactionType; positions: Position[] };
 
+// Elements acid cannot dissolve (inert / treasure / itself).
+const ACID_IMMUNE = new Set<ElementType>(['stone', 'helium', 'acid', 'gold', 'goldCracked']);
+
 export const createEmptyGrid = (): Cell[][] => {
   return Array.from({ length: GRID_HEIGHT }, (_, y) =>
     Array.from({ length: GRID_WIDTH }, (_, x) => ({
@@ -150,10 +153,23 @@ export const canAnyPieceFit = (grid: Cell[][], pieces: DraggablePiece[]): boolea
   return false;
 };
 
-// Clear full rows and columns (Block Blast style) - ALWAYS HAPPENS FIRST
-export const clearLines = (grid: Cell[][]): { grid: Cell[][]; linesCleared: number } => {
+// Clear full rows and columns (Block Blast style) - ALWAYS HAPPENS FIRST.
+// Gold is treasure: a line clear only CRACKS gold (it survives as goldCracked);
+// clearing through it again shatters it for a bonus (counted as goldCleared).
+export const clearLines = (grid: Cell[][]): { grid: Cell[][]; linesCleared: number; goldCleared: number } => {
   const newGrid = grid.map(row => row.map(cell => ({ ...cell })));
   let linesCleared = 0;
+  let goldCleared = 0;
+
+  const clearCell = (x: number, y: number) => {
+    const el = newGrid[y][x].element;
+    if (el === 'gold') {
+      newGrid[y][x] = { element: 'goldCracked', id: `${x}-${y}-${Date.now()}-${Math.random()}` };
+    } else {
+      if (el === 'goldCracked') goldCleared++;
+      newGrid[y][x] = { element: null, id: `${x}-${y}-${Date.now()}-${Math.random()}` };
+    }
+  };
 
   const fullRows: number[] = [];
   for (let y = 0; y < GRID_HEIGHT; y++) {
@@ -175,16 +191,12 @@ export const clearLines = (grid: Cell[][]): { grid: Cell[][]; linesCleared: numb
   }
 
   fullRows.forEach(y => {
-    for (let x = 0; x < GRID_WIDTH; x++) {
-      newGrid[y][x] = { element: null, id: `${x}-${y}-${Date.now()}` };
-    }
+    for (let x = 0; x < GRID_WIDTH; x++) clearCell(x, y);
     linesCleared++;
   });
 
   fullCols.forEach(x => {
-    for (let y = 0; y < GRID_HEIGHT; y++) {
-      newGrid[y][x] = { element: null, id: `${x}-${y}-${Date.now()}` };
-    }
+    for (let y = 0; y < GRID_HEIGHT; y++) clearCell(x, y);
     linesCleared++;
   });
 
@@ -192,7 +204,7 @@ export const clearLines = (grid: Cell[][]): { grid: Cell[][]; linesCleared: numb
     playSound('lineClear');
   }
 
-  return { grid: newGrid, linesCleared };
+  return { grid: newGrid, linesCleared, goldCleared };
 };
 
 // Process elemental reactions - mutual destruction, one-shot effects
@@ -300,7 +312,7 @@ export const processReactions = (
       // Acid → Destroys ONE adjacent non-immune block, then acid disappears
       if (cell.element === 'acid') {
         for (const { pos, cell: neighbor } of neighbors) {
-          if (neighbor.element && neighbor.element !== 'stone' && neighbor.element !== 'helium' && neighbor.element !== 'acid') {
+          if (neighbor.element && !ACID_IMMUNE.has(neighbor.element)) {
             toRemove.add(posKey(pos.x, pos.y));
             toRemove.add(posKey(x, y));
             affectedPositions.push({ type: 'dissolve', positions: [pos, { x, y }] });
@@ -344,6 +356,7 @@ export const processReactions = (
 
 // Resolve grid - LINE CLEARS FIRST, then reactions (strategic order)
 export const PERFECT_CLEAR_BONUS = 1000;
+export const GOLD_TREASURE_BONUS = 250;
 
 export const resolveGrid = (
   grid: Cell[][],
@@ -360,7 +373,7 @@ export const resolveGrid = (
   while (hasChanges) {
     hasChanges = false;
 
-    const { grid: clearedGrid, linesCleared } = clearLines(currentGrid);
+    const { grid: clearedGrid, linesCleared, goldCleared } = clearLines(currentGrid);
     if (linesCleared > 0) {
       currentGrid = clearedGrid;
       hasChanges = true;
@@ -368,6 +381,8 @@ export const resolveGrid = (
       combo++;
       const lineBonus = linesCleared === 1 ? 100 : linesCleared === 2 ? 300 : linesCleared * 200;
       totalScore += lineBonus * (combo > 1 ? combo : 1);
+      // Treasure: each cracked-open gold pays a bonus.
+      totalScore += goldCleared * GOLD_TREASURE_BONUS;
     }
 
     const { grid: reactedGrid, reacted, reactionCount, events, affectedPositions } = processReactions(currentGrid);
@@ -454,7 +469,7 @@ export const getReactionPreview = (grid: Cell[][], piece: DraggablePiece, pos: P
     if (element === 'acid') {
       const dissolveTargets = neighbors.filter(n => {
         const el = grid[n.y][n.x].element;
-        return el && el !== 'stone' && el !== 'helium' && el !== 'acid';
+        return el && !ACID_IMMUNE.has(el);
       }).slice(0, 1);
       if (dissolveTargets.length > 0) previews.push({ pos: { x, y }, type: 'dissolve', affectedPositions: dissolveTargets });
     }
