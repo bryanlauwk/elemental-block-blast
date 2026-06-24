@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback, type CSSProperties } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useAnimationControls } from 'framer-motion';
 import { useBlockBlastEngine } from '@/hooks/useBlockBlastEngine';
 import { useHighScores } from '@/hooks/useHighScores';
 import { useGlobalLeaderboard } from '@/hooks/useGlobalLeaderboard';
@@ -186,6 +186,15 @@ const Index = () => {
   useEffect(() => {
     if (perfectClearSignal > 0) setConfettiTrigger((t) => t + 1);
   }, [perfectClearSignal]);
+
+  // Cube-spin the board when advancing to a new universe (transient flourish).
+  const boardFlip = useAnimationControls();
+  useEffect(() => {
+    if (!justAdvanced) return;
+    const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+    if (reduce) return;
+    boardFlip.start({ rotateY: [0, 360], transition: { duration: 0.85, ease: 'easeInOut' } });
+  }, [justAdvanced, boardFlip]);
 
   // Handle exit game
   const handleExitGame = useCallback(() => {
@@ -706,7 +715,8 @@ const Index = () => {
                 )}
 
                 {/* Game Grid */}
-                <div className="relative">
+                <div className="relative" style={{ perspective: '900px' }}>
+                <motion.div animate={boardFlip} style={{ transformStyle: 'preserve-3d' }}>
                 <BlockBlastGrid
                   grid={gameState.grid}
                   selectedPiece={gameState.selectedPiece}
@@ -718,6 +728,7 @@ const Index = () => {
                   onGridLeave={handleGridLeave}
                   reactionPreviews={reactionPreviews}
                 />
+                </motion.div>
                 
                 {/* Reaction Particles */}
                 <ReactionParticles 

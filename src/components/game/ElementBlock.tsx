@@ -14,20 +14,23 @@ export function ElementBlock({ element, size = 36, isPreview = false, showSymbol
   const info = ELEMENT_INFO[element];
 
   const getElementStyles = (): React.CSSProperties => {
-    // Glossy gradient face + element-tinted glow
+    // Chunky Pixar "toy cube": glossy top, beveled inner edges and a short
+    // coloured front face (darker shade of the element) for real depth.
+    const base = `color-mix(in srgb, ${info.color} 58%, #000)`;
     return {
       width: size,
       height: size,
       background: isPreview
         ? info.color
-        : `linear-gradient(160deg, ${info.color} 0%, ${info.color} 55%, rgba(0,0,0,0.18) 100%)`,
+        : `linear-gradient(160deg, color-mix(in srgb, ${info.color} 88%, #fff) 0%, ${info.color} 50%, ${base} 100%)`,
       boxShadow: isPreview
         ? `0 ${size * 0.08}px 0 0 rgba(0,0,0,0.3), 0 0 ${size * 0.18}px ${info.glowColor}`
-        : `0 ${size * 0.08}px 0 0 rgba(0,0,0,0.3),
-           inset 0 ${size * 0.06}px ${size * 0.1}px rgba(255,255,255,0.45),
-           inset 0 ${-size * 0.06}px ${size * 0.1}px rgba(0,0,0,0.25),
-           0 0 ${size * 0.3}px ${info.glowColor}`,
-      borderRadius: size * 0.22,
+        : `0 ${size * 0.12}px 0 0 ${base},
+           0 ${size * 0.14}px ${size * 0.16}px rgba(0,0,0,0.45),
+           inset 0 ${size * 0.1}px ${size * 0.12}px rgba(255,255,255,0.55),
+           inset 0 ${-size * 0.13}px ${size * 0.14}px rgba(0,0,0,0.4),
+           0 0 ${size * 0.26}px ${info.glowColor}`,
+      borderRadius: size * 0.24,
       transform: 'translateZ(0)',
     };
   };
