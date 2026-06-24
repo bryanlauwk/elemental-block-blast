@@ -518,7 +518,7 @@ const Index = () => {
           <div className="flex flex-col items-center w-full max-w-[400px] h-full">
             {/* Start screen - landing page */}
             {!hasStarted && (
-              <div className="flex flex-col items-center justify-center flex-1 gap-8 sm:gap-10 py-4 sm:py-6 w-full">
+              <div className="flex flex-col items-center justify-center flex-1 gap-5 sm:gap-7 py-4 sm:py-6 w-full">
                 {/* Pixar stat chips — above title */}
                 <motion.div
                   initial={{ opacity: 0, y: -10 }}
@@ -531,8 +531,19 @@ const Index = () => {
                   <PixarStatChip label="XP" value={totalPoints.toLocaleString()} tone="neutral" />
                 </motion.div>
 
-                {/* Pixar 3D Headline */}
-                <GameTitle />
+                {/* Pixar 3D Headline + playful tagline */}
+                <div className="flex flex-col items-center gap-1.5">
+                  <GameTitle />
+                  <motion.p
+                    initial={{ opacity: 0, y: 6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.5, duration: 0.5 }}
+                    className="text-center text-pixar-blue/90 font-bold text-[10px] sm:text-xs uppercase tracking-[0.22em]"
+                    style={{ fontFamily: 'Cabin, system-ui, sans-serif' }}
+                  >
+                    Spark reactions · Blast lines · Explore worlds
+                  </motion.p>
+                </div>
 
                 {/* Pixar mascot + floating props */}
                 <div className="relative w-full flex items-center justify-center pointer-events-none">
@@ -572,7 +583,7 @@ const Index = () => {
                     initial={{ opacity: 0, scale: 0.7, y: 30 }}
                     animate={{ opacity: 1, scale: 1, y: 0 }}
                     transition={{ delay: 0.8, type: 'spring', stiffness: 220, damping: 18 }}
-                    className="mascot-bob relative z-10 w-32 sm:w-40 md:w-48 h-auto pointer-events-auto select-none drop-shadow-[0_18px_30px_rgba(0,0,0,0.45)]"
+                    className="mascot-bob relative z-10 w-24 sm:w-28 md:w-32 h-auto pointer-events-auto select-none drop-shadow-[0_16px_26px_rgba(0,0,0,0.45)]"
                     draggable={false}
                   />
                 </div>
