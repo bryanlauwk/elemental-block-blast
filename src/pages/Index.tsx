@@ -35,7 +35,7 @@ import { Trophy, Play, RotateCcw, HelpCircle, Zap, Calendar, Volume2, Home, Awar
 import { PixarChip, PixarButton, PixarStatChip, PixarBadge, PixarOverlay } from '@/components/game/pixar';
 import { Position, GRID_WIDTH, GRID_HEIGHT, DraggablePiece } from '@/game/types';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { playSound } from '@/game/sounds';
+import { playSound, startMusic } from '@/game/sounds';
 import { usePhase } from '@/hooks/usePhase';
 import { useStageHazard } from '@/hooks/useStageHazard';
 import AdaptiveStage from '@/components/game/AdaptiveStage';
@@ -298,6 +298,19 @@ const Index = () => {
     if (hintTimer.current) clearTimeout(hintTimer.current);
   }, []);
 
+  // Kick off the ambient soundtrack on the Play gesture so the game has music
+  // from the very start (respects the saved music setting via startMusic()).
+  const handleStartGame = useCallback(() => {
+    playSound('select');
+    startMusic();
+    startGame();
+  }, [startGame]);
+  const handleStartDaily = useCallback(() => {
+    playSound('select');
+    startMusic();
+    startDailyChallenge();
+  }, [startDailyChallenge]);
+
   const hasStarted = gameState.availablePieces.length > 0;
 
 
@@ -462,7 +475,7 @@ const Index = () => {
       <DailyChallengeModal
         isOpen={showDailyChallenge}
         onClose={() => setShowDailyChallenge(false)}
-        onStartChallenge={startDailyChallenge}
+        onStartChallenge={handleStartDaily}
         playerBestScore={playerDailyBest}
         highlightPlayerName={getStoredPlayerName() || undefined}
       />
@@ -606,7 +619,7 @@ const Index = () => {
                   transition={{ delay: 1.1, type: 'spring', stiffness: 320, damping: 18 }}
                   className="relative inline-block"
                 >
-                  <PixarButton onClick={startGame} aria-label="Play" variant="primary" size="lg">
+                  <PixarButton onClick={handleStartGame} aria-label="Play" variant="primary" size="lg">
                     Play
                   </PixarButton>
                 </motion.div>
@@ -814,7 +827,7 @@ const Index = () => {
                         
                         <div className="flex flex-col items-center gap-3">
                           <PixarButton
-                            onClick={isDailyChallenge ? startDailyChallenge : startGame}
+                            onClick={isDailyChallenge ? handleStartDaily : handleStartGame}
                             variant="primary"
                             size="md"
                           >
@@ -822,7 +835,7 @@ const Index = () => {
                           </PixarButton>
 
                           {isDailyChallenge && (
-                            <PixarButton onClick={startGame} variant="ghost" size="sm">
+                            <PixarButton onClick={handleStartGame} variant="ghost" size="sm">
                               Regular Mode
                             </PixarButton>
                           )}
