@@ -1,7 +1,7 @@
-import { useCallback, useEffect, useMemo, useState, type CSSProperties } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ChevronLeft, ChevronRight, ChevronUp, ChevronDown, Home, RotateCcw } from 'lucide-react';
+import { Home, RotateCcw, Rotate3d } from 'lucide-react';
 import { ElementBlock } from '@/components/game/ElementBlock';
 import { PixarChip } from '@/components/game/pixar';
 import { ScorePopup } from '@/components/game/ScorePopup';
@@ -37,6 +37,14 @@ const CubeGame = () => {
   const [flashKey, setFlashKey] = useState(0);
   const { phase } = usePhase(score);
 
+  // Free 3D orbit: drag to spin the cube; on release it snaps to the nearest
+  // face (which becomes the playable face).
+  const [rot, setRot] = useState({ x: 0, y: 0 });
+  const [snapping, setSnapping] = useState(true);
+  const rotRef = useRef({ x: 0, y: 0 });
+  const dragRef = useRef<{ x: number; y: number; rx: number; ry: number } | null>(null);
+  const movedRef = useRef(false);
+
   // Responsive cube size in px (so ElementBlock cells get a concrete size).
   const [size, setSize] = useState(320);
   useEffect(() => {
@@ -51,8 +59,6 @@ const CubeGame = () => {
   const gap = 4;
   const cellPx = Math.floor((size - pad * 2 - gap * (FACE - 1)) / FACE);
   const blockPx = Math.floor(cellPx * 0.9);
-
-  const viewTransform = FACES[activeFace].view;
 
   const refill = useCallback((remaining: CPiece[]) =>
     remaining.length > 0 ? remaining : [randomPiece(), randomPiece(), randomPiece()], []);
@@ -83,16 +89,44 @@ const CubeGame = () => {
     setHover(null);
   }, [selected, boards, activeFace, refill]);
 
-  const rotateSide = (dir: 1 | -1) => {
-    setActiveFace((f) => {
-      const ring = [0, 1, 2, 3];
-      const idx = ring.indexOf(f);
-      if (idx === -1) return 0; // from top/bottom return to front
-      return ring[(idx + dir + ring.length) % ring.length];
-    });
+  // Snap a free orbit to the nearest face and report which face is now front.
+  const faceFromRot = (rx: number, ry: number) => {
+    const rxs = Math.max(-90, Math.min(90, Math.round(rx / 90) * 90));
+    const rys = (((Math.round(ry / 90) * 90) % 360) + 360) % 360;
+    if (rxs === -90) return { face: 4, x: -90, y: 0 };
+    if (rxs === 90) return { face: 5, x: 90, y: 0 };
+    const sideByYaw: Record<number, number> = { 0: 0, 90: 3, 180: 2, 270: 1 };
+    return { face: sideByYaw[rys], x: 0, y: rys };
+  };
+
+  const onScenePointerDown = (e: React.PointerEvent) => {
+    dragRef.current = { x: e.clientX, y: e.clientY, rx: rotRef.current.x, ry: rotRef.current.y };
+    movedRef.current = false;
+    setSnapping(false);
+  };
+  const onScenePointerMove = (e: React.PointerEvent) => {
+    const d = dragRef.current;
+    if (!d) return;
+    const dx = e.clientX - d.x;
+    const dy = e.clientY - d.y;
+    if (!movedRef.current && Math.hypot(dx, dy) > 6) movedRef.current = true;
+    if (!movedRef.current) return;
+    const nx = Math.max(-90, Math.min(90, d.rx - dy * 0.4));
+    const ny = d.ry + dx * 0.4;
+    rotRef.current = { x: nx, y: ny };
+    setRot(rotRef.current);
     setHover(null);
   };
-  const toggleFace = (face: number) => { setActiveFace((f) => (f === face ? 0 : face)); setHover(null); };
+  const onScenePointerUp = () => {
+    if (dragRef.current && movedRef.current) {
+      const s = faceFromRot(rotRef.current.x, rotRef.current.y);
+      rotRef.current = { x: s.x, y: s.y };
+      setRot(rotRef.current);
+      setActiveFace(s.face);
+      setSnapping(true);
+    }
+    dragRef.current = null;
+  };
 
   const reset = () => {
     setBoards(FACES.map(() => emptyBoard()));
@@ -100,6 +134,9 @@ const CubeGame = () => {
     setSelected(null);
     setScore(0);
     setActiveFace(0);
+    rotRef.current = { x: 0, y: 0 };
+    setRot({ x: 0, y: 0 });
+    setSnapping(true);
   };
 
   useEffect(() => { startMusic(); }, []);
@@ -141,16 +178,23 @@ const CubeGame = () => {
         <PixarChip title="Restart" onClick={reset}><RotateCcw className="w-5 h-5 text-white" /></PixarChip>
       </div>
 
-      {/* 3D stage */}
-      <div className="relative z-10 flex-1 w-full flex items-center justify-center" style={{ perspective: '1100px' }}>
+      {/* 3D stage — drag anywhere here to orbit the cube */}
+      <div
+        className="relative z-10 flex-1 w-full flex items-center justify-center cursor-grab active:cursor-grabbing"
+        style={{ perspective: '1100px', touchAction: 'none' }}
+        onPointerDown={onScenePointerDown}
+        onPointerMove={onScenePointerMove}
+        onPointerUp={onScenePointerUp}
+        onPointerCancel={onScenePointerUp}
+      >
         <div
           className="relative"
           style={{
             width: size,
             height: size,
             transformStyle: 'preserve-3d',
-            transform: viewTransform,
-            transition: 'transform 0.6s cubic-bezier(0.4, 0, 0.2, 1)',
+            transform: `rotateX(${rot.x}deg) rotateY(${rot.y}deg)`,
+            transition: snapping ? 'transform 0.5s cubic-bezier(0.4, 0, 0.2, 1)' : 'none',
           }}
         >
           {FACES.map((face) => {
@@ -195,7 +239,7 @@ const CubeGame = () => {
                           className="flex items-center justify-center rounded-lg"
                           style={{ background: cell ? 'transparent' : 'hsl(var(--game-cell) / 0.6)' }}
                           onMouseEnter={isActive ? () => setHover({ x, y }) : undefined}
-                          onClick={isActive ? () => handleCell(x, y) : undefined}
+                          onClick={isActive ? () => { if (!movedRef.current) handleCell(x, y); } : undefined}
                         >
                           {cell && <ElementBlock element={cell} size={blockPx} showSymbol={false} />}
                           {!cell && isGhost && selected && (
@@ -212,13 +256,12 @@ const CubeGame = () => {
         </div>
       </div>
 
-      {/* Rotation controls */}
-      <div className="z-20 flex items-center gap-3 pb-1">
-        <PixarChip onClick={() => rotateSide(-1)} title="Rotate left"><ChevronLeft className="w-5 h-5 text-white" /></PixarChip>
-        <PixarChip onClick={() => toggleFace(4)} active={activeFace === 4} title="Top face"><ChevronUp className="w-5 h-5 text-white" /></PixarChip>
-        <span className="w-16 text-center text-xs uppercase tracking-widest text-white/70 font-bold">{FACES[activeFace].name}</span>
-        <PixarChip onClick={() => toggleFace(5)} active={activeFace === 5} title="Bottom face"><ChevronDown className="w-5 h-5 text-white" /></PixarChip>
-        <PixarChip onClick={() => rotateSide(1)} title="Rotate right"><ChevronRight className="w-5 h-5 text-white" /></PixarChip>
+      {/* Orbit hint + current face */}
+      <div className="z-20 flex items-center gap-2 pb-1 text-white/70">
+        <Rotate3d className="w-4 h-4 text-pixar-yellow" />
+        <span className="text-xs uppercase tracking-widest font-bold">Drag to rotate</span>
+        <span className="text-white/30">·</span>
+        <span className="text-xs uppercase tracking-widest font-bold text-white/90">{FACES[activeFace].name}</span>
       </div>
 
       {/* Piece tray */}
