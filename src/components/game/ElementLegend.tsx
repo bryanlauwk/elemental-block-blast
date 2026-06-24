@@ -4,7 +4,7 @@ import { ElementType } from '@/game/types';
 import { ELEMENT_INFO } from '@/game/elements';
 import { ElementBlock } from './ElementBlock';
 
-const DISPLAY_ELEMENTS: ElementType[] = ['stone', 'wood', 'fire', 'water', 'acid', 'helium'];
+const DISPLAY_ELEMENTS: ElementType[] = ['stone', 'wood', 'fire', 'water', 'acid', 'helium', 'gold'];
 
 interface ElementLegendProps {
   variant?: 'horizontal' | 'vertical';

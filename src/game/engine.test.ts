@@ -19,7 +19,7 @@ import { Cell, ElementType, DraggablePiece, GRID_WIDTH, GRID_HEIGHT } from './ty
 
 // Build a grid from rows of chars. '.' = empty; otherwise map the letter.
 const MAP: Record<string, ElementType> = {
-  F: 'fire', W: 'water', O: 'wood', A: 'acid', S: 'stone', H: 'helium', X: 'ash',
+  F: 'fire', W: 'water', O: 'wood', A: 'acid', S: 'stone', H: 'helium', X: 'ash', G: 'gold', C: 'goldCracked',
 };
 function gridFrom(rows: string[]): Cell[][] {
   const g = createEmptyGrid();
@@ -145,6 +145,34 @@ describe('resolveGrid (scoring + chaining)', () => {
     const { totalScore, perfectClear } = resolveGrid(gridFrom(['SSSSSSSS']));
     expect(perfectClear).toBe(true);
     expect(totalScore).toBe(1100); // 100 line + 1000 perfect-clear
+  });
+});
+
+describe('gold treasure', () => {
+  it('a line clear only cracks gold (it survives)', () => {
+    const { grid, linesCleared, goldCleared } = clearLines(gridFrom(['GSSSSSSS']));
+    expect(linesCleared).toBe(1);
+    expect(goldCleared).toBe(0);
+    expect(grid[0][0].element).toBe('goldCracked');
+  });
+
+  it('clearing cracked gold removes it and counts the treasure', () => {
+    const { grid, goldCleared } = clearLines(gridFrom(['CSSSSSSS']));
+    expect(goldCleared).toBe(1);
+    expect(grid[0][0].element).toBeNull();
+  });
+
+  it('awards the +250 treasure bonus when cracked gold clears', () => {
+    // stray block prevents a perfect clear so we isolate the gold bonus.
+    const { totalScore, perfectClear } = resolveGrid(gridFrom(['CSSSSSSS', 'S.......']));
+    expect(perfectClear).toBe(false);
+    expect(totalScore).toBe(350); // 100 line + 250 treasure
+  });
+
+  it('gold is immune to acid', () => {
+    const { reacted, grid } = processReactions(gridFrom(['AG']));
+    expect(reacted).toBe(false);
+    expect(grid[0][1].element).toBe('gold');
   });
 });
 
