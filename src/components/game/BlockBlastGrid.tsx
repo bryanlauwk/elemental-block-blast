@@ -348,8 +348,9 @@ export function BlockBlastGrid({
         )}
         
         {/* Grid cells */}
-        <div 
+        <div
           ref={gridRef}
+          id="bb-grid"
           className="grid gap-[3px] sm:gap-1 relative z-10"
           style={{
             gridTemplateColumns: `repeat(${GRID_WIDTH}, 1fr)`,
