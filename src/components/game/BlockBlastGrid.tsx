@@ -20,6 +20,8 @@ interface BlockBlastGridProps {
   reactionPreviews?: ReactionPreview[];
   phase?: PhaseConfig;
   clearSignal?: number;
+  critterPos?: Position | null;
+  critterFacing?: 1 | -1;
 }
 
 const reactionIcons = {
@@ -145,6 +147,8 @@ export function BlockBlastGrid({
   reactionPreviews = [],
   phase,
   clearSignal = 0,
+  critterPos = null,
+  critterFacing = 1,
 }: BlockBlastGridProps) {
   const gridRef = useRef<HTMLDivElement>(null);
   const lastTouchCell = useRef<Position | null>(null);
@@ -389,7 +393,12 @@ export function BlockBlastGrid({
             })
           )}
           {phase && (
-            <StageCritter phase={phase} grid={grid} clearSignal={clearSignal} />
+            <StageCritter
+              phase={phase}
+              pos={critterPos}
+              facing={critterFacing}
+              clearSignal={clearSignal}
+            />
           )}
         </div>
       </div>

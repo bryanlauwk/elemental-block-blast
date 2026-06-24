@@ -37,6 +37,7 @@ import { Position } from '@/game/types';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { playSound } from '@/game/sounds';
 import { usePhase } from '@/hooks/usePhase';
+import { useStageCritter } from '@/hooks/useStageCritter';
 import AdaptiveStage from '@/components/game/AdaptiveStage';
 import PhasePill from '@/components/game/PhasePill';
 import PhaseUpOverlay from '@/components/game/PhaseUpOverlay';
@@ -58,7 +59,7 @@ const Index = () => {
     resetGame,
     selectPiece,
     setDropPreview,
-    canPlacePiece,
+    canPlacePiece: rawCanPlacePiece,
     placePiece,
     findHint,
   } = useBlockBlastEngine();
@@ -89,6 +90,22 @@ const Index = () => {
 
   // Phase progression (drives adaptive stage + HUD pill + phase-up celebration)
   const { phase, next, progress, justAdvanced, clearJustAdvanced } = usePhase(gameState.score);
+
+  // Per-phase critter that occupies one empty cell as a placement blocker.
+  const { pos: critterPos, facing: critterFacing, isBlocked: isCritterBlocked } =
+    useStageCritter(gameState.grid, comboDisplay.count);
+
+  // Wrap the engine's canPlacePiece so the critter's cell is treated as blocked.
+  const canPlacePiece = useCallback(
+    (piece: typeof gameState.selectedPiece, pos: Position) => {
+      if (!piece) return false;
+      if (!rawCanPlacePiece(piece, pos)) return false;
+      return piece.shape.every(
+        (p) => !isCritterBlocked(pos.x + p.x, pos.y + p.y),
+      );
+    },
+    [rawCanPlacePiece, isCritterBlocked],
+  );
 
   // Load player's daily best score when opening daily challenge modal
   useEffect(() => {
@@ -636,6 +653,8 @@ const Index = () => {
                   reactionPreviews={reactionPreviews}
                   phase={phase}
                   clearSignal={comboDisplay.count}
+                  critterPos={critterPos}
+                  critterFacing={critterFacing}
                 />
                 
                 {/* Reaction Particles */}
