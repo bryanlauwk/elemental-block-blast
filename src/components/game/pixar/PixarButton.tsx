@@ -1,5 +1,6 @@
 import { forwardRef, ButtonHTMLAttributes } from "react";
 import { cn } from "@/lib/utils";
+import { playSound } from "@/game/sounds";
 
 type Variant = "primary" | "secondary" | "ghost";
 type Size = "sm" | "md" | "lg";
@@ -38,7 +39,7 @@ const sizeMap: Record<Size, { pad: string; text: string; offset: string }> = {
  */
 export const PixarButton = forwardRef<HTMLButtonElement, PixarButtonProps>(
   (
-    { className, variant = "primary", size = "md", children, ...props },
+    { className, variant = "primary", size = "md", children, onClick, ...props },
     ref,
   ) => {
     const s = sizeMap[size];
@@ -48,6 +49,10 @@ export const PixarButton = forwardRef<HTMLButtonElement, PixarButtonProps>(
       <button
         ref={ref}
         {...props}
+        onClick={(e) => {
+          playSound("select");
+          onClick?.(e);
+        }}
         className={cn(
           "group relative inline-block rounded-full",
           "focus:outline-none focus-visible:ring-4",

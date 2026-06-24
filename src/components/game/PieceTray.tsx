@@ -4,6 +4,7 @@ import { ElementBlock } from './ElementBlock';
 import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { X } from 'lucide-react';
+import { playSound } from '@/game/sounds';
 
 interface PieceTrayProps {
   pieces: DraggablePiece[];
@@ -48,6 +49,7 @@ export function PieceTray({ pieces, selectedPiece, onSelectPiece, disabled }: Pi
               )}
               onClick={() => {
                 if (disabled) return;
+                playSound('select');
                 onSelectPiece(isSelected ? null : piece);
               }}
               whileTap={!disabled ? { scale: 0.95 } : {}}

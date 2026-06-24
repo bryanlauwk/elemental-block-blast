@@ -301,12 +301,10 @@ const Index = () => {
   // Kick off the ambient soundtrack on the Play gesture so the game has music
   // from the very start (respects the saved music setting via startMusic()).
   const handleStartGame = useCallback(() => {
-    playSound('select');
     startMusic();
     startGame();
   }, [startGame]);
   const handleStartDaily = useCallback(() => {
-    playSound('select');
     startMusic();
     startDailyChallenge();
   }, [startDailyChallenge]);

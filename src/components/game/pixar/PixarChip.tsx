@@ -1,5 +1,6 @@
 import { forwardRef, ButtonHTMLAttributes } from "react";
 import { cn } from "@/lib/utils";
+import { playSound } from "@/game/sounds";
 
 type Size = "sm" | "md" | "lg";
 
@@ -19,10 +20,14 @@ const sizeMap: Record<Size, string> = {
  * hover halo. Use for every top-bar/menu icon to keep the look consistent.
  */
 export const PixarChip = forwardRef<HTMLButtonElement, PixarChipProps>(
-  ({ className, size = "md", active = false, children, ...props }, ref) => (
+  ({ className, size = "md", active = false, children, onClick, ...props }, ref) => (
     <button
       ref={ref}
       {...props}
+      onClick={(e) => {
+        playSound("select");
+        onClick?.(e);
+      }}
       className={cn(
         "pixar-glass-chip flex items-center justify-center transition-all",
         "hover:-translate-y-0.5 active:translate-y-0",
