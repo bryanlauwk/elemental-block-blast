@@ -66,9 +66,11 @@ const ReactionFeed: React.FC<ReactionFeedProps> = ({ reactions, preview, classNa
   return (
     <div className={`flex flex-col gap-3 ${className}`}>
       {/* Header */}
-      <div className="flex items-center gap-2 text-white/80">
-        <Zap className="w-4 h-4 text-yellow-400" />
-        <span className="text-sm font-bold tracking-wide">REACTIONS</span>
+      <div className="flex items-center gap-2 text-white/85">
+        <Zap className="w-4 h-4 text-cyan-300 drop-shadow-[0_0_6px_hsl(190_95%_60%/0.7)]" />
+        <span className="font-display text-sm font-bold uppercase tracking-[0.22em] bg-clip-text text-transparent bg-[linear-gradient(90deg,#e6faff,#ffd6f5)]">
+          Reactions
+        </span>
       </div>
 
       {/* Preview Section */}
@@ -81,14 +83,14 @@ const ReactionFeed: React.FC<ReactionFeedProps> = ({ reactions, preview, classNa
             className={`p-3 rounded-lg border-2 border-dashed ${reactionConfig[preview.type].borderColor} ${reactionConfig[preview.type].bgColor}`}
           >
             <div className="flex items-center gap-2 mb-1">
-              <span className="text-xs text-white/60 uppercase tracking-wider">Preview</span>
+              <span className="font-display text-[10px] text-cyan-200/80 uppercase tracking-[0.25em]">Preview</span>
             </div>
             <div className={`flex items-center gap-2 ${reactionConfig[preview.type].color} font-bold`}>
               {React.createElement(reactionConfig[preview.type].icon, { className: 'w-4 h-4' })}
-              <span>{reactionConfig[preview.type].label}</span>
-              <span className="text-white/80">×{preview.count}</span>
+              <span className="font-display uppercase tracking-wider">{reactionConfig[preview.type].label}</span>
+              <span className="text-white/80 font-sans">×{preview.count}</span>
             </div>
-            <div className="text-xs text-white/60 mt-1">
+            <div className="text-xs text-white/60 mt-1 font-sans">
               +{preview.points} points
             </div>
           </motion.div>
@@ -102,7 +104,7 @@ const ReactionFeed: React.FC<ReactionFeedProps> = ({ reactions, preview, classNa
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className="text-xs text-white/40 italic text-center py-4"
+              className="text-xs text-white/45 italic text-center py-4 font-sans"
             >
               Place elements near each other to trigger reactions!
             </motion.div>
@@ -118,10 +120,10 @@ const ReactionFeed: React.FC<ReactionFeedProps> = ({ reactions, preview, classNa
                 className={`flex items-center gap-2 p-2 rounded-lg ${config.bgColor} ${config.borderColor} border`}
               >
                 {React.createElement(config.icon, { className: `w-4 h-4 ${config.color}` })}
-                <span className="text-sm text-white/90">
+                <span className="text-sm text-white/90 font-sans">
                   {elementEmoji[reaction.source]}→{elementEmoji[reaction.target]}
                 </span>
-                <span className={`text-sm font-bold ${config.color} ml-auto`}>
+                <span className={`text-sm font-bold font-display ${config.color} ml-auto`}>
                   +{reaction.points}
                 </span>
               </motion.div>
@@ -131,9 +133,9 @@ const ReactionFeed: React.FC<ReactionFeedProps> = ({ reactions, preview, classNa
       </div>
 
       {/* Quick Reference */}
-      <div className="border-t border-white/10 pt-3 mt-auto">
-        <div className="text-xs text-white/50 mb-2">Quick Reference:</div>
-        <div className="flex flex-col gap-1 text-xs text-white/60">
+      <div className="border-t border-cyan-300/15 pt-3 mt-auto">
+        <div className="font-display text-[10px] text-cyan-200/70 mb-2 uppercase tracking-[0.25em]">Quick Reference</div>
+        <div className="flex flex-col gap-1 text-xs text-white/65 font-sans">
           <div className="flex items-center gap-2">
             <Flame className="w-3 h-3 text-orange-400" />
             <span>🔥 → 🪵 = 💨</span>
