@@ -11,8 +11,7 @@
 .bg-gradient-pixar-stage {
   position: relative;
   isolation: isolate;
-  background:
-    linear-gradient(180deg, hsl(var(--pixar-navy)) 0%, hsl(var(--pixar-navy-deep)) 100%) !important;
+  background: transparent !important;
 }
 
 .bg-gradient-pixar-stage > * {
@@ -27,7 +26,7 @@
   pointer-events: none;
   border-radius: 9999px;
   filter: blur(2px);
-  opacity: 0.65;
+  opacity: 0.32;
   z-index: 0;
 }
 
