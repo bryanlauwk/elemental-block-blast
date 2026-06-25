@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Home, RotateCcw, Rotate3d, Lightbulb, Trophy, Award, Volume2 } from 'lucide-react';
+import { Home, RotateCcw, Rotate3d, Lightbulb, Trophy, Award, Volume2, Calendar } from 'lucide-react';
 import { ElementBlock } from '@/components/game/ElementBlock';
 import { PieceTray } from '@/components/game/PieceTray';
 import { BlockBlastScoreboard } from '@/components/game/BlockBlastScoreboard';
@@ -13,6 +13,7 @@ import AdaptiveStage from '@/components/game/AdaptiveStage';
 import { FeverMeter } from '@/components/game/FeverMeter';
 import { LeaderboardModal } from '@/components/game/LeaderboardModal';
 import { PlayerNameModal } from '@/components/game/PlayerNameModal';
+import { DailyChallengeModal } from '@/components/game/DailyChallengeModal';
 import { AchievementsModal } from '@/components/game/AchievementsModal';
 import { AchievementPopup } from '@/components/game/AchievementPopup';
 import { SoundSettings } from '@/components/game/SoundSettings';
@@ -20,8 +21,10 @@ import { StreakBadge } from '@/components/game/StreakBadge';
 import { usePhase } from '@/hooks/usePhase';
 import { useHighScores } from '@/hooks/useHighScores';
 import { useGlobalLeaderboard } from '@/hooks/useGlobalLeaderboard';
+import { useDailyChallenge } from '@/hooks/useDailyChallenge';
 import { useDailyStreak } from '@/hooks/useDailyStreak';
 import { useAchievements } from '@/hooks/useAchievements';
+import { SeededRandom, getDateSeed } from '@/game/seededRandom';
 import { Cell, DraggablePiece, Position } from '@/game/types';
 import {
   createEmptyGrid, createRandomPiece, canPlacePieceAt, canAnyPieceFit, resolveGrid, findHint, getComboText, getReactionPreview,
@@ -74,16 +77,21 @@ const CubeGame = () => {
   // ── Meta features (shared with the classic game) ──
   const { highScores, topScore, saveScore, clearScores } = useHighScores();
   const { submitScore, getStoredPlayerName, storePlayerName } = useGlobalLeaderboard();
+  const { submitDailyScore, getPlayerDailyScore } = useDailyChallenge();
   const { currentStreak, recordPlay, isStreakAtRisk } = useDailyStreak();
   const { achievements, totalPoints, justUnlocked, checkAchievements, clearJustUnlocked } = useAchievements();
   const [showLeaderboard, setShowLeaderboard] = useState(false);
   const [showAchievements, setShowAchievements] = useState(false);
   const [showSoundSettings, setShowSoundSettings] = useState(false);
+  const [showDailyChallenge, setShowDailyChallenge] = useState(false);
   const [showPlayerNameModal, setShowPlayerNameModal] = useState(false);
   const [isSubmittingScore, setIsSubmittingScore] = useState(false);
   const [submittedPlayerName, setSubmittedPlayerName] = useState<string | null>(null);
   const [globalRank, setGlobalRank] = useState<number | null>(null);
   const [isNewHighScore, setIsNewHighScore] = useState(false);
+  const [isDailyChallenge, setIsDailyChallenge] = useState(false);
+  const [playerDailyBest, setPlayerDailyBest] = useState<number | null>(null);
+  const seededRng = useRef<SeededRandom | null>(null);
   const hasEnded = useRef(false);
 
   // ── Reaction Fever ──
@@ -133,8 +141,14 @@ const CubeGame = () => {
   const cellPx = Math.floor((size - pad * 2 - gap * (FACE - 1)) / FACE);
   const blockPx = Math.floor(cellPx * 0.9);
 
-  const refill = useCallback((remaining: DraggablePiece[], forScore: number) =>
-    remaining.length > 0 ? remaining : [createRandomPiece(forScore), createRandomPiece(forScore), createRandomPiece(forScore)], []);
+  const refill = useCallback((remaining: DraggablePiece[], forScore: number) => {
+    if (remaining.length > 0) return remaining;
+    const rng = seededRng.current ?? undefined;
+    // Daily: fixed difficulty (score 0) so the seeded sequence is identical for
+    // everyone today; regular: ramp difficulty with the score.
+    const s = rng ? 0 : forScore;
+    return [createRandomPiece(s, false, rng), createRandomPiece(s, false, rng), createRandomPiece(s, false, rng)];
+  }, []);
 
   const placePieceAt = useCallback((piece: DraggablePiece, pos: Position) => {
     if (isGameOver) return;
@@ -182,12 +196,13 @@ const CubeGame = () => {
   useEffect(() => {
     if (isGameOver && score > 0 && !hasEnded.current) {
       hasEnded.current = true;
-      const isHigh = score > topScore;
+      const isHigh = !isDailyChallenge && score > topScore;
       setIsNewHighScore(isHigh);
       playSound(isHigh ? 'highScore' : 'gameOver');
       recordPlay();
       checkAchievements({ score, streak: currentStreak });
-      saveScore(score);
+      if (isDailyChallenge) checkAchievements({ dailyChallengesCompleted: 1 });
+      else saveScore(score);
       if (score >= 100) setShowPlayerNameModal(true);
     }
     if (!isGameOver) {
@@ -196,16 +211,19 @@ const CubeGame = () => {
       setSubmittedPlayerName(null);
       setGlobalRank(null);
     }
-  }, [isGameOver, score, topScore, recordPlay, checkAchievements, currentStreak, saveScore]);
+  }, [isGameOver, score, topScore, recordPlay, checkAchievements, currentStreak, saveScore, isDailyChallenge]);
 
   const handleSubmitScore = useCallback(async (playerName: string) => {
     setIsSubmittingScore(true);
     try {
       storePlayerName(playerName);
-      const result = await submitScore(playerName, score);
+      const result = isDailyChallenge
+        ? await submitDailyScore(playerName, score)
+        : await submitScore(playerName, score);
       if (result.success) {
         setSubmittedPlayerName(playerName);
         setGlobalRank(result.rank || null);
+        if (isDailyChallenge && (result as { isNewBest?: boolean }).isNewBest) setPlayerDailyBest(score);
         setShowPlayerNameModal(false);
       }
     } catch (err) {
@@ -213,7 +231,14 @@ const CubeGame = () => {
     } finally {
       setIsSubmittingScore(false);
     }
-  }, [score, submitScore, storePlayerName]);
+  }, [score, isDailyChallenge, submitScore, submitDailyScore, storePlayerName]);
+
+  // Load the player's daily best when opening the daily modal.
+  useEffect(() => {
+    if (!showDailyChallenge) return;
+    const name = getStoredPlayerName();
+    if (name) getPlayerDailyScore(name).then(setPlayerDailyBest);
+  }, [showDailyChallenge, getStoredPlayerName, getPlayerDailyScore]);
 
   // Map a screen point to a board cell using the browser's real 3D hit-testing
   // (works at any cube angle, unlike flat-rect math). On touch, sample a little
@@ -282,9 +307,12 @@ const CubeGame = () => {
     dragRef.current = null;
   };
 
-  const reset = () => {
+  const startGame = useCallback((daily: boolean) => {
+    seededRng.current = daily ? new SeededRandom(getDateSeed()) : null;
+    setIsDailyChallenge(daily);
+    const rng = seededRng.current ?? undefined;
     setBoards(FACES.map(() => createEmptyGrid(FACE, FACE)));
-    setPieces([createRandomPiece(0), createRandomPiece(0), createRandomPiece(0)]);
+    setPieces([createRandomPiece(0, false, rng), createRandomPiece(0, false, rng), createRandomPiece(0, false, rng)]);
     setSelected(null);
     setHover(null);
     setScore(0);
@@ -294,7 +322,11 @@ const CubeGame = () => {
     rotRef.current = { x: 0, y: 0 };
     setRot({ x: 0, y: 0 });
     setSnapping(true);
-  };
+  }, [endFever]);
+
+  // Restart keeps the current mode (re-seeds the same daily puzzle).
+  const reset = useCallback(() => startGame(isDailyChallenge), [startGame, isDailyChallenge]);
+  const startDaily = useCallback(() => { setShowDailyChallenge(false); startGame(true); }, [startGame]);
 
   // Placement ghost + reaction preview on the active face.
   const ghost = useMemo(() => {
@@ -329,6 +361,7 @@ const CubeGame = () => {
           {currentStreak > 0 && <StreakBadge streak={currentStreak} isAtRisk={isStreakAtRisk} size="md" />}
           <PixarChip title="Hint" onClick={handleHint}><Lightbulb className="w-5 h-5 text-pixar-yellow" /></PixarChip>
           <PixarChip title="Sound" onClick={() => setShowSoundSettings(true)}><Volume2 className="w-5 h-5 text-white" /></PixarChip>
+          <PixarChip title="Daily Challenge" onClick={() => setShowDailyChallenge(true)}><Calendar className="w-5 h-5 text-pixar-yellow" /></PixarChip>
           <PixarChip title="Achievements" onClick={() => setShowAchievements(true)}><Award className="w-5 h-5 text-pixar-yellow" /></PixarChip>
           <PixarChip title="Leaderboard" onClick={() => setShowLeaderboard(true)}><Trophy className="w-5 h-5" fill="hsl(var(--pixar-yellow))" stroke="hsl(var(--pixar-yellow-deep))" /></PixarChip>
           <PixarChip title="Restart" onClick={reset}><RotateCcw className="w-5 h-5 text-white" /></PixarChip>
@@ -337,7 +370,10 @@ const CubeGame = () => {
 
       {/* Classic HUD: scoreboard + phase pill + fever */}
       <div className="z-20 w-full max-w-[420px] px-4 flex flex-col items-center mt-1">
-        <BlockBlastScoreboard score={score} topScore={topScore} compact />
+        {isDailyChallenge && (
+          <PixarBadge tone="yellow" icon={<Calendar className="w-3 h-3" />}>Daily Challenge</PixarBadge>
+        )}
+        <BlockBlastScoreboard score={score} topScore={isDailyChallenge ? (playerDailyBest || 0) : topScore} compact />
         <PhasePill phase={phase} next={next} progress={progress} />
         <FeverMeter meter={feverMeter} active={feverActive} endsAt={feverEndsAt} />
       </div>
@@ -436,15 +472,18 @@ const CubeGame = () => {
         {isGameOver && (
           <PixarOverlay>
             <motion.div initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="text-center">
+              {isDailyChallenge && (
+                <div className="mb-2"><PixarBadge tone="yellow" icon={<Calendar className="w-4 h-4" />}>Daily Challenge</PixarBadge></div>
+              )}
               {isNewHighScore && (
                 <motion.div initial={{ scale: 0, rotate: -10 }} animate={{ scale: 1, rotate: 0 }} className="mb-3">
                   <PixarBadge tone="yellow" className="text-sm animate-pulse">🏆 New High Score! 🏆</PixarBadge>
                 </motion.div>
               )}
-              <p className="text-3xl font-display text-white mb-1">{isNewHighScore ? 'Amazing!' : 'Cube Complete!'}</p>
+              <p className="text-3xl font-display text-white mb-1">{isNewHighScore ? 'Amazing!' : isDailyChallenge ? 'Daily Done!' : 'Cube Complete!'}</p>
               <p className="text-5xl font-display bg-gradient-to-r from-pixar-yellow to-pixar-red bg-clip-text text-transparent mb-2">{score.toLocaleString()}</p>
               {globalRank && submittedPlayerName && (
-                <div className="mb-3"><PixarBadge tone="blue" icon={<Trophy className="w-4 h-4" />}>Global Rank: #{globalRank}</PixarBadge></div>
+                <div className="mb-3"><PixarBadge tone="blue" icon={<Trophy className="w-4 h-4" />}>{isDailyChallenge ? "Today's Rank" : 'Global Rank'}: #{globalRank}</PixarBadge></div>
               )}
               {!submittedPlayerName && score >= 100 && (
                 <div className="mb-3"><PixarButton onClick={() => setShowPlayerNameModal(true)} variant="ghost" size="sm">Submit Score</PixarButton></div>
@@ -458,6 +497,7 @@ const CubeGame = () => {
       {/* Meta modals */}
       <PlayerNameModal isOpen={showPlayerNameModal} onClose={() => setShowPlayerNameModal(false)} onSubmit={handleSubmitScore} score={score} defaultName={getStoredPlayerName()} isSubmitting={isSubmittingScore} />
       <LeaderboardModal isOpen={showLeaderboard} onClose={() => setShowLeaderboard(false)} highScores={highScores} currentScore={isGameOver ? score : undefined} onClear={clearScores} highlightPlayerName={submittedPlayerName || undefined} />
+      <DailyChallengeModal isOpen={showDailyChallenge} onClose={() => setShowDailyChallenge(false)} onStartChallenge={startDaily} playerBestScore={playerDailyBest} highlightPlayerName={getStoredPlayerName() || undefined} />
       <AchievementsModal isOpen={showAchievements} onClose={() => setShowAchievements(false)} achievements={achievements} totalPoints={totalPoints} />
       <SoundSettings isOpen={showSoundSettings} onClose={() => setShowSoundSettings(false)} />
       <AchievementPopup achievement={justUnlocked} onDismiss={clearJustUnlocked} />
