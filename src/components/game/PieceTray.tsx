@@ -80,12 +80,12 @@ export function PieceTray({ pieces, selectedPiece, onSelectPiece, onDragHover, o
               key={piece.id}
               className={cn(
                 'relative p-3 sm:p-3 rounded-xl transition-all touch-manipulation',
-                'bg-game-tray/50 border border-game-grid-border/30',
+                'pixar-glass-tile',
                 // Minimum touch target size of 48px for mobile
                 'min-w-[56px] min-h-[56px] sm:min-w-0 sm:min-h-0',
-                isSelected && 'ring-2 ring-game-accent bg-game-accent/10 border-game-accent/30',
+                isSelected && 'pixar-glass-tile--active',
                 disabled && 'opacity-40 cursor-not-allowed',
-                !disabled && !isSelected && 'hover:bg-game-tray hover:border-game-grid-border/50 active:scale-95'
+                !disabled && 'active:scale-95'
               )}
               style={{ touchAction: 'none' }}
               onPointerDown={(e) => handlePointerDown(e, piece)}
