@@ -3,7 +3,6 @@ import { Cell, DraggablePiece, Position } from '@/game/types';
 import { CubeFace } from './CubeFace';
 import {
   CUBE_FACES,
-  CUBE_ISO_ROTATION,
   type CubeReactionType,
 } from '@/game/cubeConfig';
 
@@ -43,8 +42,6 @@ export function CubeScene({
   gap,
   cellPx,
   blockPx,
-  rot,
-  snapping,
   lastCubeMoment,
   fullSyncFlash,
   flashKey,
@@ -104,8 +101,8 @@ export function CubeScene({
           width: size,
           height: size,
           transformStyle: 'preserve-3d',
-          transform: `rotateX(${rot.x + CUBE_ISO_ROTATION.x}deg) rotateY(${rot.y + CUBE_ISO_ROTATION.y}deg)`,
-          transition: snapping ? 'transform 0.5s cubic-bezier(0.4, 0, 0.2, 1)' : 'none',
+          transform: 'none',
+          transition: 'opacity 0.25s ease',
         }}
       >
         {CUBE_FACES.map((face) => (
