@@ -1,5 +1,13 @@
-/* Cube Lab glassmorphism facelift
-   Targets Cube Mode only through the active cube grid marker. */
+/* Cube Lab mobile scene facelift
+   Make Cube Mode read as a playful mobile game scene, not a compressed dashboard. */
+
+body:has(#cube-active-grid) .bg-gradient-pixar-stage {
+  background:
+    radial-gradient(circle at 18% 12%, hsl(var(--pixar-yellow) / 0.25), transparent 20%),
+    radial-gradient(circle at 86% 10%, hsl(var(--pixar-red) / 0.28), transparent 24%),
+    radial-gradient(circle at 18% 82%, hsl(var(--pixar-blue) / 0.28), transparent 26%),
+    linear-gradient(180deg, hsl(var(--pixar-navy)) 0%, hsl(var(--pixar-navy-deep)) 70%, hsl(218 58% 10%) 100%) !important;
+}
 
 body:has(#cube-active-grid) .bg-gradient-pixar-stage::before,
 body:has(#cube-active-grid) .bg-gradient-pixar-stage::after {
@@ -7,27 +15,27 @@ body:has(#cube-active-grid) .bg-gradient-pixar-stage::after {
   position: absolute;
   pointer-events: none;
   border-radius: 9999px;
-  filter: blur(2px);
-  opacity: 0.72;
   z-index: 0;
 }
 
 body:has(#cube-active-grid) .bg-gradient-pixar-stage::before {
-  width: min(42vw, 230px);
-  height: min(42vw, 230px);
-  left: -86px;
-  top: 18%;
-  background: radial-gradient(circle at 30% 25%, hsl(var(--pixar-blue)) 0%, hsl(var(--neon-violet)) 45%, transparent 72%);
-  box-shadow: 0 0 70px hsl(var(--pixar-blue) / 0.36);
+  width: min(58vw, 330px);
+  height: min(58vw, 330px);
+  left: -110px;
+  top: 32%;
+  background: radial-gradient(circle at 32% 25%, hsl(var(--pixar-blue)), hsl(var(--neon-violet)) 46%, transparent 70%);
+  opacity: 0.5;
+  filter: blur(1px);
 }
 
 body:has(#cube-active-grid) .bg-gradient-pixar-stage::after {
-  width: min(52vw, 300px);
-  height: min(52vw, 300px);
+  width: min(58vw, 340px);
+  height: min(58vw, 340px);
   right: -120px;
-  bottom: -90px;
-  background: radial-gradient(circle at 35% 30%, hsl(var(--pixar-yellow)) 0%, hsl(var(--pixar-red)) 48%, transparent 72%);
-  box-shadow: 0 0 80px hsl(var(--pixar-red) / 0.36);
+  bottom: 9%;
+  background: radial-gradient(circle at 35% 30%, hsl(var(--pixar-yellow)), hsl(var(--pixar-red)) 48%, transparent 72%);
+  opacity: 0.48;
+  filter: blur(1px);
 }
 
 body:has(#cube-active-grid) .pixar-grid-frame,
@@ -35,16 +43,16 @@ body:has(#cube-active-grid) .pixar-hud-panel,
 body:has(#cube-active-grid) .pixar-glass-tile,
 body:has(#cube-active-grid) .pixar-glass-chip {
   background-image:
-    radial-gradient(circle at 20% 0%, hsl(0 0% 100% / 0.24), transparent 36%),
-    linear-gradient(155deg, hsl(0 0% 100% / 0.12), hsl(var(--pixar-navy) / 0.36) 44%, hsl(var(--pixar-navy-deep) / 0.72) 100%);
-  border-color: hsl(0 0% 100% / 0.2);
+    radial-gradient(circle at 18% 0%, hsl(0 0% 100% / 0.22), transparent 34%),
+    linear-gradient(150deg, hsl(0 0% 100% / 0.10), hsl(var(--pixar-navy) / 0.34) 44%, hsl(var(--pixar-navy-deep) / 0.70) 100%);
+  border-color: hsl(0 0% 100% / 0.18);
   box-shadow:
-    0 22px 64px hsl(var(--pixar-navy-deep) / 0.56),
-    0 0 0 1px hsl(var(--pixar-blue) / 0.14),
-    inset 0 1px 0 hsl(0 0% 100% / 0.38),
-    inset 0 -1px 0 hsl(0 0% 100% / 0.08);
-  backdrop-filter: blur(24px) saturate(175%);
-  -webkit-backdrop-filter: blur(24px) saturate(175%);
+    0 18px 54px hsl(var(--pixar-navy-deep) / 0.44),
+    0 0 0 1px hsl(var(--pixar-blue) / 0.10),
+    inset 0 1px 0 hsl(0 0% 100% / 0.30),
+    inset 0 -1px 0 hsl(0 0% 100% / 0.06);
+  backdrop-filter: blur(15px) saturate(150%);
+  -webkit-backdrop-filter: blur(15px) saturate(150%);
 }
 
 body:has(#cube-active-grid) #cube-active-grid {
@@ -53,9 +61,64 @@ body:has(#cube-active-grid) #cube-active-grid {
 
 body:has(#cube-active-grid) [data-cube-cell] {
   box-shadow:
-    inset 0 1px 0 hsl(0 0% 100% / 0.2),
-    inset 0 -8px 18px hsl(0 0% 0% / 0.16),
+    inset 0 1px 0 hsl(0 0% 100% / 0.20),
+    inset 0 -7px 16px hsl(0 0% 0% / 0.14),
     0 0 0 1px hsl(0 0% 100% / 0.04);
+}
+
+/* Make the 3D object feel like the hero. */
+body:has(#cube-active-grid) .cursor-grab {
+  position: relative;
+}
+
+body:has(#cube-active-grid) .cursor-grab::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: min(70vw, 330px);
+  height: min(70vw, 330px);
+  transform: translate(-50%, -50%);
+  border-radius: 999px;
+  background:
+    radial-gradient(circle, hsl(var(--pixar-blue) / 0.25), transparent 58%),
+    radial-gradient(circle, hsl(var(--pixar-yellow) / 0.14), transparent 72%);
+  filter: blur(8px);
+  pointer-events: none;
+}
+
+body:has(#cube-active-grid) .cursor-grab::after {
+  content: "CUBE ORBIT";
+  position: absolute;
+  left: 50%;
+  top: 4px;
+  transform: translateX(-50%);
+  border-radius: 999px;
+  border: 1px solid hsl(0 0% 100% / 0.14);
+  background: hsl(0 0% 100% / 0.08);
+  padding: 0.42rem 0.75rem;
+  color: hsl(0 0% 100% / 0.56);
+  font-size: 0.55rem;
+  font-weight: 950;
+  letter-spacing: 0.22em;
+  pointer-events: none;
+  backdrop-filter: blur(12px);
+}
+
+/* Active face is crisp, side faces remain visible so it reads as a cube. */
+body:has(#cube-active-grid) .cursor-grab .pixar-grid-frame {
+  opacity: 0.58 !important;
+  border-color: hsl(0 0% 100% / 0.22) !important;
+}
+
+body:has(#cube-active-grid) .cursor-grab .pixar-grid-frame:has(#cube-active-grid) {
+  opacity: 1 !important;
+  border-color: hsl(var(--pixar-yellow) / 0.45) !important;
+  box-shadow:
+    0 26px 70px hsl(0 0% 0% / 0.45),
+    0 0 42px hsl(var(--pixar-blue) / 0.18),
+    0 0 0 1px hsl(var(--pixar-yellow) / 0.20),
+    inset 0 1px 0 hsl(0 0% 100% / 0.34) !important;
 }
 
 body:has(#cube-active-grid) .classic-piece-tray {
@@ -72,100 +135,147 @@ body:has(#cube-active-grid) .classic-scoreboard .pixar-hud-panel {
 }
 
 @media (max-width: 640px) {
+  body:has(#cube-active-grid) .bg-gradient-pixar-stage {
+    height: 100dvh !important;
+    min-height: 100dvh !important;
+    overflow: hidden !important;
+    padding-bottom: max(0.2rem, env(safe-area-inset-bottom)) !important;
+  }
+
+  /* Slim app header, like a mobile game top bar. */
   body:has(#cube-active-grid) .bg-gradient-pixar-stage > .z-20:first-of-type {
-    margin-top: 0.45rem !important;
-    padding: 0.35rem 0.55rem !important;
+    margin-top: 0.42rem !important;
+    padding: 0.32rem 0.45rem !important;
     max-width: calc(100vw - 1rem) !important;
+    border-radius: 24px !important;
+    background: hsl(0 0% 100% / 0.08) !important;
   }
 
   body:has(#cube-active-grid) .bg-gradient-pixar-stage > .z-20:first-of-type .pixar-glass-chip,
   body:has(#cube-active-grid) .bg-gradient-pixar-stage > .z-20:first-of-type a > * {
-    transform: scale(0.86);
+    transform: scale(0.82);
   }
 
   body:has(#cube-active-grid) .bg-gradient-pixar-stage > .z-20:first-of-type p {
-    padding: 0.42rem 1.15rem !important;
-    font-size: 0.58rem !important;
-    letter-spacing: 0.24em !important;
+    padding: 0.38rem 1rem !important;
+    font-size: 0.56rem !important;
+    letter-spacing: 0.22em !important;
   }
 
   body:has(#cube-active-grid) .bg-gradient-pixar-stage > .z-20:first-of-type span {
-    margin-top: 0.15rem !important;
-    font-size: 0.52rem !important;
+    margin-top: 0.1rem !important;
+    font-size: 0.5rem !important;
   }
 
+  /* HUD becomes compact floating game stats, not a large dashboard card. */
   body:has(#cube-active-grid) .z-20:has(.classic-scoreboard) {
-    margin-top: 0.42rem !important;
-    padding: 0.5rem 0.62rem !important;
+    position: absolute !important;
+    top: 4.3rem !important;
+    left: 0.65rem !important;
+    right: 0.65rem !important;
+    width: auto !important;
+    max-width: none !important;
+    z-index: 24 !important;
+    margin-top: 0 !important;
+    padding: 0.42rem !important;
     border-radius: 22px !important;
-    max-width: calc(100vw - 1rem) !important;
+    background: hsl(0 0% 100% / 0.08) !important;
+  }
+
+  body:has(#cube-active-grid) .classic-scoreboard .pixar-hud-panel {
+    border-radius: 18px !important;
   }
 
   body:has(#cube-active-grid) .classic-scoreboard .pixar-hud-panel > div {
-    padding-top: 0.34rem !important;
-    padding-bottom: 0.34rem !important;
+    padding-top: 0.28rem !important;
+    padding-bottom: 0.28rem !important;
   }
 
   body:has(#cube-active-grid) .classic-scoreboard span[class*="clamp"] {
-    font-size: 1.85rem !important;
+    font-size: 1.55rem !important;
   }
 
+  /* Hide duplicated educational HUD pieces on mobile; the cube scene and tray need space. */
+  body:has(#cube-active-grid) .z-20:has(.classic-scoreboard) > div:nth-child(2),
   body:has(#cube-active-grid) .classic-phase-pill,
   body:has(#cube-active-grid) .classic-fever-meter {
-    margin-top: 0.34rem !important;
+    display: none !important;
   }
 
-  body:has(#cube-active-grid) .classic-phase-pill > div,
-  body:has(#cube-active-grid) .classic-fever-meter > div {
-    padding-top: 0.32rem !important;
-    padding-bottom: 0.32rem !important;
-    border-radius: 16px !important;
-  }
-
+  /* Cube hero scene gets the centre of the screen. */
   body:has(#cube-active-grid) .cursor-grab {
-    flex: 0 0 min(31dvh, 235px) !important;
-    min-height: 185px !important;
-    max-height: 235px !important;
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    padding-top: 5.2rem !important;
+    padding-bottom: 0.2rem !important;
     align-items: center !important;
     justify-content: center !important;
     overflow: visible !important;
+    perspective: 1250px !important;
   }
 
   body:has(#cube-active-grid) div[style*="preserve-3d"] {
-    scale: 0.64 !important;
+    scale: 0.72 !important;
     transform-origin: center center !important;
   }
 
+  /* Make cells less heavy and more game-like. */
+  body:has(#cube-active-grid) [data-cube-cell] {
+    border-radius: 0.72rem !important;
+    background: hsl(var(--pixar-navy-deep) / 0.52) !important;
+  }
+
+  /* Orbit control becomes a small floating joystick/card near the cube, not a huge panel. */
   body:has(#cube-active-grid) .z-20.mb-2.flex.flex-col {
-    margin-bottom: 0.25rem !important;
-    gap: 0.28rem !important;
-    padding: 0.45rem 0.7rem !important;
-    border-radius: 18px !important;
-    transform: scale(0.92);
-    transform-origin: bottom center;
+    position: absolute !important;
+    left: 50% !important;
+    bottom: 7.1rem !important;
+    z-index: 26 !important;
+    width: max-content !important;
+    min-width: 210px !important;
+    margin-bottom: 0 !important;
+    gap: 0.24rem !important;
+    padding: 0.42rem 0.72rem !important;
+    border-radius: 20px !important;
+    transform: translateX(-50%) scale(0.86) !important;
+    transform-origin: bottom center !important;
+    background: hsl(0 0% 100% / 0.10) !important;
   }
 
   body:has(#cube-active-grid) .z-20.mb-2.flex.flex-col p {
-    font-size: 0.55rem !important;
+    font-size: 0.52rem !important;
   }
 
+  /* Tray becomes a bottom game dock. */
   body:has(#cube-active-grid) .z-20:has(.classic-piece-tray) {
-    width: calc(100vw - 1rem) !important;
-    margin-bottom: max(0.2rem, env(safe-area-inset-bottom)) !important;
+    position: absolute !important;
+    left: 0.65rem !important;
+    right: 0.65rem !important;
+    bottom: max(0.45rem, env(safe-area-inset-bottom)) !important;
+    width: auto !important;
+    max-width: none !important;
+    margin-bottom: 0 !important;
     padding: 0 !important;
-    border-radius: 22px !important;
-    transform: scale(0.94);
-    transform-origin: bottom center;
+    border-radius: 24px !important;
+    transform: none !important;
+    background: hsl(0 0% 100% / 0.10) !important;
   }
 
   body:has(#cube-active-grid) .classic-piece-tray {
-    padding: 0.38rem 0.45rem 0.44rem !important;
+    padding: 0.44rem 0.52rem 0.48rem !important;
+  }
+
+  body:has(#cube-active-grid) .classic-piece-tray > div {
+    justify-content: space-evenly !important;
+    gap: 0.35rem !important;
   }
 
   body:has(#cube-active-grid) .classic-piece-tray button {
     padding: 0.34rem !important;
     min-width: 42px !important;
     min-height: 42px !important;
+    border-radius: 18px !important;
   }
 
   body:has(#cube-active-grid) .classic-piece-tray p:first-child,
@@ -176,34 +286,29 @@ body:has(#cube-active-grid) .classic-scoreboard .pixar-hud-panel {
 
 @media (max-height: 760px) and (max-width: 640px) {
   body:has(#cube-active-grid) .cursor-grab {
-    flex-basis: min(29dvh, 210px) !important;
-    min-height: 165px !important;
-    max-height: 210px !important;
+    padding-top: 4.75rem !important;
   }
 
   body:has(#cube-active-grid) div[style*="preserve-3d"] {
-    scale: 0.58 !important;
+    scale: 0.66 !important;
   }
 
   body:has(#cube-active-grid) .z-20:has(.classic-scoreboard) {
-    padding-top: 0.38rem !important;
-    padding-bottom: 0.38rem !important;
+    top: 4rem !important;
   }
 }
 
 @media (max-height: 700px) and (max-width: 430px) {
   body:has(#cube-active-grid) .cursor-grab {
-    flex-basis: min(27dvh, 185px) !important;
-    min-height: 145px !important;
-    max-height: 185px !important;
+    padding-top: 4.4rem !important;
   }
 
   body:has(#cube-active-grid) div[style*="preserve-3d"] {
-    scale: 0.52 !important;
+    scale: 0.60 !important;
   }
 
-  body:has(#cube-active-grid) .classic-phase-pill,
-  body:has(#cube-active-grid) .classic-fever-meter {
-    margin-top: 0.25rem !important;
+  body:has(#cube-active-grid) .z-20.mb-2.flex.flex-col {
+    bottom: 6.4rem !important;
+    transform: translateX(-50%) scale(0.78) !important;
   }
 }
