@@ -38,20 +38,20 @@ export function PixarStatChip({
     <div
       {...props}
       className={cn(
-        "flex items-center gap-2 px-4 py-1.5 rounded-full bg-pixar-navy-deep/70 border-2",
+        "ui-btn-xs gap-2 bg-pixar-navy-deep/70 border-2",
         toneBorder[tone],
         className,
       )}
     >
       <span
         className={cn(
-          "text-[10px] sm:text-xs font-bold uppercase tracking-wider font-sans",
+          "ui-label-xs",
           toneLabel[tone],
         )}
       >
         {label}
       </span>
-      <span className="text-white font-bold text-sm">{value}</span>
+      <span className="font-display font-bold text-white text-sm leading-none">{value}</span>
     </div>
   );
 }

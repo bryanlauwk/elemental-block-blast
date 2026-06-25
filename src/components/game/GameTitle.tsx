@@ -11,7 +11,7 @@ export const GameTitle = () => {
         initial={{ opacity: 0, y: -6 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.05, duration: 0.5 }}
-        className="font-sans text-[10px] sm:text-xs font-bold uppercase tracking-[0.28em] text-cyan-300/80 mb-3"
+        className="ui-label-xs text-cyan-300/80 mb-3"
       >
         Elemental · Neon Alley Edition
       </motion.span>
@@ -37,10 +37,10 @@ export const GameTitle = () => {
         transition={{ delay: 0.4, duration: 0.5 }}
         className="mt-3 flex flex-wrap justify-center gap-2"
       >
-        <span className="font-sans px-3 py-1 rounded-full text-[10px] font-bold tracking-[0.28em] uppercase bg-fuchsia-500/15 text-fuchsia-200 border border-fuchsia-400/30 backdrop-blur">
+        <span className="ui-btn-xs ui-label-xs bg-fuchsia-500/15 text-fuchsia-200 border border-fuchsia-400/30 backdrop-blur">
           Lo-Fi Rhythm
         </span>
-        <span className="font-sans px-3 py-1 rounded-full text-[10px] font-bold tracking-[0.28em] uppercase bg-cyan-500/15 text-cyan-200 border border-cyan-400/30 backdrop-blur">
+        <span className="ui-btn-xs ui-label-xs bg-cyan-500/15 text-cyan-200 border border-cyan-400/30 backdrop-blur">
           Chain Reactions
         </span>
       </motion.div>
