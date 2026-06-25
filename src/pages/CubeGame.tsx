@@ -17,6 +17,7 @@ import {
   createEmptyGrid, createRandomPiece, canPlacePieceAt, canAnyPieceFit, resolveGrid, findHint, getComboText, getReactionPreview,
 } from '@/game/engine';
 import { playSound, startMusic } from '@/game/sounds';
+import { trackGameEvent } from '@/game/analytics';
 
 const FACE = 6;
 type ReactionType = 'burn' | 'extinguish' | 'dissolve';
@@ -24,6 +25,11 @@ const REACTION_RING: Record<ReactionType, string> = {
   burn: 'ring-2 ring-orange-400/80',
   extinguish: 'ring-2 ring-blue-400/80',
   dissolve: 'ring-2 ring-green-400/80',
+};
+const REACTION_MOMENTS: Record<ReactionType, string> = {
+  burn: 'WILDFIRE',
+  extinguish: 'STEAM BURST',
+  dissolve: 'ACID MELT',
 };
 
 const FACES = [
@@ -54,6 +60,10 @@ const ELEMENT_LABELS: Record<ElementType, string> = {
 };
 
 const FEVER_MS = 9000;
+const FACE_AFFINITY_BONUS = 20;
+const FACE_SYNC_BONUS = 500;
+const FULL_CUBE_SYNC_BONUS = 2500;
+const ORBIT_COMBO_BONUS = 300;
 // Gentle side-view offset: keeps depth visible without skewing targets too much.
 const ISO = { x: -8, y: 12 };
 
@@ -82,12 +92,27 @@ const CubeGame = () => {
   const [syncedFaces, setSyncedFaces] = useState<Set<number>>(() => new Set());
   const [lastCubeMoment, setLastCubeMoment] = useState<{ label: string; timestamp: number } | null>(null);
   const [showCubeOnboarding, setShowCubeOnboarding] = useState(() => localStorage.getItem('cube-side-lab-seen') !== '1');
+  const [pendingOrbit, setPendingOrbit] = useState(false);
+  const [biggestCombo, setBiggestCombo] = useState(0);
+  const [bestReaction, setBestReaction] = useState<{ label: string; count: number } | null>(null);
+  const [feverActivations, setFeverActivations] = useState(0);
+  const [fullSyncFlash, setFullSyncFlash] = useState(0);
   const { phase, next, progress } = usePhase(score);
   const activeAffinity = FACE_AFFINITIES[activeFace];
 
   useEffect(() => {
+    trackGameEvent('game_started', { mode: 'cube' });
+  }, []);
+
+  useEffect(() => {
     if (score > best) { setBest(score); localStorage.setItem('cube-best', String(score)); }
   }, [score, best]);
+
+  useEffect(() => {
+    if (!fullSyncFlash) return;
+    const timer = window.setTimeout(() => setFullSyncFlash(0), 1700);
+    return () => window.clearTimeout(timer);
+  }, [fullSyncFlash]);
 
   // ── Reaction Fever ──
   const [feverMeter, setFeverMeter] = useState(0);
@@ -108,10 +133,12 @@ const CubeGame = () => {
     setFeverActive(true);
     setFeverEndsAt(Date.now() + FEVER_MS);
     setFeverMeter(100);
+    setFeverActivations((count) => count + 1);
+    trackGameEvent('fever_activated', { mode: 'cube', score });
     playSound('combo');
     if (feverTimer.current) clearTimeout(feverTimer.current);
     feverTimer.current = setTimeout(endFever, FEVER_MS);
-  }, [endFever]);
+  }, [endFever, score]);
   useEffect(() => () => { if (feverTimer.current) clearTimeout(feverTimer.current); }, []);
 
   // ── Side-only 3D orbit ──
@@ -140,6 +167,12 @@ const CubeGame = () => {
   const refill = useCallback((remaining: DraggablePiece[], forScore: number) =>
     remaining.length > 0 ? remaining : [createRandomPiece(forScore), createRandomPiece(forScore), createRandomPiece(forScore)], []);
 
+  const currentFaceHasFit = useMemo(() => pieces.length === 0 || canAnyPieceFit(boards[activeFace], pieces), [boards, activeFace, pieces]);
+  const suggestedFace = useMemo(
+    () => currentFaceHasFit ? null : FACES.find((face) => face.id !== activeFace && canAnyPieceFit(boards[face.id], pieces)) ?? null,
+    [currentFaceHasFit, boards, activeFace, pieces],
+  );
+
   const placePieceAt = useCallback((piece: DraggablePiece, pos: Position) => {
     if (isGameOver) return;
     const board = boards[activeFace];
@@ -149,25 +182,51 @@ const CubeGame = () => {
     const r = resolveGrid(placeInto(board, piece, pos));
     const affinity = FACE_AFFINITIES[activeFace];
     const affinityHits = piece.elements.filter((el) => el === affinity.element).length;
-    const affinityBonus = affinityHits * 25;
+    const affinityBonus = affinityHits * FACE_AFFINITY_BONUS;
+    const hasReactionOrClear = r.linesCleared > 0 || r.allReactionEvents.length > 0 || r.maxCombo > 0;
+    const orbitBonus = pendingOrbit && hasReactionOrClear ? ORBIT_COMBO_BONUS : 0;
+    const faceSynced = !isBoardEmpty(board) && isBoardEmpty(r.grid);
+    const nextSynced = new Set(syncedFaces);
+    if (faceSynced) nextSynced.add(activeFace);
+    const fullSyncAchieved = faceSynced && nextSynced.size === FACES.length && !syncedFaces.has(activeFace);
+    const syncBonus = faceSynced ? FACE_SYNC_BONUS : 0;
+    const fullSyncBonus = fullSyncAchieved ? FULL_CUBE_SYNC_BONUS : 0;
     const mult = feverActiveRef.current ? 2 : 1;
-    const gained = Math.floor(r.totalScore * mult) + piece.shape.length * 10 + affinityBonus;
+    const gained = Math.floor(r.totalScore * mult) + piece.shape.length * 10 + affinityBonus + orbitBonus + syncBonus + fullSyncBonus;
     const nextBoards = boards.map((b, i) => (i === activeFace ? r.grid : b));
     const nextScore = score + gained;
-    const faceSynced = !isBoardEmpty(board) && isBoardEmpty(r.grid);
 
     setBoards(nextBoards);
     setScore(nextScore);
+    setPendingOrbit(false);
+    if (r.maxCombo > biggestCombo) setBiggestCombo(r.maxCombo);
+
+    if (r.allAffectedPositions.length > 0) {
+      const byType = r.allAffectedPositions.reduce<Record<ReactionType, number>>((acc, group) => {
+        acc[group.type] += group.positions.length;
+        return acc;
+      }, { burn: 0, extinguish: 0, dissolve: 0 });
+      const [type, count] = (Object.entries(byType) as [ReactionType, number][]).sort((a, b) => b[1] - a[1])[0];
+      if (count > 0) {
+        setBestReaction((prev) => (!prev || count > prev.count ? { label: REACTION_MOMENTS[type], count } : prev));
+      }
+    }
 
     if (faceSynced) {
-      const nextSynced = new Set(syncedFaces);
-      nextSynced.add(activeFace);
       setSyncedFaces(nextSynced);
-      setLastCubeMoment({
-        label: nextSynced.size === FACES.length ? 'FULL CUBE SYNC!' : `${FACES[activeFace].name.toUpperCase()} FACE SYNC!`,
-        timestamp: Date.now(),
-      });
+      const label = fullSyncAchieved
+        ? `FULL CUBE SYNC +${FULL_CUBE_SYNC_BONUS}`
+        : `${FACES[activeFace].name.toUpperCase()} FACE SYNC +${FACE_SYNC_BONUS}`;
+      setLastCubeMoment({ label, timestamp: Date.now() });
+      if (fullSyncAchieved) setFullSyncFlash(Date.now());
       playSound('highScore');
+      trackGameEvent(fullSyncAchieved ? 'cube_full_sync' : 'cube_face_synced', {
+        face: FACES[activeFace].name,
+        synced_faces: nextSynced.size,
+        score: nextScore,
+      });
+    } else if (orbitBonus > 0) {
+      setLastCubeMoment({ label: `ORBIT COMBO +${ORBIT_COMBO_BONUS}`, timestamp: Date.now() });
     } else if (affinityBonus > 0) {
       setLastCubeMoment({ label: `${affinity.boost} +${affinityBonus}`, timestamp: Date.now() });
     }
@@ -179,12 +238,16 @@ const CubeGame = () => {
     if (r.allAffectedPositions.length > 0) {
       setParticle({ type: (r.primaryReactionType ?? r.allAffectedPositions[0].type) as ReactionType, positions: r.allAffectedPositions.flatMap((a) => a.positions), timestamp: Date.now() });
     }
-    if (r.maxCombo > 0 || r.linesCleared > 0 || affinityBonus > 0) {
+    if (r.maxCombo > 0 || r.linesCleared > 0 || affinityBonus > 0 || orbitBonus > 0 || syncBonus > 0) {
       const baseText = r.perfectClear ? 'PERFECT CLEAR!' : r.maxCombo > 0 || r.linesCleared > 0 ? getComboText(r.maxCombo, r.linesCleared) : 'FACE BOOST!';
-      const text = affinityBonus > 0 ? `${baseText} · ${affinity.boost}` : baseText;
+      const text = orbitBonus > 0
+        ? `${baseText} · ORBIT COMBO!`
+        : affinityBonus > 0
+          ? `${baseText} · ${affinity.boost}`
+          : baseText;
       setPopup({ score: gained, show: true, text, reactionType: r.primaryReactionType as ReactionType });
       setFlashKey((k) => k + 1);
-      if (r.maxCombo > 1 || r.linesCleared >= 2 || affinityBonus > 0) playSound('combo');
+      if (r.maxCombo > 1 || r.linesCleared >= 2 || affinityBonus > 0 || orbitBonus > 0 || syncBonus > 0) playSound('combo');
       window.setTimeout(() => setPopup((p) => ({ ...p, show: false })), 1200);
     }
 
@@ -192,8 +255,29 @@ const CubeGame = () => {
     setPieces(nextPieces);
     setSelected(null);
     setHover(null);
-    if (!nextBoards.some((b) => canAnyPieceFit(b, nextPieces))) { setIsGameOver(true); playSound('gameOver'); }
-  }, [isGameOver, boards, activeFace, score, pieces, refill, activateFever, syncedFaces]);
+    trackGameEvent('piece_placed', {
+      mode: 'cube',
+      face: FACES[activeFace].name,
+      score: nextScore,
+      gained,
+      affinity_bonus: affinityBonus,
+      orbit_bonus: orbitBonus,
+      sync_bonus: syncBonus + fullSyncBonus,
+      combo: r.maxCombo,
+      reactions: r.allReactionEvents.length,
+    });
+    if (!nextBoards.some((b) => canAnyPieceFit(b, nextPieces))) {
+      setIsGameOver(true);
+      trackGameEvent('game_over', {
+        mode: 'cube',
+        score: nextScore,
+        synced_faces: nextSynced.size,
+        biggest_combo: Math.max(biggestCombo, r.maxCombo),
+        fever_activations: feverActivations,
+      });
+      playSound('gameOver');
+    }
+  }, [isGameOver, boards, activeFace, score, pieces, refill, activateFever, syncedFaces, pendingOrbit, biggestCombo, feverActivations]);
 
   // Map a screen point to a board cell using the browser's real 3D hit-testing
   // (works at any cube angle, unlike flat-rect math). On touch, sample a little
@@ -218,14 +302,19 @@ const CubeGame = () => {
 
   const jumpToFace = useCallback((faceId: number) => {
     const y = FACE_ROT[faceId] ?? 0;
+    if (faceId !== activeFace) {
+      setPendingOrbit(true);
+      trackGameEvent('cube_face_rotated', { from_face: FACES[activeFace].name, to_face: FACES[faceId].name, method: 'compass' });
+    }
     rotRef.current = { x: 0, y };
     setRot(rotRef.current);
     setActiveFace(faceId);
     setSnapping(true);
-  }, []);
+  }, [activeFace]);
 
   const handleHint = useCallback(() => {
     const h = findHint(boards[activeFace], pieces);
+    trackGameEvent('hint_used', { mode: 'cube', face: FACES[activeFace].name });
     if (h) {
       playSound('select');
       setSelected(h.piece);
@@ -264,6 +353,10 @@ const CubeGame = () => {
   const onScenePointerUp = () => {
     if (dragRef.current && movedRef.current) {
       const s = faceFromRot(rotRef.current.x, rotRef.current.y);
+      if (s.face !== activeFace) {
+        setPendingOrbit(true);
+        trackGameEvent('cube_face_rotated', { from_face: FACES[activeFace].name, to_face: FACES[s.face].name, method: 'drag' });
+      }
       rotRef.current = { x: s.x, y: s.y };
       setRot(rotRef.current);
       setActiveFace(s.face);
@@ -273,6 +366,7 @@ const CubeGame = () => {
   };
 
   const reset = () => {
+    trackGameEvent('game_restarted', { mode: 'cube', previous_score: score });
     setBoards(FACES.map(() => createEmptyGrid(FACE, FACE)));
     setPieces([createRandomPiece(0), createRandomPiece(0), createRandomPiece(0)]);
     setSelected(null);
@@ -281,6 +375,11 @@ const CubeGame = () => {
     setActiveFace(0);
     setSyncedFaces(new Set());
     setLastCubeMoment(null);
+    setPendingOrbit(false);
+    setBiggestCombo(0);
+    setBestReaction(null);
+    setFeverActivations(0);
+    setFullSyncFlash(0);
     setIsGameOver(false);
     endFever();
     rotRef.current = { x: 0, y: 0 };
@@ -291,6 +390,7 @@ const CubeGame = () => {
   const dismissOnboarding = () => {
     localStorage.setItem('cube-side-lab-seen', '1');
     setShowCubeOnboarding(false);
+    trackGameEvent('tutorial_completed', { mode: 'cube' });
   };
 
   // Placement ghost + reaction preview on the active face.
@@ -339,7 +439,7 @@ const CubeGame = () => {
         <div className="mb-1 flex items-center gap-2 rounded-full border border-white/10 bg-white/10 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.2em] text-white/75">
           <span>{activeAffinity.label}</span>
           <span className="text-white/35">·</span>
-          <span>{ELEMENT_LABELS[activeAffinity.element]} +25/block</span>
+          <span>{ELEMENT_LABELS[activeAffinity.element]} +{FACE_AFFINITY_BONUS}/block</span>
         </div>
         <PhasePill phase={phase} next={next} progress={progress} />
         <FeverMeter meter={feverMeter} active={feverActive} endsAt={feverEndsAt} />
@@ -365,6 +465,20 @@ const CubeGame = () => {
               className="pointer-events-none absolute top-4 z-20 rounded-full border border-white/20 bg-white/15 px-4 py-2 text-xs font-black uppercase tracking-[0.18em] text-white shadow-xl backdrop-blur-xl"
             >
               {lastCubeMoment.label}
+            </motion.div>
+          )}
+        </AnimatePresence>
+        <AnimatePresence>
+          {fullSyncFlash > 0 && (
+            <motion.div
+              key={fullSyncFlash}
+              initial={{ opacity: 0, scale: 0.82 }}
+              animate={{ opacity: [0, 1, 1, 0], scale: [0.82, 1.08, 1, 1.16] }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 1.6, ease: 'easeOut' }}
+              className="pointer-events-none absolute z-30 flex h-[82vw] max-h-[450px] w-[82vw] max-w-[450px] items-center justify-center rounded-full border border-pixar-yellow/60 bg-pixar-yellow/10 text-center shadow-[0_0_80px_rgba(250,204,21,0.45)] backdrop-blur-sm"
+            >
+              <span className="text-3xl font-display uppercase tracking-widest text-white drop-shadow-xl">Full Cube Sync!</span>
             </motion.div>
           )}
         </AnimatePresence>
@@ -443,6 +557,14 @@ const CubeGame = () => {
 
       {/* Glass orbit hint + current face */}
       <div className="z-20 mb-2 flex flex-col items-center gap-2 rounded-[26px] border border-white/15 bg-white/10 px-4 py-3 text-white/75 shadow-xl shadow-black/20 backdrop-blur-xl">
+        {!currentFaceHasFit && suggestedFace && (
+          <button
+            onClick={() => jumpToFace(suggestedFace.id)}
+            className="mb-1 rounded-full border border-pixar-yellow/50 bg-pixar-yellow/15 px-3 py-1 text-[10px] font-black uppercase tracking-[0.16em] text-pixar-yellow animate-pulse"
+          >
+            Rotate to {suggestedFace.name} — space found
+          </button>
+        )}
         <div className="flex items-center gap-2">
           <Rotate3d className="w-4 h-4 text-pixar-yellow" />
           <span className="text-xs uppercase tracking-widest font-bold">Drag left / right</span>
@@ -454,7 +576,7 @@ const CubeGame = () => {
             <button
               key={face.id}
               onClick={() => jumpToFace(face.id)}
-              className={`h-2.5 rounded-full transition-all ${activeFace === face.id ? 'w-8 bg-pixar-yellow' : syncedFaces.has(face.id) ? 'w-4 bg-white/70' : 'w-4 bg-white/25'}`}
+              className={`h-2.5 rounded-full transition-all ${activeFace === face.id ? 'w-8 bg-pixar-yellow' : syncedFaces.has(face.id) ? 'w-4 bg-white/70' : suggestedFace?.id === face.id ? 'w-6 bg-pixar-yellow/80 animate-pulse' : 'w-4 bg-white/25'}`}
               aria-label={`Jump to ${face.name} face`}
             />
           ))}
@@ -518,7 +640,17 @@ const CubeGame = () => {
               <div className="mb-5 grid grid-cols-2 gap-2 text-xs font-bold text-white/75">
                 <div className="rounded-2xl border border-white/10 bg-white/10 px-3 py-2">Best<br /><span className="text-white">{best.toLocaleString()}</span></div>
                 <div className="rounded-2xl border border-white/10 bg-white/10 px-3 py-2">Faces Synced<br /><span className="text-white">{syncedCount}/{FACES.length}</span></div>
+                <div className="rounded-2xl border border-white/10 bg-white/10 px-3 py-2">Biggest Combo<br /><span className="text-white">{biggestCombo || 0} Chain</span></div>
+                <div className="rounded-2xl border border-white/10 bg-white/10 px-3 py-2">Fever Runs<br /><span className="text-white">{feverActivations}</span></div>
               </div>
+              {bestReaction && (
+                <p className="mb-4 rounded-full border border-white/10 bg-white/10 px-4 py-2 text-xs font-black uppercase tracking-[0.16em] text-white/80">
+                  Best Reaction: {bestReaction.label} x{bestReaction.count}
+                </p>
+              )}
+              <p className="mb-5 text-xs font-bold uppercase tracking-[0.16em] text-white/45">
+                Next goal: sync {Math.min(syncedCount + 1, FACES.length)}/{FACES.length} faces
+              </p>
               <PixarButton onClick={reset} variant="primary" size="md" shine>Run It Again</PixarButton>
             </motion.div>
           </PixarOverlay>
