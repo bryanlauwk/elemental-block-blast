@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { lazy, Suspense } from "react";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
+import LandingModeDock from "./components/game/LandingModeDock";
 
 // Admin tooling is rarely visited by players — load it on demand so it stays
 // out of the main game bundle.
@@ -22,6 +23,7 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
+        <LandingModeDock />
         <Suspense fallback={null}>
           <Routes>
             <Route path="/" element={<Index />} />
