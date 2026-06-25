@@ -1,70 +1,49 @@
-import { motion, useReducedMotion } from 'framer-motion';
+import { motion } from 'framer-motion';
 
-interface PixarWordProps {
-  text: string;
-  className: string;
-  baseDelay: number;
-  size: string;
-}
-
-const PixarWord = ({ text, className, baseDelay, size }: PixarWordProps) => {
-  return (
-    <span className={`relative inline-flex ${size}`}>
-      {text.split('').map((char, i) => (
-        <motion.span
-          key={`${text}-${i}`}
-          initial={{ y: -40, opacity: 0, scale: 0.6 }}
-          animate={{ y: 0, opacity: 1, scale: 1 }}
-          transition={{
-            delay: baseDelay + i * 0.05,
-            type: 'spring',
-            stiffness: 380,
-            damping: 14,
-          }}
-          className={`inline-block ${className}`}
-          style={{ fontFamily: "'Abril Fatface', Georgia, serif" }}
-        >
-          {char}
-        </motion.span>
-      ))}
-      <span aria-hidden className="pixar-shimmer-sweep" />
-    </span>
-  );
-};
-
+/**
+ * Neon Glass Bento title — Space Grotesk gradient-clip headline that reads
+ * cleanly on top of the lo-fi neon-alley backdrop. No 3D letter stacks.
+ */
 export const GameTitle = () => {
-  const reduceMotion = useReducedMotion();
-
   return (
     <div className="flex flex-col items-center text-center select-none">
-      {/* Eyebrow */}
       <motion.span
-        initial={{ opacity: 0, y: -8 }}
+        initial={{ opacity: 0, y: -6 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.1, duration: 0.4 }}
-        className="text-pixar-blue text-sm sm:text-base md:text-lg font-bold uppercase tracking-[0.4em] mb-2 drop-shadow-[0_2px_4px_rgba(0,0,0,0.35)]"
-        style={{ fontFamily: 'Cabin, system-ui, sans-serif' }}
+        transition={{ delay: 0.05, duration: 0.5 }}
+        className="font-sans text-[10px] sm:text-xs md:text-sm font-bold uppercase tracking-[0.45em] text-cyan-300/80 mb-3"
       >
-        Elemental
+        Elemental · Neon Alley Edition
       </motion.span>
 
-      {/* Stacked headline */}
-      <h1
-        className={`flex flex-col items-center leading-none ${reduceMotion ? '' : 'pixar-title-bob'}`}
+      <motion.h1
+        initial={{ opacity: 0, filter: 'blur(8px)', y: -4 }}
+        animate={{ opacity: 1, filter: 'blur(0px)', y: 0 }}
+        transition={{ duration: 0.7, ease: 'easeOut' }}
+        className="font-display font-bold uppercase tracking-tighter leading-[0.92] text-[clamp(3rem,12vw,7rem)] bg-clip-text text-transparent"
+        style={{
+          backgroundImage:
+            'linear-gradient(180deg, #ffffff 0%, rgba(255,255,255,0.65) 100%)',
+          filter:
+            'drop-shadow(0 0 18px rgba(255,255,255,0.25)) drop-shadow(0 0 38px hsl(190 95% 60% / 0.25))',
+        }}
       >
-        <PixarWord
-          text="BLOCK"
-          baseDelay={0.25}
-          size="text-6xl sm:text-7xl md:text-8xl lg:text-9xl"
-          className="text-pixar-yellow pixar-letter-shadow-yellow tracking-tighter"
-        />
-        <PixarWord
-          text="BLAST"
-          baseDelay={0.55}
-          size="text-6xl sm:text-7xl md:text-8xl lg:text-9xl -mt-3 sm:-mt-4 md:-mt-5"
-          className="text-pixar-red pixar-letter-shadow-red"
-        />
-      </h1>
+        Block<br />Blast
+      </motion.h1>
+
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.4, duration: 0.5 }}
+        className="mt-4 flex flex-wrap justify-center gap-2"
+      >
+        <span className="font-sans px-3 py-1 rounded-full text-[10px] font-bold tracking-widest uppercase bg-fuchsia-500/15 text-fuchsia-200 border border-fuchsia-400/30 backdrop-blur">
+          Lo-Fi Rhythm
+        </span>
+        <span className="font-sans px-3 py-1 rounded-full text-[10px] font-bold tracking-widest uppercase bg-cyan-500/15 text-cyan-200 border border-cyan-400/30 backdrop-blur">
+          Chain Reactions
+        </span>
+      </motion.div>
     </div>
   );
 };

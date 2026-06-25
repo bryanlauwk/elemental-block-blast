@@ -13,31 +13,29 @@ interface PixarButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 const variantFace: Record<Variant, string> = {
-  primary: "bg-pixar-red text-white",
-  secondary: "bg-pixar-yellow text-pixar-navy-deep",
+  // primary = cyan→magenta neon pill
+  primary:
+    "text-white border border-white/25 bg-[linear-gradient(135deg,hsl(190_95%_55%)_0%,hsl(268_85%_60%)_50%,hsl(306_90%_60%)_100%)] shadow-[0_0_30px_hsl(190_95%_55%/0.35),0_0_60px_hsl(306_90%_60%/0.25)]",
+  // secondary = frosted glass with cyan hairline
+  secondary:
+    "text-white bg-white/8 border border-cyan-400/40 backdrop-blur-xl shadow-[0_0_24px_hsl(190_95%_60%/0.22)]",
+  // ghost = quiet glass
   ghost:
-    "bg-pixar-navy/70 text-white border border-pixar-blue/40 backdrop-blur",
+    "text-white/85 bg-white/5 border border-white/15 backdrop-blur-xl",
 };
 
-const variantShadow: Record<Variant, string> = {
-  primary: "bg-pixar-red-deep",
-  secondary: "bg-pixar-yellow-deep",
-  ghost: "bg-pixar-navy-deep",
-};
-
-const sizeMap: Record<Size, { pad: string; text: string; offset: string }> = {
-  sm: { pad: "px-5 py-2", text: "text-base", offset: "-bottom-1" },
-  md: { pad: "px-8 py-3", text: "text-xl", offset: "-bottom-1.5" },
+const sizeMap: Record<Size, { pad: string; text: string }> = {
+  sm: { pad: "px-5 py-2", text: "text-sm" },
+  md: { pad: "px-7 py-3", text: "text-base" },
   lg: {
-    pad: "px-14 sm:px-16 md:px-20 py-4 sm:py-5 md:py-6",
-    text: "text-3xl sm:text-4xl md:text-5xl",
-    offset: "-bottom-2",
+    pad: "px-12 sm:px-14 md:px-16 py-4 sm:py-5",
+    text: "text-xl sm:text-2xl md:text-3xl",
   },
 };
 
 /**
- * Chunky Pixar 3D button: candy face + offset shadow layer + glossy top
- * highlight. Primary = red, secondary = yellow, ghost = navy glass.
+ * Neon Glass Bento button. Primary = cyan→violet→magenta neon pill,
+ * secondary/ghost = frosted glass with hairline borders.
  */
 export const PixarButton = forwardRef<HTMLButtonElement, PixarButtonProps>(
   (
@@ -45,8 +43,6 @@ export const PixarButton = forwardRef<HTMLButtonElement, PixarButtonProps>(
     ref,
   ) => {
     const s = sizeMap[size];
-    const ringColor =
-      variant === "secondary" ? "focus-visible:ring-pixar-red/60" : "focus-visible:ring-pixar-yellow/60";
     return (
       <button
         ref={ref}
@@ -56,57 +52,23 @@ export const PixarButton = forwardRef<HTMLButtonElement, PixarButtonProps>(
           onClick?.(e);
         }}
         className={cn(
-          "group relative inline-block rounded-full",
-          "focus:outline-none focus-visible:ring-4",
-          ringColor,
+          "group relative inline-flex items-center justify-center rounded-2xl overflow-hidden",
+          "font-display font-bold uppercase tracking-[0.2em] leading-none",
+          "transition-transform duration-150 hover:scale-[1.02] active:scale-[0.98]",
+          "focus:outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/70 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent",
+          variantFace[variant],
+          s.pad,
+          s.text,
           className,
         )}
       >
-        {/* Drop-shadow layer */}
+        {/* Top inner highlight */}
         <span
           aria-hidden
-          className={cn(
-            "absolute inset-x-0 top-0 rounded-full",
-            s.offset,
-            variantShadow[variant],
-          )}
+          className="pointer-events-none absolute inset-x-0 top-0 h-1/2 bg-gradient-to-b from-white/20 to-transparent"
         />
-        {/* Face */}
-        <span
-          className={cn(
-            "relative block rounded-full overflow-hidden transition-transform",
-            "active:translate-y-1 group-hover:brightness-110",
-            s.pad,
-            variantFace[variant],
-          )}
-        >
-          {/* Top gloss */}
-          <span
-            aria-hidden
-            className="absolute inset-x-0 top-0 h-1/2 bg-gradient-to-b from-white/40 to-transparent rounded-t-full"
-          />
-          {/* Bottom inner shadow */}
-          <span
-            aria-hidden
-            className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/20 to-transparent rounded-b-full"
-          />
-          {/* Animated light sweep */}
-          {shine && <span aria-hidden className="pixar-shine" />}
-          <span
-            className={cn(
-              "relative z-10 block leading-none uppercase tracking-widest font-display",
-              s.text,
-            )}
-            style={{
-              textShadow:
-                variant === "secondary"
-                  ? "0 2px 0 hsl(var(--pixar-yellow-deep)), 0 4px 8px rgba(0,0,0,0.25)"
-                  : "0 2px 0 hsl(var(--pixar-red-deep)), 0 4px 8px rgba(0,0,0,0.35)",
-            }}
-          >
-            {children}
-          </span>
-        </span>
+        {shine && <span aria-hidden className="pixar-shine" />}
+        <span className="relative z-10">{children}</span>
       </button>
     );
   },
