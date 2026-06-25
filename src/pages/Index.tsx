@@ -926,25 +926,25 @@ const Index = () => {
 
           {/* Right Sidebar - Desktop only */}
           {hasStarted && (
-            <div className="hidden lg:flex lg:flex-col lg:gap-4 lg:w-48 sticky top-24 self-start max-h-[calc(100vh-8rem)]">
+            <div className="hidden lg:flex lg:flex-col lg:gap-4 lg:w-52 sticky top-24 self-start max-h-[calc(100vh-8rem)]">
               {/* Reaction Feed Panel */}
               <motion.div
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
-                className="bg-game-grid-dark/50 border border-game-grid-border/30 rounded-xl p-4 overflow-y-auto max-h-[50vh]"
+                className="neon-glass-panel overflow-y-auto max-h-[50vh] p-4"
               >
-                <ReactionFeed 
+                <ReactionFeed
                   reactions={reactionEvents}
                   preview={reactionPreviewSummary}
                 />
               </motion.div>
-              
+
               {/* Element Legend Panel */}
               <motion.div
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.1 }}
-                className="bg-game-grid-dark/50 border border-game-grid-border/30 rounded-xl p-4"
+                className="neon-glass-panel p-4"
               >
                 <ElementLegend variant="vertical" />
               </motion.div>
@@ -958,7 +958,7 @@ const Index = () => {
                 initial={{ opacity: 0, x: 20, scale: 0.95 }}
                 animate={{ opacity: 1, x: 0, scale: 1 }}
                 exit={{ opacity: 0, x: 20, scale: 0.95 }}
-                className="lg:hidden fixed top-20 right-4 z-40 w-52 md:w-56 bg-game-grid-dark/95 backdrop-blur-md border border-game-grid-border/50 rounded-xl p-4 shadow-2xl"
+                className="lg:hidden fixed top-20 right-4 z-40 w-52 md:w-56 neon-glass-panel p-4"
               >
                 <button
                   onClick={() => setShowReactionFeed(false)}
