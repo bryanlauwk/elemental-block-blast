@@ -391,11 +391,8 @@ const Index = () => {
           href="https://www.bryanlauwk.fun" 
           target="_blank" 
           rel="noopener noreferrer"
-          className="font-display font-bold uppercase tracking-[0.18em] text-white/85 hover:text-cyan-300 transition-colors"
-          style={{
-            fontSize: 'clamp(0.85rem, 2.2vw, 1.1rem)',
-            textShadow: '0 0 12px hsl(190 95% 60% / 0.35)',
-          }}
+          className="ui-label-sm text-white/85 hover:text-cyan-300 transition-colors"
+          style={{ textShadow: '0 0 12px hsl(190 95% 60% / 0.35)' }}
         >
           BRYANLAUWK.FUN
         </a>
@@ -690,7 +687,7 @@ const Index = () => {
                       show: { opacity: 1, y: 0, transition: { duration: 0.4 } },
                     }}
                     onClick={() => setShowDailyChallenge(true)}
-                    className="font-display flex items-center gap-2 text-cyan-200/80 hover:text-cyan-100 font-semibold text-[11px] sm:text-xs uppercase tracking-[0.28em] transition-colors"
+                    className="ui-label-xs ui-btn-xs text-cyan-200/80 hover:text-cyan-100 transition-colors"
                   >
                     <Calendar className="w-3.5 h-3.5" />
                     <span>Daily Challenge</span>
@@ -721,7 +718,7 @@ const Index = () => {
                   animate={{ opacity: 1, y: 0 }}
                 >
                   {/* Hidden on phones to save vertical space (top bar already brands it) */}
-                  <h1 className="hidden sm:block font-display text-xl sm:text-2xl font-bold tracking-tight uppercase">
+                  <h1 className="hidden sm:block ui-label-lg">
                     <span className="bg-clip-text text-transparent bg-[linear-gradient(180deg,#ffffff,rgba(255,255,255,0.65))] drop-shadow-[0_0_12px_hsl(190_95%_60%/0.35)]">
                       Block Blast
                     </span>
@@ -757,7 +754,7 @@ const Index = () => {
                 {!gameState.isGameOver && (
                   <button
                     onClick={handleHint}
-                    className="mt-2 flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-white/[0.04] backdrop-blur-md border border-cyan-300/30 text-[11px] font-display font-bold uppercase tracking-[0.22em] text-white/80 hover:text-white hover:border-cyan-300/60 hover:shadow-[0_0_18px_-4px_hsl(190_95%_60%/0.55)] active:scale-95 transition-all"
+                    className="ui-btn-xs ui-label-xs mt-2 bg-white/[0.04] backdrop-blur-md border border-cyan-300/30 text-white/80 hover:text-white hover:border-cyan-300/60 hover:shadow-[0_0_18px_-4px_hsl(190_95%_60%/0.55)] active:scale-95 transition-all"
                     title="Show a helpful move"
                   >
                     <Lightbulb className="w-3.5 h-3.5 text-cyan-300 drop-shadow-[0_0_6px_hsl(190_95%_60%/0.7)]" />
