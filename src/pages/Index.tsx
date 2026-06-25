@@ -539,9 +539,9 @@ const Index = () => {
 
       {/* Main content wrapper - proper spacing zones */}
       <main className="flex-1 flex flex-col items-center justify-between px-3 sm:px-4 py-2 sm:py-6 pt-14 sm:pt-20 md:pt-24 min-h-[calc(100dvh-60px)]">
-        <div className="flex gap-4 sm:gap-6 items-start max-w-4xl w-full justify-center flex-1">
+        <div className={`flex gap-4 sm:gap-6 items-start w-full justify-center flex-1 ${hasStarted ? 'max-w-4xl' : 'max-w-5xl'}`}>
           {/* Main game column */}
-          <div className="flex flex-col items-center w-full max-w-[400px] h-full">
+          <div className={`flex flex-col items-center w-full h-full ${hasStarted ? 'max-w-[400px]' : 'max-w-5xl'}`}>
             {/* Start screen — Balanced neon bento landing */}
             {!hasStarted && (
               <div className="flex flex-col items-center justify-center flex-1 gap-5 sm:gap-6 py-4 sm:py-6 w-full max-w-5xl">
