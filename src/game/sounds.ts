@@ -17,6 +17,19 @@ export type SoundType =
 
 export type LoFiMusicType = 'cozy' | 'rainy' | 'night' | 'upbeat';
 
+import cozyTrack from '@/assets/music/cozy.mp3.asset.json';
+import rainyTrack from '@/assets/music/rainy.mp3.asset.json';
+import nightTrack from '@/assets/music/night.mp3.asset.json';
+import upbeatTrack from '@/assets/music/upbeat.mp3.asset.json';
+
+// Real ElevenLabs-generated lo-fi loops, one per mood.
+const LOFI_TRACK_URLS: Record<LoFiMusicType, string> = {
+  cozy: cozyTrack.url,
+  rainy: rainyTrack.url,
+  night: nightTrack.url,
+  upbeat: upbeatTrack.url,
+};
+
 interface LoFiPreset {
   id: LoFiMusicType;
   label: string;
@@ -289,6 +302,7 @@ let musicIntervals: number[] = [];
 let musicPlaying = false;
 let musicStep = 0;
 let visibilityHandler: (() => void) | null = null;
+let musicAudioEl: HTMLAudioElement | null = null;
 
 function getPreset(id: LoFiMusicType): LoFiPreset {
   return LOFI_MUSIC_PRESETS.find((preset) => preset.id === id) ?? LOFI_MUSIC_PRESETS[0];
@@ -320,7 +334,12 @@ export function setSfxEnabled(enabled: boolean): void { sfxEnabled = enabled; sa
 export function isSfxEnabled(): boolean { return sfxEnabled; }
 export function setMusicEnabled(enabled: boolean): void { musicEnabled = enabled; saveSoundSettings(); if (!enabled) stopMusic(); }
 export function isMusicEnabled(): boolean { return musicEnabled; }
-export function setMusicVolume(volume: number): void { musicVolume = Math.max(0, Math.min(1, volume)); saveSoundSettings(); if (musicGainNode) musicGainNode.gain.setTargetAtTime(musicVolume, getAudioContext().currentTime, 0.05); }
+export function setMusicVolume(volume: number): void {
+  musicVolume = Math.max(0, Math.min(1, volume));
+  saveSoundSettings();
+  if (musicGainNode) musicGainNode.gain.setTargetAtTime(musicVolume, getAudioContext().currentTime, 0.05);
+  if (musicAudioEl) musicAudioEl.volume = Math.min(1, musicVolume * 2.6);
+}
 export function getMusicVolume(): number { return musicVolume; }
 export function getMusicType(): LoFiMusicType { return musicType; }
 export function getMusicTypeOptions(): LoFiPreset[] { return LOFI_MUSIC_PRESETS; }
@@ -337,6 +356,22 @@ export function setSoundEnabled(enabled: boolean): void { setSfxEnabled(enabled)
 export function isSoundEnabled(): boolean { return sfxEnabled; }
 
 function connectToMusic(node: AudioNode): void { if (musicGainNode) node.connect(musicGainNode); }
+
+function startTrack(url: string): void {
+  try {
+    const audio = new Audio(url);
+    audio.loop = true;
+    audio.preload = 'auto';
+    audio.crossOrigin = 'anonymous';
+    audio.volume = Math.min(1, musicVolume * 2.6);
+    musicAudioEl = audio;
+    const play = () => audio.play().catch((err) => console.warn('Music autoplay blocked:', err));
+    if (audio.readyState >= 2) play();
+    else audio.addEventListener('canplay', play, { once: true });
+  } catch (e) {
+    console.warn('Failed to start lo-fi track:', e);
+  }
+}
 
 function scheduleLoFiChord(ctx: AudioContext, freqs: number[], startAt: number): void {
   const chordBus = ctx.createGain();
@@ -478,10 +513,15 @@ function createLoFiMusic(ctx: AudioContext): void {
 export function startMusic(): void {
   if (!musicEnabled || musicPlaying) return;
   try {
-    const ctx = getAudioContext();
     musicPlaying = true;
     musicStep = 0;
-    createLoFiMusic(ctx);
+    const trackUrl = LOFI_TRACK_URLS[musicType];
+    if (trackUrl) {
+      startTrack(trackUrl);
+    } else {
+      const ctx = getAudioContext();
+      createLoFiMusic(ctx);
+    }
     if (!visibilityHandler) {
       visibilityHandler = () => { if (document.hidden && musicPlaying) stopMusic(false); };
       document.addEventListener('visibilitychange', visibilityHandler);
@@ -493,6 +533,10 @@ export function startMusic(): void {
 
 export function stopMusic(persistSetting = true): void {
   musicPlaying = false;
+  if (musicAudioEl) {
+    try { musicAudioEl.pause(); musicAudioEl.src = ''; } catch (e) {}
+    musicAudioEl = null;
+  }
   musicOscillators.forEach(osc => { try { osc.stop(); osc.disconnect(); } catch (e) {} });
   musicOscillators = [];
   musicSources.forEach(source => { try { source.stop(); source.disconnect(); } catch (e) {} });
