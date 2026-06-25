@@ -915,7 +915,7 @@ const Index = () => {
               <motion.div
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
-                className="bg-game-grid-dark/50 border border-game-grid-border/30 rounded-xl p-4 overflow-y-auto max-h-[50vh]"
+                className="rounded-2xl p-4 overflow-y-auto max-h-[50vh] border border-cyan-300/25 bg-white/[0.04] backdrop-blur-2xl shadow-[0_20px_50px_-20px_rgba(0,0,0,0.7),0_0_30px_-12px_hsl(190_95%_60%/0.35),inset_0_1px_0_rgba(255,255,255,0.06)]"
               >
                 <ReactionFeed 
                   reactions={reactionEvents}
@@ -928,7 +928,7 @@ const Index = () => {
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.1 }}
-                className="bg-game-grid-dark/50 border border-game-grid-border/30 rounded-xl p-4"
+                className="rounded-2xl p-4 border border-fuchsia-300/25 bg-white/[0.04] backdrop-blur-2xl shadow-[0_20px_50px_-20px_rgba(0,0,0,0.7),0_0_30px_-12px_hsl(320_95%_62%/0.32),inset_0_1px_0_rgba(255,255,255,0.06)]"
               >
                 <ElementLegend variant="vertical" />
               </motion.div>
@@ -942,7 +942,7 @@ const Index = () => {
                 initial={{ opacity: 0, x: 20, scale: 0.95 }}
                 animate={{ opacity: 1, x: 0, scale: 1 }}
                 exit={{ opacity: 0, x: 20, scale: 0.95 }}
-                className="lg:hidden fixed top-20 right-4 z-40 w-52 md:w-56 bg-game-grid-dark/95 backdrop-blur-md border border-game-grid-border/50 rounded-xl p-4 shadow-2xl"
+                className="lg:hidden fixed top-20 right-4 z-40 w-52 md:w-56 rounded-2xl p-4 border border-cyan-300/30 bg-[rgba(10,14,30,0.55)] backdrop-blur-2xl shadow-[0_30px_60px_-20px_rgba(0,0,0,0.75),0_0_30px_-10px_hsl(190_95%_60%/0.45),inset_0_1px_0_rgba(255,255,255,0.06)]"
               >
                 <button
                   onClick={() => setShowReactionFeed(false)}
