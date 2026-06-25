@@ -71,13 +71,13 @@ export function BlockBlastScoreboard({ score, topScore, compact = false }: Block
         transition={{ duration: 0.3 }}
       >
         <motion.span 
-          className="text-6xl sm:text-7xl md:text-8xl font-black bg-gradient-to-r from-game-score-start via-game-score-mid to-game-score-end bg-clip-text text-transparent"
+          className="font-display text-6xl sm:text-7xl md:text-8xl font-bold tracking-tight bg-clip-text text-transparent bg-[linear-gradient(180deg,#ffffff,rgba(255,255,255,0.6))]"
           key={score}
           initial={{ scale: 1.1, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ duration: 0.15, ease: 'easeOut' }}
           style={{
-            textShadow: '0 4px 30px rgba(255, 180, 50, 0.3)',
+            textShadow: '0 0 24px hsl(190 95% 60% / 0.45), 0 0 48px hsl(320 95% 62% / 0.25)',
           }}
         >
           {score.toLocaleString()}
@@ -86,7 +86,7 @@ export function BlockBlastScoreboard({ score, topScore, compact = false }: Block
       
       {/* Best score indicator */}
       <div className="mt-2 flex items-center justify-center gap-2">
-        <span className="text-sm text-game-text-muted font-medium tracking-wider">
+        <span className="font-display text-xs uppercase text-white/55 font-semibold tracking-[0.2em]">
           BEST: {topScore.toLocaleString()}
         </span>
         <AnimatePresence>

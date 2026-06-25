@@ -43,14 +43,14 @@ export function ExitConfirmModal({ isOpen, onClose, onConfirm, currentScore }: E
             </div>
 
             {/* Title */}
-            <h2 className="text-xl font-bold text-white text-center mb-2">
+            <h2 className="font-display text-xl font-bold uppercase tracking-wide text-white text-center mb-2">
               Quit Game?
             </h2>
 
             {/* Current score display */}
             <div className="text-center mb-4">
               <p className="text-game-text-muted text-sm mb-1">Your current score</p>
-              <p className="text-2xl font-black bg-gradient-to-r from-game-score-start via-game-score-mid to-game-score-end bg-clip-text text-transparent">
+              <p className="font-display text-2xl font-bold tracking-tight bg-clip-text text-transparent bg-[linear-gradient(180deg,#ffffff,rgba(255,255,255,0.6))] drop-shadow-[0_0_14px_hsl(190_95%_60%/0.4)]">
                 {currentScore.toLocaleString()}
               </p>
             </div>
