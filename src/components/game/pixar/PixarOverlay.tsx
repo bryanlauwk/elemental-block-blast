@@ -25,7 +25,7 @@ export function PixarOverlay({
       className={cn(
         fullscreen ? "fixed" : "absolute",
         "inset-0 z-20 flex flex-col items-center justify-center rounded-3xl",
-        "bg-pixar-navy-deep/85 backdrop-blur-sm",
+        "bg-pixar-navy-deep/40 backdrop-blur-2xl backdrop-saturate-150",
         className,
       )}
       style={{
