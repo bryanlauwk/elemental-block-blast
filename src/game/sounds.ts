@@ -357,6 +357,22 @@ export function isSoundEnabled(): boolean { return sfxEnabled; }
 
 function connectToMusic(node: AudioNode): void { if (musicGainNode) node.connect(musicGainNode); }
 
+function startTrack(url: string): void {
+  try {
+    const audio = new Audio(url);
+    audio.loop = true;
+    audio.preload = 'auto';
+    audio.crossOrigin = 'anonymous';
+    audio.volume = Math.min(1, musicVolume * 2.6);
+    musicAudioEl = audio;
+    const play = () => audio.play().catch((err) => console.warn('Music autoplay blocked:', err));
+    if (audio.readyState >= 2) play();
+    else audio.addEventListener('canplay', play, { once: true });
+  } catch (e) {
+    console.warn('Failed to start lo-fi track:', e);
+  }
+}
+
 function scheduleLoFiChord(ctx: AudioContext, freqs: number[], startAt: number): void {
   const chordBus = ctx.createGain();
   const filter = ctx.createBiquadFilter();
