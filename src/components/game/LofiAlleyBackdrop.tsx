@@ -1,5 +1,5 @@
 import { motion, useReducedMotion } from "framer-motion";
-import alleyBg from "@/assets/popart-alley-bg.jpg";
+import alleyBg from "@/assets/lofi-neon-alley.jpg";
 
 interface LofiAlleyBackdropProps {
   /** Blur the artwork while gameplay is active so the board stays the focus. */
@@ -9,10 +9,8 @@ interface LofiAlleyBackdropProps {
 }
 
 /**
- * Vibrant pop-art alley atmosphere layer that sits behind the entire screen.
- * Renders three stacked layers: artwork → ink overlay → strong vignette.
- * Tuned for a saturated bright source: heavy overlay & blur during play so
- * the board wins, full-bleed glow on the landing screen.
+ * Cozy lo-fi neon-alley atmosphere layer that sits behind the entire screen.
+ * Renders three stacked layers: artwork → navy overlay → soft vignette.
  * GPU-only transitions (filter / opacity / transform) to keep 60fps.
  */
 export const LofiAlleyBackdrop = ({ blurred = false, pulse = false }: LofiAlleyBackdropProps) => {
@@ -27,32 +25,30 @@ export const LofiAlleyBackdrop = ({ blurred = false, pulse = false }: LofiAlleyB
         style={{ backgroundImage: `url(${alleyBg})` }}
         animate={{
           filter: pulseActive
-            ? "blur(0px) brightness(1.18) saturate(1.2)"
+            ? "blur(0px) brightness(1.18) saturate(1.15)"
             : blurred
-              ? "blur(8px) brightness(0.78) saturate(0.9)"
-              : "blur(0px) brightness(1) saturate(1.08)",
+              ? "blur(6px) brightness(0.95) saturate(1.05)"
+              : "blur(0px) brightness(1) saturate(1.05)",
           scale: pulseActive ? 1.02 : 1,
         }}
         transition={{ duration: pulseActive ? 0.45 : 0.9, ease: "easeOut" }}
       />
 
-      {/* Ink overlay — landing lets the art shine, gameplay pushes it back */}
+      {/* Navy overlay — drops during pulse so the art shines through */}
       <motion.div
         className="absolute inset-0"
-        style={{ backgroundColor: "hsl(258 60% 6%)" }}
-        animate={{ opacity: pulseActive ? 0.2 : blurred ? 0.62 : 0.18 }}
+        style={{ backgroundColor: "hsl(224 70% 8%)" }}
+        animate={{ opacity: pulseActive ? 0.28 : blurred ? 0.68 : 0.6 }}
         transition={{ duration: pulseActive ? 0.45 : 0.9, ease: "easeOut" }}
       />
 
-      {/* Strong vignette pushing focus to the board — corners go near-black */}
-      <motion.div
+      {/* Soft vignette pushing focus to the board */}
+      <div
         className="absolute inset-0"
-        animate={{
-          background: blurred
-            ? "radial-gradient(ellipse 60% 48% at 50% 50%, transparent 30%, hsl(258 70% 4% / 0.92) 100%)"
-            : "radial-gradient(ellipse 80% 65% at 50% 50%, transparent 55%, hsl(258 70% 4% / 0.55) 100%)",
+        style={{
+          background:
+            "radial-gradient(ellipse 70% 55% at 50% 50%, transparent 45%, hsl(224 70% 6% / 0.7) 100%)",
         }}
-        transition={{ duration: 0.9, ease: "easeOut" }}
       />
     </div>
   );

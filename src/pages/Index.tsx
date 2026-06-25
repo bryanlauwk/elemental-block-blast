@@ -42,8 +42,7 @@ import AdaptiveStage from '@/components/game/AdaptiveStage';
 import PhasePill from '@/components/game/PhasePill';
 import PhaseUpOverlay from '@/components/game/PhaseUpOverlay';
 import LofiAlleyBackdrop from '@/components/game/LofiAlleyBackdrop';
-import heroMascot from '@/assets/popart-mascot.png';
-import popartHero from '@/assets/popart-alley-hero.jpg';
+import heroMascot from '@/assets/hero-mascot.png';
 
 const Index = () => {
   const {
@@ -576,77 +575,43 @@ const Index = () => {
 
                 {/* Pixar mascot + floating props */}
                 <div className="relative w-full flex items-center justify-center pointer-events-none">
-                  {/* Pop-art illustration card framing the mascot */}
-                  <motion.div
-                    initial={{ opacity: 0, scale: 0.92, rotate: -3 }}
-                    animate={{ opacity: 1, scale: 1, rotate: -2 }}
-                    transition={{ delay: 0.55, type: 'spring', stiffness: 180, damping: 18 }}
-                    aria-hidden
-                    className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[78%] sm:w-[68%] aspect-[4/5] rounded-3xl overflow-hidden"
-                    style={{
-                      border: '3px solid hsl(var(--popart-ink))',
-                      boxShadow:
-                        '5px 7px 0 hsl(var(--popart-ink)), 0 18px 38px hsl(var(--popart-ink) / 0.5), 0 0 50px hsl(var(--popart-magenta) / 0.35)',
-                    }}
-                  >
-                    <img
-                      src={popartHero}
-                      alt=""
-                      width={1024}
-                      height={1280}
-                      loading="lazy"
-                      className="absolute inset-0 w-full h-full object-cover"
-                      draggable={false}
-                    />
-                    <div
-                      className="absolute inset-0"
-                      style={{
-                        background:
-                          'linear-gradient(180deg, transparent 55%, hsl(var(--popart-ink) / 0.55) 100%)',
-                      }}
-                    />
-                  </motion.div>
-
                   {/* Floating decorative props */}
                   <span
                     aria-hidden
-                    className="hero-prop absolute left-[6%] top-1 w-8 h-8 rounded-lg shadow-lg z-10"
+                    className="hero-prop absolute left-[8%] top-2 w-8 h-8 rounded-lg shadow-lg"
                     style={{
-                      background: 'hsl(var(--popart-coral))',
-                      border: '2px solid hsl(var(--popart-ink))',
-                      boxShadow: '3px 4px 0 hsl(var(--popart-ink))',
+                      background: 'linear-gradient(180deg, hsl(var(--pixar-yellow)), hsl(var(--pixar-yellow-deep)))',
+                      boxShadow: 'inset 0 2px 0 rgba(255,255,255,0.5), 0 4px 0 hsl(var(--pixar-yellow-deep))',
                       animationDelay: '0.4s',
                     }}
                   />
                   <span
                     aria-hidden
-                    className="hero-prop absolute right-[8%] top-8 w-6 h-6 rounded-md z-10"
+                    className="hero-prop absolute right-[10%] top-8 w-6 h-6 rounded-md"
                     style={{
-                      background: 'hsl(var(--popart-teal))',
-                      border: '2px solid hsl(var(--popart-ink))',
-                      boxShadow: '3px 4px 0 hsl(var(--popart-ink))',
+                      background: 'linear-gradient(180deg, hsl(var(--pixar-blue)), hsl(var(--pixar-blue-deep)))',
+                      boxShadow: 'inset 0 2px 0 rgba(255,255,255,0.5), 0 3px 0 hsl(var(--pixar-blue-deep))',
                       animationDelay: '1.1s',
                     }}
                   />
                   <span
                     aria-hidden
-                    className="hero-prop absolute left-[16%] bottom-2 w-5 h-5 rounded-sm z-10"
+                    className="hero-prop absolute left-[18%] bottom-2 w-4 h-4 rounded-sm"
                     style={{
-                      background: 'hsl(var(--popart-magenta))',
-                      border: '2px solid hsl(var(--popart-ink))',
-                      boxShadow: '2px 3px 0 hsl(var(--popart-ink))',
+                      background: 'linear-gradient(180deg, hsl(var(--pixar-red)), hsl(var(--pixar-red-deep)))',
+                      boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.5), 0 2px 0 hsl(var(--pixar-red-deep))',
                       animationDelay: '1.8s',
                     }}
                   />
                   <motion.img
                     src={heroMascot}
-                    alt="Elemental Block Blast mascot — a chunky block creature"
+                    alt="Elemental Block Blast mascot — a stack of toy blocks with a flame and a star"
                     width={1024}
-                    height={1024}
+                    height={1536}
                     initial={{ opacity: 0, scale: 0.7, y: 30 }}
                     animate={{ opacity: 1, scale: 1, y: 0 }}
                     transition={{ delay: 0.8, type: 'spring', stiffness: 220, damping: 18 }}
-                    className="mascot-bob relative z-20 w-32 sm:w-36 md:w-40 h-auto pointer-events-auto select-none drop-shadow-[6px_8px_0_hsl(258_60%_9%)] drop-shadow-[0_18px_30px_rgba(0,0,0,0.55)]"
+                    className="mascot-bob relative z-10 w-24 sm:w-28 md:w-32 h-auto pointer-events-auto select-none drop-shadow-[0_16px_26px_rgba(0,0,0,0.45)]"
                     draggable={false}
                   />
                 </div>
