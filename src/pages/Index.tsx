@@ -388,12 +388,10 @@ const Index = () => {
           href="https://www.bryanlauwk.fun" 
           target="_blank" 
           rel="noopener noreferrer"
-          className="font-bold tracking-tight text-white hover:text-cyan-300 transition-colors"
+          className="font-display font-bold uppercase tracking-[0.18em] text-white/85 hover:text-cyan-300 transition-colors"
           style={{
-            fontFamily: "'Bebas Neue', 'Anton', sans-serif",
-            fontSize: 'clamp(1rem, 3vw, 1.5rem)',
-            letterSpacing: '-0.02em',
-            textShadow: '0 2px 4px rgba(0,0,0,0.3)',
+            fontSize: 'clamp(0.85rem, 2.2vw, 1.1rem)',
+            textShadow: '0 0 12px hsl(190 95% 60% / 0.35)',
           }}
         >
           BRYANLAUWK.FUN
@@ -566,8 +564,7 @@ const Index = () => {
                     initial={{ opacity: 0, y: 6 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.5, duration: 0.5 }}
-                    className="text-center text-pixar-blue/90 font-bold text-[10px] sm:text-xs uppercase tracking-[0.22em]"
-                    style={{ fontFamily: 'Cabin, system-ui, sans-serif' }}
+                    className="font-display text-center text-cyan-200/85 font-semibold text-[10px] sm:text-xs uppercase tracking-[0.28em]"
                   >
                     Spark reactions · Blast lines · Explore worlds
                   </motion.p>
@@ -665,8 +662,7 @@ const Index = () => {
                 {/* Daily Challenge subtle link */}
                 <button
                   onClick={() => setShowDailyChallenge(true)}
-                  className="flex items-center gap-2 text-pixar-yellow/80 hover:text-pixar-yellow font-bold text-xs sm:text-sm uppercase tracking-widest transition-colors"
-                  style={{ fontFamily: 'Cabin, system-ui, sans-serif' }}
+                  className="font-display flex items-center gap-2 text-cyan-200/80 hover:text-cyan-100 font-semibold text-xs sm:text-sm uppercase tracking-[0.25em] transition-colors"
                 >
                   <Calendar className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                   <span>Daily Challenge</span>

@@ -42,21 +42,21 @@ export function ElementLegend({ variant = 'horizontal' }: ElementLegendProps) {
               whileTap={{ scale: 0.95 }}
             >
               <div className={`
-                flex items-center gap-2.5 transition-all rounded-lg
+                flex items-center gap-2.5 transition-all rounded-xl backdrop-blur-md
                 ${isVertical 
-                  ? `w-full p-2 ${isActive 
-                      ? 'bg-white/15 border-l-2 border-game-accent' 
-                      : 'hover:bg-white/10 border-l-2 border-transparent'
+                  ? `w-full p-2 border ${isActive 
+                      ? 'bg-white/[0.07] border-cyan-300/40 shadow-[0_0_18px_-4px_hsl(190_95%_60%/0.55),inset_0_1px_0_rgba(255,255,255,0.08)]' 
+                      : 'bg-white/[0.03] border-white/10 hover:bg-white/[0.06] hover:border-cyan-300/25'
                     }` 
-                  : `p-1.5 ${isActive 
-                      ? 'bg-white/20 ring-2 ring-white/30' 
-                      : 'bg-white/5 hover:bg-white/10'
+                  : `p-1.5 border ${isActive 
+                      ? 'bg-white/[0.08] border-cyan-300/50 shadow-[0_0_16px_-3px_hsl(320_95%_62%/0.55)]' 
+                      : 'bg-white/[0.03] border-white/10 hover:bg-white/[0.07] hover:border-white/20'
                     }`
                 }
               `}>
                 <ElementBlock element={element} size={isVertical ? 28 : 28} isPreview />
                 {isVertical && (
-                  <span className={`text-sm flex-1 text-left transition-colors ${
+                  <span className={`text-sm flex-1 text-left transition-colors font-sans ${
                     isActive ? 'text-white' : 'text-game-text-muted'
                   }`}>
                     {info.name}
@@ -87,18 +87,20 @@ export function ElementLegend({ variant = 'horizontal' }: ElementLegendProps) {
               : 'left-1/2 -translate-x-1/2 mt-8 w-64 sm:w-72'
             }`}
           >
-            <div className="bg-game-grid-dark/95 backdrop-blur-sm rounded-xl p-3 border border-game-grid-border shadow-xl">
+            <div
+              className="rounded-xl p-3 border border-cyan-300/30 bg-[rgba(10,14,30,0.72)] backdrop-blur-xl shadow-[0_20px_50px_-12px_rgba(0,0,0,0.6),0_0_30px_-8px_hsl(190_95%_60%/0.45),inset_0_1px_0_rgba(255,255,255,0.08)]"
+            >
               <div className="flex items-center gap-2 mb-2">
-                <span className="text-lg">{activeInfo.symbol}</span>
-                <span className="font-bold text-white text-sm">{activeInfo.name}</span>
+                <span className="text-lg drop-shadow-[0_0_8px_hsl(320_95%_62%/0.6)]">{activeInfo.symbol}</span>
+                <span className="font-display font-bold text-white text-sm uppercase tracking-wide">{activeInfo.name}</span>
               </div>
-              <p className="text-xs text-game-text-muted mb-2">
+              <p className="text-xs text-white/65 mb-2 font-sans leading-relaxed">
                 {activeInfo.description}
               </p>
               <div className="space-y-1">
                 {activeInfo.rules.slice(0, 2).map((rule, i) => (
-                  <p key={i} className="text-xs text-white/70 flex items-start gap-1.5">
-                    <span className="text-game-accent">•</span>
+                  <p key={i} className="text-xs text-white/75 flex items-start gap-1.5 font-sans">
+                    <span className="text-cyan-300 drop-shadow-[0_0_4px_hsl(190_95%_60%/0.8)]">•</span>
                     {rule}
                   </p>
                 ))}
