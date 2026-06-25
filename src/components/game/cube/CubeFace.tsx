@@ -35,7 +35,6 @@ export function CubeFace({
   isActive,
   isSynced,
   size,
-  half,
   pad,
   gap,
   cellPx,
@@ -57,14 +56,14 @@ export function CubeFace({
         width: size,
         height: size,
         padding: pad,
-        transform: face.place.replace(/H/g, `${half}px`),
-        backfaceVisibility: 'hidden',
+        transform: 'none',
+        backfaceVisibility: 'visible',
         pointerEvents: isActive ? 'auto' : 'none',
-        opacity: isActive ? 1 : 0.32,
-        transition: 'opacity 0.4s, box-shadow 0.4s, border-color 0.4s',
+        opacity: isActive ? 1 : 0,
+        transition: 'opacity 0.25s, box-shadow 0.25s, border-color 0.25s',
         boxShadow: isActive
           ? '0 30px 90px rgba(0,0,0,0.42), 0 0 34px rgba(255,255,255,0.14), inset 0 1px 0 rgba(255,255,255,0.28)'
-          : '0 18px 50px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.14)',
+          : 'none',
       }}
     >
       <span aria-hidden className={`pointer-events-none absolute inset-x-6 top-2 h-[2px] rounded-full bg-gradient-to-r ${affinity.tone}`} />
