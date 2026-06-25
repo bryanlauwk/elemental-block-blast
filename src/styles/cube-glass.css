@@ -1,0 +1,121 @@
+/* Cube Lab glassmorphism facelift
+   Targets Cube Mode only through the active cube grid marker. */
+
+body:has(#cube-active-grid) .bg-gradient-pixar-stage::before,
+body:has(#cube-active-grid) .bg-gradient-pixar-stage::after {
+  content: "";
+  position: absolute;
+  pointer-events: none;
+  border-radius: 9999px;
+  filter: blur(2px);
+  opacity: 0.72;
+  z-index: 0;
+}
+
+body:has(#cube-active-grid) .bg-gradient-pixar-stage::before {
+  width: min(42vw, 230px);
+  height: min(42vw, 230px);
+  left: -86px;
+  top: 18%;
+  background: radial-gradient(circle at 30% 25%, hsl(var(--pixar-blue)) 0%, hsl(var(--neon-violet)) 45%, transparent 72%);
+  box-shadow: 0 0 70px hsl(var(--pixar-blue) / 0.36);
+}
+
+body:has(#cube-active-grid) .bg-gradient-pixar-stage::after {
+  width: min(52vw, 300px);
+  height: min(52vw, 300px);
+  right: -120px;
+  bottom: -90px;
+  background: radial-gradient(circle at 35% 30%, hsl(var(--pixar-yellow)) 0%, hsl(var(--pixar-red)) 48%, transparent 72%);
+  box-shadow: 0 0 80px hsl(var(--pixar-red) / 0.36);
+}
+
+body:has(#cube-active-grid) .pixar-grid-frame,
+body:has(#cube-active-grid) .pixar-hud-panel,
+body:has(#cube-active-grid) .pixar-glass-tile,
+body:has(#cube-active-grid) .pixar-glass-chip {
+  background-image:
+    radial-gradient(circle at 20% 0%, hsl(0 0% 100% / 0.24), transparent 36%),
+    linear-gradient(155deg, hsl(0 0% 100% / 0.12), hsl(var(--pixar-navy) / 0.36) 44%, hsl(var(--pixar-navy-deep) / 0.72) 100%);
+  border-color: hsl(0 0% 100% / 0.2);
+  box-shadow:
+    0 22px 64px hsl(var(--pixar-navy-deep) / 0.56),
+    0 0 0 1px hsl(var(--pixar-blue) / 0.14),
+    inset 0 1px 0 hsl(0 0% 100% / 0.38),
+    inset 0 -1px 0 hsl(0 0% 100% / 0.08);
+  backdrop-filter: blur(24px) saturate(175%);
+  -webkit-backdrop-filter: blur(24px) saturate(175%);
+}
+
+body:has(#cube-active-grid) #cube-active-grid {
+  border-radius: clamp(18px, 6vw, 30px);
+}
+
+body:has(#cube-active-grid) [data-cube-cell] {
+  box-shadow:
+    inset 0 1px 0 hsl(0 0% 100% / 0.2),
+    inset 0 -8px 18px hsl(0 0% 0% / 0.16),
+    0 0 0 1px hsl(0 0% 100% / 0.04);
+}
+
+body:has(#cube-active-grid) .classic-piece-tray {
+  border-radius: clamp(18px, 6vw, 30px);
+  padding: clamp(0.4rem, 1.4vh, 0.7rem) clamp(0.55rem, 2.2vw, 1rem) clamp(0.5rem, 1.6vh, 0.85rem);
+  border: 1px solid hsl(0 0% 100% / 0.2);
+  background:
+    radial-gradient(circle at 20% 0%, hsl(0 0% 100% / 0.18), transparent 38%),
+    linear-gradient(150deg, hsl(0 0% 100% / 0.09), hsl(var(--pixar-navy-deep) / 0.7));
+}
+
+body:has(#cube-active-grid) .classic-scoreboard .pixar-hud-panel {
+  border-radius: 24px;
+}
+
+@media (max-width: 640px) {
+  body:has(#cube-active-grid) .bg-gradient-pixar-stage > .z-20:first-of-type {
+    margin-top: 0.65rem !important;
+  }
+
+  body:has(#cube-active-grid) .bg-gradient-pixar-stage > .z-20:nth-of-type(2) {
+    margin-top: 0.45rem !important;
+    padding-top: 0.55rem !important;
+    padding-bottom: 0.55rem !important;
+  }
+
+  body:has(#cube-active-grid) .classic-scoreboard .pixar-hud-panel > div {
+    padding-top: 0.42rem !important;
+    padding-bottom: 0.42rem !important;
+  }
+
+  body:has(#cube-active-grid) .classic-piece-tray p:first-child {
+    display: none;
+  }
+
+  body:has(#cube-active-grid) .classic-piece-tray p:last-child {
+    margin-top: 0.35rem !important;
+    font-size: 0.68rem !important;
+  }
+}
+
+@media (max-height: 780px) and (max-width: 640px) {
+  body:has(#cube-active-grid) [data-cube-cell] {
+    border-radius: 0.6rem !important;
+  }
+
+  body:has(#cube-active-grid) .classic-piece-tray {
+    padding-top: 0.38rem;
+    padding-bottom: 0.42rem;
+  }
+
+  body:has(#cube-active-grid) .classic-scoreboard .pixar-hud-panel span[class*="text-"] {
+    line-height: 1 !important;
+  }
+}
+
+@media (max-height: 690px) and (max-width: 420px) {
+  body:has(#cube-active-grid) .classic-piece-tray {
+    transform: scale(0.92);
+    transform-origin: top center;
+    margin-bottom: -0.7rem;
+  }
+}
