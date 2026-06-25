@@ -12,8 +12,6 @@
   position: relative;
   isolation: isolate;
   background:
-    linear-gradient(180deg, hsl(var(--pixar-navy-deep) / 0.72), hsl(var(--pixar-navy-deep) / 0.88)),
-    url('../assets/lofi-neon-alley.svg') center center / cover no-repeat,
     linear-gradient(180deg, hsl(var(--pixar-navy)) 0%, hsl(var(--pixar-navy-deep)) 100%) !important;
 }
 

@@ -41,6 +41,7 @@ import { usePhase } from '@/hooks/usePhase';
 import AdaptiveStage from '@/components/game/AdaptiveStage';
 import PhasePill from '@/components/game/PhasePill';
 import PhaseUpOverlay from '@/components/game/PhaseUpOverlay';
+import LofiAlleyBackdrop from '@/components/game/LofiAlleyBackdrop';
 import heroMascot from '@/assets/hero-mascot.png';
 
 const Index = () => {
@@ -94,6 +95,15 @@ const Index = () => {
 
   // Phase progression (drives adaptive stage + HUD pill + phase-up celebration)
   const { phase, next, progress, justAdvanced, clearJustAdvanced } = usePhase(gameState.score);
+
+  // Brief "sharpen + brighten" pulse on the alley backdrop when a phase unlocks.
+  const [backdropPulse, setBackdropPulse] = useState(false);
+  useEffect(() => {
+    if (!justAdvanced) return;
+    setBackdropPulse(true);
+    const t = setTimeout(() => setBackdropPulse(false), 900);
+    return () => clearTimeout(t);
+  }, [justAdvanced]);
 
   // Load player's daily best score when opening daily challenge modal
   useEffect(() => {
@@ -323,6 +333,9 @@ const Index = () => {
         ['--stage-glow' as string]: phase.glow,
       } as CSSProperties}
     >
+      {/* Lo-fi neon alley atmosphere layer — sits behind everything */}
+      <LofiAlleyBackdrop blurred={hasStarted} pulse={backdropPulse} />
+
       {/* Pixar Toy Box gameplay overlays */}
       {hasStarted && (
       <AdaptiveStage phase={phase} />

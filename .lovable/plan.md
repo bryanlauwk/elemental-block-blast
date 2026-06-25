@@ -1,62 +1,33 @@
-## 1. Restore clean per-phase backgrounds
+## Goal
+Add a cozy lo-fi neon-alley artwork as the game's atmosphere layer — used behind the landing screen and the gameplay board — with a navy overlay, blur during play, and a brief "sharpen/brighten" pulse on phase-up.
 
-- **Delete** `src/components/game/StageScene.tsx` and remove its import + render from `AdaptiveStage.tsx`. Stage becomes: gradient + dot pattern + vignette + existing animated decorations (`blocks`, `gears`, `clouds`, `crystals`, `embers`, `stars`) — the look from before the painterly SVGs were added.
-- **Tune palettes for cohesion** in `src/game/phases.ts` so all six worlds share the same navy-rooted Pixar Toy Box family instead of jumping between brass/sky/violet/red/cosmic at full saturation. Keep each world visually distinct, but pull saturation/lightness into a unified range:
-  - Sandbox — warm navy + sky-blue glow (current).
-  - Toy Factory — navy + amber accent (less orange swamp).
-  - Cloud City — soft daylight blue, lighter top, navy bottom.
-  - Crystal Caverns — deep indigo + violet accent.
-  - Volcano Run — dark plum→ember red, accent gold (not full red field).
-  - Cosmic Void — deep space navy + cyan/violet stars.
-- Slightly lower decoration opacity in `src/index.css` where any layer fights readability of the board.
+## Asset
+- Generate a single high-quality background image via `imagegen` (premium quality, 1536x1024, no text, empty center) and save to `src/assets/lofi-neon-alley.jpg`.
+- Prompt: "Cozy neon city alley at night, anime-inspired lo-fi game background, vibrant pink/purple/blue buildings, lanterns, plants on the sides, wet pavement reflections, soft bloom, clear empty center space for gameplay UI, no text, no characters, no logos, polished mobile game background, painterly."
+- Retire the placeholder `src/assets/lofi-neon-alley.svg` (replaced by the new JPG).
 
-## 2. Per-phase critter on the grid
+## New component
+`src/components/game/LofiAlleyBackdrop.tsx`
+- Fixed full-viewport layer (`fixed inset-0 -z-10`, `pointer-events-none`).
+- Three stacked layers:
+  1. The artwork (`bg-cover bg-center`).
+  2. Navy overlay (`bg-[hsl(224_70%_8%)]/65`) — tunable 55–70%.
+  3. Subtle radial vignette to push focus to the center.
+- Props: `blurred?: boolean` (default false → 0px; true → ~6px blur + slightly higher overlay), `pulse?: boolean` (when true, briefly drop overlay to ~25% + blur to 0 + scale 1.02 for ~900ms via Framer Motion).
+- Uses GPU-friendly `transform`/`filter` transitions only (per perf rule).
 
-A small animated character scampers around inside the play area, recolored/sprited per world. Purely cosmetic — never blocks placement, never affects scoring or hit detection.
+## Wiring
+- **Landing (`src/pages/Index.tsx` pre-game view)**: render `<LofiAlleyBackdrop />` (unblurred) behind hero content. Keep existing block towers/CTA on top.
+- **In-game (`AdaptiveStage.tsx`)**: render `<LofiAlleyBackdrop blurred pulse={phasePulse} />` as the stage background instead of (or layered behind) the current solid stage gradient. Keep the existing phase-tinted stage gradient as a thin overlay at low opacity so phase color shifts still read.
+- **Phase-up pulse**: in `AdaptiveStage`, subscribe to `usePhase().justAdvanced`. When it fires, set `phasePulse=true` for ~900ms, then clear. The existing `PhaseUpOverlay` continues to play on top.
 
-**New file `src/game/critters.ts`** — maps each `PhaseConfig.id` → `{ name, emoji/svg id, accentColor, idleSound? }`:
+## Guardrails
+- Pure presentation change — no game logic, scoring, or engine edits.
+- No new colors hardcoded in components beyond the overlay tint expressed via existing HSL tokens.
+- Image loaded once, cached; `loading="eager"` for landing, decoded async.
+- Respect `prefers-reduced-motion`: skip pulse animation, keep static blurred backdrop.
 
-| Phase | Critter |
-|---|---|
-| Sandbox | Mouse 🐭 |
-| Toy Factory | Wind-up robot mouse 🤖 |
-| Cloud City | Bird 🐤 |
-| Crystal Caverns | Bat 🦇 |
-| Volcano Run | Salamander 🦎 |
-| Cosmic Void | Alien blob 👾 |
-
-Rendered as styled emoji inside a small chunky shadowed badge (matches Pixar component look) — no new image assets needed.
-
-**New file `src/components/game/StageCritter.tsx`**
-
-- Absolutely positioned inside the grid container (sibling of the grid cells, `pointer-events-none`, `z-20` above cells but below overlays).
-- Reads current `phase` and live `board` from `useBlockBlastEngine` (passed as props from `BlockBlastGrid` / `Index.tsx`).
-- Internal state: `{ row, col, facing: 'left'|'right' }`. Every ~2.5–4s (randomized) picks a random filled cell as the next hop target and animates to it via framer-motion `animate={{ x, y }}` with a spring; if board is empty, idles in a random cell.
-- On hop, briefly squashes (scaleY 0.85 → 1) and flips horizontally to face travel direction.
-- Reacts to play:
-  - On a line clear (subscribe to existing combo / clear event already used by `ComboDisplay` / `ScorePopup`), play a small jump + 🎵 squeak using existing `playSfx` (reuse `pop` sound), and emit a quick speech-bubble "!" via framer-motion fade.
-  - When a row/column it sits on is cleared, it gets "launched" — quick arc to a new random cell.
-- Honors `prefers-reduced-motion`: disables hop animation, just snaps to new cells every 6s with no squash/flip.
-
-**Integration**
-
-- `src/components/game/BlockBlastGrid.tsx`: add `<StageCritter phase={phase} board={board} lastClearAt={lastClearAt} />` as last child inside the grid wrapper.
-- `useBlockBlastEngine.ts`: expose a `lastClearAt: number` timestamp updated whenever lines clear (or reuse the existing combo counter as a trigger). No gameplay change.
-
-## 3. Out of scope
-
-- No new shapes, no scoring/combo logic changes, no backend, no asset uploads.
-- No changes to landing page mascot.
-- No new fonts.
-
-## Technical notes
-
-- Critter position uses pixel offsets derived from existing grid cell size (already known in `BlockBlastGrid`); pass `cellSize` prop so the critter math matches the cells exactly.
-- Framer-motion is already in the project — no new deps.
-- All emoji rendered with `filter: drop-shadow(...)` using the phase's `accent` token so it pops against any background.
-
-## Files
-
-- **New**: `src/game/critters.ts`, `src/components/game/StageCritter.tsx`
-- **Edit**: `src/components/game/AdaptiveStage.tsx`, `src/components/game/BlockBlastGrid.tsx`, `src/hooks/useBlockBlastEngine.ts`, `src/game/phases.ts`, `src/index.css`
-- **Delete**: `src/components/game/StageScene.tsx`
+## Files touched
+- add: `src/assets/lofi-neon-alley.jpg`, `src/components/game/LofiAlleyBackdrop.tsx`
+- edit: `src/pages/Index.tsx`, `src/components/game/AdaptiveStage.tsx`
+- delete: `src/assets/lofi-neon-alley.svg`
