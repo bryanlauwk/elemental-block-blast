@@ -20,7 +20,7 @@ export function ElementLegend({ variant = 'horizontal' }: ElementLegendProps) {
     <div className="relative w-full">
       {/* Vertical header */}
       {isVertical && (
-        <p className="font-display text-[10px] text-cyan-200/70 uppercase tracking-[0.25em] mb-3 font-bold">
+        <p className="font-display text-[10px] mb-3 uppercase tracking-[0.28em] bg-clip-text text-transparent bg-[linear-gradient(90deg,#e6faff,#ffd6f5)] drop-shadow-[0_0_6px_hsl(190_95%_60%/0.5)]">
           Elements
         </p>
       )}
@@ -43,21 +43,21 @@ export function ElementLegend({ variant = 'horizontal' }: ElementLegendProps) {
             >
               <div className={`
                 flex items-center gap-2.5 transition-all rounded-xl backdrop-blur-md
-                ${isVertical 
-                  ? `w-full p-2 border ${isActive 
-                      ? 'bg-white/[0.07] border-cyan-300/40 shadow-[0_0_18px_-4px_hsl(190_95%_60%/0.55),inset_0_1px_0_rgba(255,255,255,0.08)]' 
-                      : 'bg-white/[0.03] border-white/10 hover:bg-white/[0.06] hover:border-cyan-300/25'
-                    }` 
-                  : `p-1.5 border ${isActive 
-                      ? 'bg-white/[0.08] border-cyan-300/50 shadow-[0_0_16px_-3px_hsl(320_95%_62%/0.55)]' 
+                ${isVertical
+                  ? `w-full p-2 border ${isActive
+                      ? 'bg-[linear-gradient(135deg,hsl(190_95%_60%/0.18),hsl(320_95%_62%/0.18))] border-cyan-300/55 shadow-[0_0_22px_-4px_hsl(190_95%_60%/0.65),0_0_18px_-6px_hsl(320_95%_62%/0.45),inset_0_1px_0_rgba(255,255,255,0.12)]'
+                      : 'bg-white/[0.04] border-cyan-300/15 hover:bg-white/[0.07] hover:border-cyan-300/35 hover:shadow-[0_0_14px_-6px_hsl(190_95%_60%/0.5)]'
+                    }`
+                  : `p-1.5 border ${isActive
+                      ? 'bg-white/[0.08] border-cyan-300/50 shadow-[0_0_16px_-3px_hsl(320_95%_62%/0.55)]'
                       : 'bg-white/[0.03] border-white/10 hover:bg-white/[0.07] hover:border-white/20'
                     }`
                 }
               `}>
                 <ElementBlock element={element} size={isVertical ? 28 : 28} isPreview />
                 {isVertical && (
-                  <span className={`text-sm flex-1 text-left transition-colors font-sans ${
-                    isActive ? 'text-white' : 'text-game-text-muted'
+                  <span className={`text-sm flex-1 text-left transition-colors font-display tracking-wide ${
+                    isActive ? 'text-white drop-shadow-[0_0_6px_hsl(190_95%_60%/0.6)]' : 'text-white/70'
                   }`}>
                     {info.name}
                   </span>
