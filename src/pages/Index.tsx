@@ -541,15 +541,32 @@ const Index = () => {
           <div className="flex flex-col items-center w-full max-w-[400px] h-full">
             {/* Start screen - landing page */}
             {!hasStarted && (
-              <div className="flex flex-col items-center justify-center flex-1 gap-6 sm:gap-8 py-4 sm:py-6 w-full">
+              <motion.div
+                className="flex flex-col items-center justify-center flex-1 gap-5 sm:gap-7 py-4 sm:py-6 w-full"
+                initial="hidden"
+                animate="show"
+                variants={{
+                  hidden: {},
+                  show: { transition: { staggerChildren: 0.12, delayChildren: 0.1 } },
+                }}
+              >
                 {/* HERO: mascot + title locked together as one composition.
                     Mascot sits behind/beside the headline so they read as a
                     single unit rather than two stacked blocks. */}
-                <div className="relative w-full flex items-center justify-center">
+                <motion.div
+                  className="relative w-full flex items-center justify-center"
+                  variants={{
+                    hidden: { opacity: 0, y: 12 },
+                    show: { opacity: 1, y: 0, transition: { duration: 0.6, ease: 'easeOut' } },
+                  }}
+                >
                   {/* Soft glow halo anchoring mascot + title to the same plane */}
-                  <div
+                  <motion.div
                     aria-hidden
                     className="absolute inset-0 -z-0 mx-auto max-w-[420px] rounded-[50%] blur-3xl opacity-70"
+                    initial={{ opacity: 0, scale: 0.85 }}
+                    animate={{ opacity: 0.7, scale: 1 }}
+                    transition={{ delay: 0.15, duration: 0.9, ease: 'easeOut' }}
                     style={{
                       background:
                         'radial-gradient(ellipse at center, hsl(190 95% 60% / 0.28), hsl(320 95% 62% / 0.18) 45%, transparent 70%)',
@@ -588,28 +605,40 @@ const Index = () => {
                     draggable={false}
                   />
 
-                  <div className="relative z-10 pt-16 sm:pt-20">
+                  <div className="relative z-10 pt-14 sm:pt-20">
                     <GameTitle />
                   </div>
-                </div>
+                </motion.div>
 
                 {/* Single tagline — replaces the dual eyebrow/tagline stack */}
                 <motion.p
-                  initial={{ opacity: 0, y: 6 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.55, duration: 0.5 }}
-                  className="-mt-2 max-w-xs text-center font-sans text-sm sm:text-base text-white/70 leading-relaxed"
+                  variants={{
+                    hidden: { opacity: 0, y: 6 },
+                    show: { opacity: 1, y: 0, transition: { duration: 0.5, ease: 'easeOut' } },
+                  }}
+                  className="-mt-1 max-w-xs text-center font-sans text-sm sm:text-[15px] text-white/70 leading-relaxed"
                 >
                   Spark reactions, blast lines, and explore neon-lit worlds.
                 </motion.p>
 
                 {/* CTA CLUSTER — element row + Play + Daily, grouped tight */}
-                <div className="flex flex-col items-center gap-4">
+                <motion.div
+                  className="flex flex-col items-center gap-4"
+                  variants={{
+                    hidden: { opacity: 0, y: 14 },
+                    show: {
+                      opacity: 1,
+                      y: 0,
+                      transition: { duration: 0.55, ease: 'easeOut', staggerChildren: 0.08 },
+                    },
+                  }}
+                >
                   {/* Element rubber-tile row — sits right above CTA as a preview */}
                   <motion.div
-                    initial={{ opacity: 0, y: 12 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.7, duration: 0.5 }}
+                    variants={{
+                      hidden: { opacity: 0, y: 10 },
+                      show: { opacity: 1, y: 0, transition: { duration: 0.45 } },
+                    }}
                     className="flex items-center justify-center gap-2.5 sm:gap-3"
                   >
                     {[
@@ -640,9 +669,14 @@ const Index = () => {
 
                   {/* Play button */}
                   <motion.div
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ delay: 0.85, type: 'spring', stiffness: 320, damping: 18 }}
+                    variants={{
+                      hidden: { opacity: 0, scale: 0.92 },
+                      show: {
+                        opacity: 1,
+                        scale: 1,
+                        transition: { type: 'spring', stiffness: 320, damping: 20 },
+                      },
+                    }}
                   >
                     <PixarButton onClick={handleStartGame} aria-label="Play" variant="primary" size="lg" shine>
                       Play
@@ -650,27 +684,32 @@ const Index = () => {
                   </motion.div>
 
                   {/* Daily Challenge — secondary link directly under Play */}
-                  <button
+                  <motion.button
+                    variants={{
+                      hidden: { opacity: 0, y: 6 },
+                      show: { opacity: 1, y: 0, transition: { duration: 0.4 } },
+                    }}
                     onClick={() => setShowDailyChallenge(true)}
                     className="font-display flex items-center gap-2 text-cyan-200/80 hover:text-cyan-100 font-semibold text-[11px] sm:text-xs uppercase tracking-[0.28em] transition-colors"
                   >
                     <Calendar className="w-3.5 h-3.5" />
                     <span>Daily Challenge</span>
-                  </button>
-                </div>
+                  </motion.button>
+                </motion.div>
 
                 {/* Stat chips — slim ground row, supporting info */}
                 <motion.div
-                  initial={{ opacity: 0, y: 8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 1.0, duration: 0.4 }}
+                  variants={{
+                    hidden: { opacity: 0, y: 8 },
+                    show: { opacity: 1, y: 0, transition: { duration: 0.4 } },
+                  }}
                   className="flex flex-wrap items-center justify-center gap-2 sm:gap-3 pt-1 border-t border-white/[0.06] w-full max-w-xs"
                 >
                   <PixarStatChip label="Best" value={topScore.toLocaleString()} tone="blue" />
                   <PixarStatChip label="Streak" value={currentStreak} tone="yellow" />
                   <PixarStatChip label="XP" value={totalPoints.toLocaleString()} tone="neutral" />
                 </motion.div>
-              </div>
+              </motion.div>
             )}
             
             {/* Game screen - when playing */}
