@@ -324,7 +324,7 @@ const Index = () => {
 
   return (
     <div
-      className="min-h-[100dvh] text-white flex flex-col relative overflow-hidden bg-gradient-pixar-stage"
+      className="min-h-[100dvh] text-white flex flex-col relative overflow-hidden bg-transparent"
       style={{
         // Drive per-universe theming (grid frame, accent line) from the
         // current phase so the whole board travels through worlds, not just
