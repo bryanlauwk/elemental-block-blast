@@ -17,7 +17,7 @@ export function BlockBlastScoreboard({ score, topScore, compact = false }: Block
         <PixarPanel highlight={isNewHighScore} className="grid grid-cols-2 gap-px">
           {/* SCORE panel */}
           <div className="relative flex flex-col items-center justify-center px-3 py-2">
-            <span className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-[0.25em] font-sans text-pixar-yellow/90">
+            <span className="ui-label-xs flex items-center gap-1 text-pixar-yellow/90">
               <Flame className="h-3 w-3" /> Score
             </span>
             <motion.span
@@ -33,7 +33,7 @@ export function BlockBlastScoreboard({ score, topScore, compact = false }: Block
 
           {/* BEST panel */}
           <div className="relative flex flex-col items-center justify-center border-l border-white/10 px-3 py-2">
-            <span className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-[0.25em] font-sans text-pixar-red/90">
+            <span className="ui-label-xs flex items-center gap-1 text-pixar-red/90">
               <Trophy className="h-3 w-3" /> Best
             </span>
             <span
@@ -51,7 +51,7 @@ export function BlockBlastScoreboard({ score, topScore, compact = false }: Block
                   initial={{ opacity: 0, scale: 0 }}
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0 }}
-                  className="mt-0.5 flex items-center gap-0.5 text-[9px] font-bold uppercase tracking-[0.3em] text-pixar-yellow"
+                  className="ui-label-xs mt-0.5 flex items-center gap-0.5 text-pixar-yellow"
                 >
                   <Sparkles className="h-2.5 w-2.5" /> New!
                 </motion.span>
@@ -86,7 +86,7 @@ export function BlockBlastScoreboard({ score, topScore, compact = false }: Block
       
       {/* Best score indicator */}
       <div className="mt-2 flex items-center justify-center gap-2">
-        <span className="font-display text-xs uppercase text-white/55 font-semibold tracking-[0.2em]">
+        <span className="ui-label-xs text-white/55">
           BEST: {topScore.toLocaleString()}
         </span>
         <AnimatePresence>
