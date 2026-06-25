@@ -17,6 +17,19 @@ export type SoundType =
 
 export type LoFiMusicType = 'cozy' | 'rainy' | 'night' | 'upbeat';
 
+import cozyTrack from '@/assets/music/cozy.mp3.asset.json';
+import rainyTrack from '@/assets/music/rainy.mp3.asset.json';
+import nightTrack from '@/assets/music/night.mp3.asset.json';
+import upbeatTrack from '@/assets/music/upbeat.mp3.asset.json';
+
+// Real ElevenLabs-generated lo-fi loops, one per mood.
+const LOFI_TRACK_URLS: Record<LoFiMusicType, string> = {
+  cozy: cozyTrack.url,
+  rainy: rainyTrack.url,
+  night: nightTrack.url,
+  upbeat: upbeatTrack.url,
+};
+
 interface LoFiPreset {
   id: LoFiMusicType;
   label: string;
@@ -289,6 +302,7 @@ let musicIntervals: number[] = [];
 let musicPlaying = false;
 let musicStep = 0;
 let visibilityHandler: (() => void) | null = null;
+let musicAudioEl: HTMLAudioElement | null = null;
 
 function getPreset(id: LoFiMusicType): LoFiPreset {
   return LOFI_MUSIC_PRESETS.find((preset) => preset.id === id) ?? LOFI_MUSIC_PRESETS[0];
