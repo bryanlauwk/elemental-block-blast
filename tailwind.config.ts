@@ -109,8 +109,8 @@ export default {
         "gradient-pixar-stage": "var(--gradient-pixar-stage)",
       },
       fontFamily: {
-        display: ["'Abril Fatface'", "Georgia", "serif"],
-        sans: ["Cabin", "system-ui", "-apple-system", "sans-serif"],
+        display: ["'Space Grotesk'", "system-ui", "-apple-system", "sans-serif"],
+        sans: ["'DM Sans'", "system-ui", "-apple-system", "sans-serif"],
       },
       boxShadow: {
         "neon-mint": "var(--shadow-neon-mint)",
