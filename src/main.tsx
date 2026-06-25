@@ -5,8 +5,10 @@ import "./styles/classic-glass.css";
 import "./styles/overhaul-v3.css";
 import "./styles/performance.css";
 import "./styles/safe-area.css";
-import "@fontsource/abril-fatface/400.css";
-import "@fontsource/cabin/400.css";
-import "@fontsource/cabin/700.css";
+import "@fontsource/space-grotesk/500.css";
+import "@fontsource/space-grotesk/700.css";
+import "@fontsource/dm-sans/400.css";
+import "@fontsource/dm-sans/500.css";
+import "@fontsource/dm-sans/700.css";
 
 createRoot(document.getElementById("root")!).render(<App />);
