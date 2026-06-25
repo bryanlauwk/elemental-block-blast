@@ -12,7 +12,7 @@ import ReactionParticles from '@/components/game/ReactionParticles';
 import AdaptiveStage from '@/components/game/AdaptiveStage';
 import { FeverMeter } from '@/components/game/FeverMeter';
 import { usePhase } from '@/hooks/usePhase';
-import { Cell, DraggablePiece, Position } from '@/game/types';
+import { Cell, DraggablePiece, Position, ElementType } from '@/game/types';
 import {
   createEmptyGrid, createRandomPiece, canPlacePieceAt, canAnyPieceFit, resolveGrid, findHint, getComboText, getReactionPreview,
 } from '@/game/engine';
@@ -27,11 +27,31 @@ const REACTION_RING: Record<ReactionType, string> = {
 };
 
 const FACES = [
-  { id: 0, name: 'Front',  place: 'translateZ(H)' },
-  { id: 1, name: 'Right',  place: 'rotateY(90deg) translateZ(H)' },
-  { id: 2, name: 'Back',   place: 'rotateY(180deg) translateZ(H)' },
-  { id: 3, name: 'Left',   place: 'rotateY(-90deg) translateZ(H)' },
+  { id: 0, name: 'Front', place: 'translateZ(H)' },
+  { id: 1, name: 'Right', place: 'rotateY(90deg) translateZ(H)' },
+  { id: 2, name: 'Back', place: 'rotateY(180deg) translateZ(H)' },
+  { id: 3, name: 'Left', place: 'rotateY(-90deg) translateZ(H)' },
 ] as const;
+
+const FACE_ROT: Record<number, number> = { 0: 0, 1: 270, 2: 180, 3: 90 };
+const FACE_AFFINITIES: Record<number, { label: string; element: ElementType; boost: string; tone: string }> = {
+  0: { label: 'Fire Lab', element: 'fire', boost: 'Heat Boost', tone: 'from-orange-400/30 to-red-500/20' },
+  1: { label: 'Water Lab', element: 'water', boost: 'Tide Boost', tone: 'from-cyan-300/30 to-blue-500/20' },
+  2: { label: 'Stone Lab', element: 'stone', boost: 'Core Boost', tone: 'from-slate-200/25 to-slate-600/20' },
+  3: { label: 'Wind Lab', element: 'helium', boost: 'Lift Boost', tone: 'from-yellow-200/25 to-sky-300/20' },
+};
+const ELEMENT_LABELS: Record<ElementType, string> = {
+  fire: 'Fire',
+  water: 'Water',
+  wood: 'Wood',
+  acid: 'Acid',
+  life: 'Life',
+  helium: 'Helium',
+  stone: 'Stone',
+  ash: 'Ash',
+  gold: 'Gold',
+  goldCracked: 'Cracked Gold',
+};
 
 const FEVER_MS = 9000;
 // Gentle side-view offset: keeps depth visible without skewing targets too much.
@@ -45,6 +65,8 @@ const placeInto = (grid: Cell[][], piece: DraggablePiece, pos: Position): Cell[]
   return ng;
 };
 
+const isBoardEmpty = (board: Cell[][]) => board.every((row) => row.every((cell) => cell.element === null));
+
 const CubeGame = () => {
   const [boards, setBoards] = useState<Cell[][][]>(() => FACES.map(() => createEmptyGrid(FACE, FACE)));
   const [activeFace, setActiveFace] = useState(0);
@@ -57,7 +79,11 @@ const CubeGame = () => {
   const [particle, setParticle] = useState<{ type: ReactionType; positions: Position[]; timestamp: number } | null>(null);
   const [popup, setPopup] = useState<{ score: number; show: boolean; text: string; reactionType?: ReactionType }>({ score: 0, show: false, text: '' });
   const [flashKey, setFlashKey] = useState(0);
+  const [syncedFaces, setSyncedFaces] = useState<Set<number>>(() => new Set());
+  const [lastCubeMoment, setLastCubeMoment] = useState<{ label: string; timestamp: number } | null>(null);
+  const [showCubeOnboarding, setShowCubeOnboarding] = useState(() => localStorage.getItem('cube-side-lab-seen') !== '1');
   const { phase, next, progress } = usePhase(score);
+  const activeAffinity = FACE_AFFINITIES[activeFace];
 
   useEffect(() => {
     if (score > best) { setBest(score); localStorage.setItem('cube-best', String(score)); }
@@ -110,6 +136,7 @@ const CubeGame = () => {
   const cellPx = Math.floor((size - pad * 2 - gap * (FACE - 1)) / FACE);
   const blockPx = Math.floor(cellPx * 0.9);
 
+  const syncedCount = syncedFaces.size;
   const refill = useCallback((remaining: DraggablePiece[], forScore: number) =>
     remaining.length > 0 ? remaining : [createRandomPiece(forScore), createRandomPiece(forScore), createRandomPiece(forScore)], []);
 
@@ -120,25 +147,44 @@ const CubeGame = () => {
     playSound('drop');
 
     const r = resolveGrid(placeInto(board, piece, pos));
+    const affinity = FACE_AFFINITIES[activeFace];
+    const affinityHits = piece.elements.filter((el) => el === affinity.element).length;
+    const affinityBonus = affinityHits * 25;
     const mult = feverActiveRef.current ? 2 : 1;
-    const gained = Math.floor(r.totalScore * mult) + piece.shape.length * 10;
+    const gained = Math.floor(r.totalScore * mult) + piece.shape.length * 10 + affinityBonus;
     const nextBoards = boards.map((b, i) => (i === activeFace ? r.grid : b));
     const nextScore = score + gained;
+    const faceSynced = !isBoardEmpty(board) && isBoardEmpty(r.grid);
+
     setBoards(nextBoards);
     setScore(nextScore);
 
+    if (faceSynced) {
+      const nextSynced = new Set(syncedFaces);
+      nextSynced.add(activeFace);
+      setSyncedFaces(nextSynced);
+      setLastCubeMoment({
+        label: nextSynced.size === FACES.length ? 'FULL CUBE SYNC!' : `${FACES[activeFace].name.toUpperCase()} FACE SYNC!`,
+        timestamp: Date.now(),
+      });
+      playSound('highScore');
+    } else if (affinityBonus > 0) {
+      setLastCubeMoment({ label: `${affinity.boost} +${affinityBonus}`, timestamp: Date.now() });
+    }
+
     if (!feverActiveRef.current) {
-      const gain = r.linesCleared * 10 + r.allReactionEvents.length * 6;
+      const gain = r.linesCleared * 10 + r.allReactionEvents.length * 6 + affinityHits * 4;
       if (gain > 0) setFeverMeter((m) => { const nm = m + gain; if (nm >= 100) { activateFever(); return 100; } return nm; });
     }
     if (r.allAffectedPositions.length > 0) {
       setParticle({ type: (r.primaryReactionType ?? r.allAffectedPositions[0].type) as ReactionType, positions: r.allAffectedPositions.flatMap((a) => a.positions), timestamp: Date.now() });
     }
-    if (r.maxCombo > 0 || r.linesCleared > 0) {
-      const text = r.perfectClear ? 'PERFECT CLEAR!' : getComboText(r.maxCombo, r.linesCleared);
+    if (r.maxCombo > 0 || r.linesCleared > 0 || affinityBonus > 0) {
+      const baseText = r.perfectClear ? 'PERFECT CLEAR!' : r.maxCombo > 0 || r.linesCleared > 0 ? getComboText(r.maxCombo, r.linesCleared) : 'FACE BOOST!';
+      const text = affinityBonus > 0 ? `${baseText} · ${affinity.boost}` : baseText;
       setPopup({ score: gained, show: true, text, reactionType: r.primaryReactionType as ReactionType });
       setFlashKey((k) => k + 1);
-      if (r.maxCombo > 1 || r.linesCleared >= 2) playSound('combo');
+      if (r.maxCombo > 1 || r.linesCleared >= 2 || affinityBonus > 0) playSound('combo');
       window.setTimeout(() => setPopup((p) => ({ ...p, show: false })), 1200);
     }
 
@@ -147,7 +193,7 @@ const CubeGame = () => {
     setSelected(null);
     setHover(null);
     if (!nextBoards.some((b) => canAnyPieceFit(b, nextPieces))) { setIsGameOver(true); playSound('gameOver'); }
-  }, [isGameOver, boards, activeFace, score, pieces, refill, activateFever]);
+  }, [isGameOver, boards, activeFace, score, pieces, refill, activateFever, syncedFaces]);
 
   // Map a screen point to a board cell using the browser's real 3D hit-testing
   // (works at any cube angle, unlike flat-rect math). On touch, sample a little
@@ -170,13 +216,28 @@ const CubeGame = () => {
     setHover(null);
   }, [cellFromPoint, placePieceAt]);
 
+  const jumpToFace = useCallback((faceId: number) => {
+    const y = FACE_ROT[faceId] ?? 0;
+    rotRef.current = { x: 0, y };
+    setRot(rotRef.current);
+    setActiveFace(faceId);
+    setSnapping(true);
+  }, []);
+
   const handleHint = useCallback(() => {
     const h = findHint(boards[activeFace], pieces);
-    if (!h) return;
+    if (h) {
+      playSound('select');
+      setSelected(h.piece);
+      setHover(h.pos);
+      return;
+    }
+    const alternate = FACES.find((face) => face.id !== activeFace && findHint(boards[face.id], pieces));
+    if (!alternate) return;
+    jumpToFace(alternate.id);
+    setLastCubeMoment({ label: `${alternate.name} face has space`, timestamp: Date.now() });
     playSound('select');
-    setSelected(h.piece);
-    setHover(h.pos);
-  }, [boards, activeFace, pieces]);
+  }, [boards, activeFace, pieces, jumpToFace]);
 
   // ── Side orbit / snap ──
   const faceFromRot = (_rx: number, ry: number) => {
@@ -218,11 +279,18 @@ const CubeGame = () => {
     setHover(null);
     setScore(0);
     setActiveFace(0);
+    setSyncedFaces(new Set());
+    setLastCubeMoment(null);
     setIsGameOver(false);
     endFever();
     rotRef.current = { x: 0, y: 0 };
     setRot({ x: 0, y: 0 });
     setSnapping(true);
+  };
+
+  const dismissOnboarding = () => {
+    localStorage.setItem('cube-side-lab-seen', '1');
+    setShowCubeOnboarding(false);
   };
 
   // Placement ghost + reaction preview on the active face.
@@ -255,7 +323,10 @@ const CubeGame = () => {
       {/* Glass top bar */}
       <div className="z-20 mt-4 flex w-[calc(100%-2rem)] max-w-md items-center justify-between rounded-full border border-white/15 bg-white/10 px-3 py-2 shadow-2xl shadow-black/20 backdrop-blur-xl">
         <Link to="/"><PixarChip title="Back to classic"><Home className="w-5 h-5 text-white" /></PixarChip></Link>
-        <p className="rounded-full border border-white/10 bg-white/10 px-4 py-2 text-[10px] uppercase tracking-[0.3em] text-white/85 font-bold shadow-inner backdrop-blur-md">Cube Mode</p>
+        <div className="flex flex-col items-center leading-none">
+          <p className="rounded-full border border-white/10 bg-white/10 px-4 py-2 text-[10px] uppercase tracking-[0.3em] text-white/85 font-bold shadow-inner backdrop-blur-md">Cube Lab</p>
+          <span className="mt-1 text-[9px] uppercase tracking-[0.2em] text-white/50">4-side sync</span>
+        </div>
         <div className="flex gap-2">
           <PixarChip title="Hint" onClick={handleHint}><Lightbulb className="w-5 h-5 text-pixar-yellow" /></PixarChip>
           <PixarChip title="Restart" onClick={reset}><RotateCcw className="w-5 h-5 text-white" /></PixarChip>
@@ -265,6 +336,11 @@ const CubeGame = () => {
       {/* Glass HUD: scoreboard + phase pill + fever */}
       <div className="z-20 mt-3 flex w-[calc(100%-2rem)] max-w-[420px] flex-col items-center rounded-[28px] border border-white/15 bg-white/10 px-4 py-3 shadow-2xl shadow-black/20 backdrop-blur-xl">
         <BlockBlastScoreboard score={score} topScore={best} compact />
+        <div className="mb-1 flex items-center gap-2 rounded-full border border-white/10 bg-white/10 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.2em] text-white/75">
+          <span>{activeAffinity.label}</span>
+          <span className="text-white/35">·</span>
+          <span>{ELEMENT_LABELS[activeAffinity.element]} +25/block</span>
+        </div>
         <PhasePill phase={phase} next={next} progress={progress} />
         <FeverMeter meter={feverMeter} active={feverActive} endsAt={feverEndsAt} />
       </div>
@@ -279,6 +355,19 @@ const CubeGame = () => {
         onPointerCancel={onScenePointerUp}
       >
         <div className="pointer-events-none absolute h-[78vw] max-h-[420px] w-[78vw] max-w-[420px] rounded-full bg-white/10 blur-3xl" />
+        <AnimatePresence>
+          {lastCubeMoment && (
+            <motion.div
+              key={lastCubeMoment.timestamp}
+              initial={{ opacity: 0, y: 18, scale: 0.94 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -10 }}
+              className="pointer-events-none absolute top-4 z-20 rounded-full border border-white/20 bg-white/15 px-4 py-2 text-xs font-black uppercase tracking-[0.18em] text-white shadow-xl backdrop-blur-xl"
+            >
+              {lastCubeMoment.label}
+            </motion.div>
+          )}
+        </AnimatePresence>
         <div
           className="relative"
           style={{
@@ -290,24 +379,31 @@ const CubeGame = () => {
           {FACES.map((face) => {
             const isActive = face.id === activeFace;
             const board = boards[face.id];
+            const affinity = FACE_AFFINITIES[face.id];
+            const isSynced = syncedFaces.has(face.id);
             return (
               <div
                 key={face.id}
-                className="absolute left-0 top-0 rounded-[30px] border border-white/20 bg-white/10 shadow-2xl shadow-black/30 backdrop-blur-xl pixar-grid-frame"
+                className={`absolute left-0 top-0 rounded-[30px] border bg-white/10 shadow-2xl shadow-black/30 backdrop-blur-xl pixar-grid-frame ${isActive ? 'border-white/40' : 'border-white/15'}`}
                 style={{
                   width: size, height: size, padding: pad,
                   transform: face.place.replace(/H/g, `${half}px`),
                   backfaceVisibility: 'hidden',
                   pointerEvents: isActive ? 'auto' : 'none',
-                  opacity: isActive ? 1 : 0.38,
-                  transition: 'opacity 0.4s, box-shadow 0.4s',
+                  opacity: isActive ? 1 : 0.32,
+                  transition: 'opacity 0.4s, box-shadow 0.4s, border-color 0.4s',
                   boxShadow: isActive
-                    ? '0 30px 80px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.22)'
+                    ? '0 30px 90px rgba(0,0,0,0.42), 0 0 34px rgba(255,255,255,0.14), inset 0 1px 0 rgba(255,255,255,0.28)'
                     : '0 18px 50px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.14)',
                 }}
               >
-                <span aria-hidden className="pointer-events-none absolute inset-x-6 top-2 h-[2px] rounded-full"
-                  style={{ background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.85) 30%, hsl(var(--stage-accent, var(--pixar-yellow))) 70%, transparent)', opacity: 0.9 }} />
+                <span aria-hidden className={`pointer-events-none absolute inset-x-6 top-2 h-[2px] rounded-full bg-gradient-to-r ${affinity.tone}`} />
+                <div className="pointer-events-none absolute left-4 top-4 z-20 flex items-center gap-2 rounded-full border border-white/15 bg-black/20 px-2.5 py-1 text-[9px] font-black uppercase tracking-[0.18em] text-white/85 backdrop-blur-md">
+                  <span>{face.name}</span>
+                  <span className="text-white/35">·</span>
+                  <span>{ELEMENT_LABELS[affinity.element]}</span>
+                  {isSynced && <span className="text-pixar-yellow">SYNC</span>}
+                </div>
                 {isActive && flashKey > 0 && <span key={flashKey} className="neon-flash-overlay rounded-[30px]" aria-hidden />}
                 {isActive && <ReactionParticles trigger={particle} cellSize={cellPx + gap} gridOffset={{ x: pad, y: pad }} />}
                 <div id={isActive ? 'cube-active-grid' : undefined} className="grid h-full w-full" style={{ gridTemplateColumns: `repeat(${FACE}, 1fr)`, gridTemplateRows: `repeat(${FACE}, 1fr)`, gap }}>
@@ -322,10 +418,10 @@ const CubeGame = () => {
                           data-cube-cell={isActive ? '' : undefined}
                           data-x={x}
                           data-y={y}
-                          className={`flex items-center justify-center rounded-xl border border-white/10 shadow-inner backdrop-blur-sm transition-colors ${rType ? REACTION_RING[rType] : ''}`}
+                          className={`flex items-center justify-center rounded-xl border shadow-inner backdrop-blur-sm transition-colors ${rType ? REACTION_RING[rType] : ''} ${isActive ? 'border-white/18' : 'border-white/8'}`}
                           style={{
-                            background: cell.element ? 'transparent' : 'rgba(255,255,255,0.08)',
-                            boxShadow: cell.element ? 'none' : 'inset 0 1px 0 rgba(255,255,255,0.16)',
+                            background: cell.element ? 'transparent' : isActive ? 'rgba(255,255,255,0.14)' : 'rgba(255,255,255,0.06)',
+                            boxShadow: cell.element ? 'none' : 'inset 0 1px 0 rgba(255,255,255,0.18)',
                           }}
                           onMouseEnter={isActive ? () => setHover({ x, y }) : undefined}
                           onClick={isActive ? () => { if (!movedRef.current && selected) placePieceAt(selected, { x, y }); } : undefined}
@@ -346,11 +442,24 @@ const CubeGame = () => {
       </div>
 
       {/* Glass orbit hint + current face */}
-      <div className="z-20 mb-2 flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-4 py-2 text-white/75 shadow-xl shadow-black/20 backdrop-blur-xl">
-        <Rotate3d className="w-4 h-4 text-pixar-yellow" />
-        <span className="text-xs uppercase tracking-widest font-bold">Drag left / right</span>
-        <span className="text-white/30">·</span>
-        <span className="text-xs uppercase tracking-widest font-bold text-white/90">{FACES[activeFace].name}</span>
+      <div className="z-20 mb-2 flex flex-col items-center gap-2 rounded-[26px] border border-white/15 bg-white/10 px-4 py-3 text-white/75 shadow-xl shadow-black/20 backdrop-blur-xl">
+        <div className="flex items-center gap-2">
+          <Rotate3d className="w-4 h-4 text-pixar-yellow" />
+          <span className="text-xs uppercase tracking-widest font-bold">Drag left / right</span>
+          <span className="text-white/30">·</span>
+          <span className="text-xs uppercase tracking-widest font-bold text-white/90">{FACES[activeFace].name}</span>
+        </div>
+        <div className="flex items-center gap-2">
+          {FACES.map((face) => (
+            <button
+              key={face.id}
+              onClick={() => jumpToFace(face.id)}
+              className={`h-2.5 rounded-full transition-all ${activeFace === face.id ? 'w-8 bg-pixar-yellow' : syncedFaces.has(face.id) ? 'w-4 bg-white/70' : 'w-4 bg-white/25'}`}
+              aria-label={`Jump to ${face.name} face`}
+            />
+          ))}
+        </div>
+        <p className="text-[10px] uppercase tracking-[0.18em] text-white/45">Synced faces {syncedCount}/{FACES.length}</p>
       </div>
 
       {/* Glass piece tray (tap-to-select or drag onto the active side face) */}
@@ -365,14 +474,52 @@ const CubeGame = () => {
         />
       </div>
 
+      {/* First-run Cube Lab tutorial */}
+      <AnimatePresence>
+        {showCubeOnboarding && !isGameOver && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 px-5 backdrop-blur-sm"
+          >
+            <motion.div
+              initial={{ y: 20, scale: 0.96 }}
+              animate={{ y: 0, scale: 1 }}
+              exit={{ y: 12, scale: 0.98 }}
+              className="max-w-sm rounded-[32px] border border-white/20 bg-white/12 p-6 text-center shadow-2xl shadow-black/35 backdrop-blur-2xl"
+            >
+              <p className="text-[10px] font-black uppercase tracking-[0.35em] text-pixar-yellow">Cube Lab</p>
+              <h2 className="mt-2 text-3xl font-display text-white">Sync all 4 faces</h2>
+              <p className="mt-3 text-sm leading-relaxed text-white/75">
+                Each side has an elemental affinity. Match the face element for bonus Fever, rotate when space runs out, and clear faces to complete a Full Cube Sync.
+              </p>
+              <div className="mt-5 grid grid-cols-2 gap-2 text-[11px] font-bold uppercase tracking-[0.12em] text-white/70">
+                {FACES.map((face) => (
+                  <div key={face.id} className="rounded-2xl border border-white/12 bg-white/10 px-3 py-2">
+                    {face.name}: {ELEMENT_LABELS[FACE_AFFINITIES[face.id].element]}
+                  </div>
+                ))}
+              </div>
+              <PixarButton onClick={dismissOnboarding} variant="primary" size="md" shine className="mt-6">Start Experiment</PixarButton>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Game over */}
       <AnimatePresence>
         {isGameOver && (
           <PixarOverlay>
             <motion.div initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="rounded-[32px] border border-white/20 bg-white/10 px-8 py-7 text-center shadow-2xl shadow-black/30 backdrop-blur-2xl">
-              <p className="text-3xl font-display text-white mb-1">Cube Complete!</p>
-              <p className="text-5xl font-display bg-gradient-to-r from-pixar-yellow to-pixar-red bg-clip-text text-transparent mb-4">{score.toLocaleString()}</p>
-              <PixarButton onClick={reset} variant="primary" size="md" shine>Play Again</PixarButton>
+              <p className="text-[10px] font-black uppercase tracking-[0.3em] text-pixar-yellow">Lab Results</p>
+              <p className="mt-2 text-3xl font-display text-white mb-1">Cube Experiment Complete!</p>
+              <p className="text-5xl font-display bg-gradient-to-r from-pixar-yellow to-pixar-red bg-clip-text text-transparent mb-3">{score.toLocaleString()}</p>
+              <div className="mb-5 grid grid-cols-2 gap-2 text-xs font-bold text-white/75">
+                <div className="rounded-2xl border border-white/10 bg-white/10 px-3 py-2">Best<br /><span className="text-white">{best.toLocaleString()}</span></div>
+                <div className="rounded-2xl border border-white/10 bg-white/10 px-3 py-2">Faces Synced<br /><span className="text-white">{syncedCount}/{FACES.length}</span></div>
+              </div>
+              <PixarButton onClick={reset} variant="primary" size="md" shine>Run It Again</PixarButton>
             </motion.div>
           </PixarOverlay>
         )}
