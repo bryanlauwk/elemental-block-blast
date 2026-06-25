@@ -1,0 +1,152 @@
+/* Cube Mode mobile fit hotfix
+   Goal: keep HUD, cube board, orbit controls, and piece tray visible without scrolling. */
+
+@media (max-width: 640px) {
+  body:has(#cube-active-grid) .bg-gradient-pixar-stage {
+    height: 100dvh !important;
+    min-height: 100dvh !important;
+    overflow: hidden !important;
+    padding-bottom: max(0.25rem, env(safe-area-inset-bottom)) !important;
+  }
+
+  /* Top nav */
+  body:has(#cube-active-grid) .bg-gradient-pixar-stage > .z-20:first-of-type {
+    margin-top: 0.45rem !important;
+    padding: 0.35rem 0.55rem !important;
+    max-width: calc(100vw - 1rem) !important;
+  }
+
+  body:has(#cube-active-grid) .bg-gradient-pixar-stage > .z-20:first-of-type .pixar-glass-chip,
+  body:has(#cube-active-grid) .bg-gradient-pixar-stage > .z-20:first-of-type a > * {
+    transform: scale(0.86);
+  }
+
+  body:has(#cube-active-grid) .bg-gradient-pixar-stage > .z-20:first-of-type p {
+    padding: 0.42rem 1.15rem !important;
+    font-size: 0.58rem !important;
+    letter-spacing: 0.24em !important;
+  }
+
+  body:has(#cube-active-grid) .bg-gradient-pixar-stage > .z-20:first-of-type span {
+    margin-top: 0.15rem !important;
+    font-size: 0.52rem !important;
+  }
+
+  /* Score / phase / fever HUD */
+  body:has(#cube-active-grid) .z-20:has(.classic-scoreboard) {
+    margin-top: 0.42rem !important;
+    padding: 0.5rem 0.62rem !important;
+    border-radius: 22px !important;
+    max-width: calc(100vw - 1rem) !important;
+  }
+
+  body:has(#cube-active-grid) .classic-scoreboard .pixar-hud-panel > div {
+    padding-top: 0.34rem !important;
+    padding-bottom: 0.34rem !important;
+  }
+
+  body:has(#cube-active-grid) .classic-scoreboard span[class*="clamp"] {
+    font-size: 1.85rem !important;
+  }
+
+  body:has(#cube-active-grid) .classic-phase-pill,
+  body:has(#cube-active-grid) .classic-fever-meter {
+    margin-top: 0.34rem !important;
+  }
+
+  body:has(#cube-active-grid) .classic-phase-pill > div,
+  body:has(#cube-active-grid) .classic-fever-meter > div {
+    padding-top: 0.32rem !important;
+    padding-bottom: 0.32rem !important;
+    border-radius: 16px !important;
+  }
+
+  /* 3D stage: reserve a fixed compact viewport instead of letting the cube push the layout. */
+  body:has(#cube-active-grid) .cursor-grab {
+    flex: 0 0 min(31dvh, 235px) !important;
+    min-height: 185px !important;
+    max-height: 235px !important;
+    align-items: center !important;
+    justify-content: center !important;
+    overflow: visible !important;
+  }
+
+  /* Scale the CSS-3D cube without changing game logic. This avoids the zoomed-in crop on iPhone. */
+  body:has(#cube-active-grid) div[style*="preserve-3d"] {
+    scale: 0.64 !important;
+    transform-origin: center center !important;
+  }
+
+  /* Orbit controls */
+  body:has(#cube-active-grid) .z-20.mb-2.flex.flex-col {
+    margin-bottom: 0.25rem !important;
+    gap: 0.28rem !important;
+    padding: 0.45rem 0.7rem !important;
+    border-radius: 18px !important;
+    transform: scale(0.92);
+    transform-origin: bottom center;
+  }
+
+  body:has(#cube-active-grid) .z-20.mb-2.flex.flex-col p {
+    font-size: 0.55rem !important;
+  }
+
+  /* Piece tray */
+  body:has(#cube-active-grid) .z-20:has(.classic-piece-tray) {
+    width: calc(100vw - 1rem) !important;
+    margin-bottom: max(0.2rem, env(safe-area-inset-bottom)) !important;
+    padding: 0 !important;
+    border-radius: 22px !important;
+    transform: scale(0.94);
+    transform-origin: bottom center;
+  }
+
+  body:has(#cube-active-grid) .classic-piece-tray {
+    padding: 0.38rem 0.45rem 0.44rem !important;
+  }
+
+  body:has(#cube-active-grid) .classic-piece-tray button {
+    padding: 0.34rem !important;
+    min-width: 42px !important;
+    min-height: 42px !important;
+  }
+
+  body:has(#cube-active-grid) .classic-piece-tray p:first-child,
+  body:has(#cube-active-grid) .classic-piece-tray p:last-child {
+    display: none !important;
+  }
+}
+
+@media (max-height: 760px) and (max-width: 640px) {
+  body:has(#cube-active-grid) .cursor-grab {
+    flex-basis: min(29dvh, 210px) !important;
+    min-height: 165px !important;
+    max-height: 210px !important;
+  }
+
+  body:has(#cube-active-grid) div[style*="preserve-3d"] {
+    scale: 0.58 !important;
+  }
+
+  body:has(#cube-active-grid) .z-20:has(.classic-scoreboard) {
+    padding-top: 0.38rem !important;
+    padding-bottom: 0.38rem !important;
+  }
+}
+
+@media (max-height: 700px) and (max-width: 430px) {
+  body:has(#cube-active-grid) .cursor-grab {
+    flex-basis: min(27dvh, 185px) !important;
+    min-height: 145px !important;
+    max-height: 185px !important;
+  }
+
+  body:has(#cube-active-grid) div[style*="preserve-3d"] {
+    scale: 0.52 !important;
+  }
+
+  body:has(#cube-active-grid) .classic-phase-pill,
+  body:has(#cube-active-grid) .classic-fever-meter {
+    margin-top: 0.25rem !important;
+  }
+}
