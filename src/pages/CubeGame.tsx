@@ -1,17 +1,27 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Home, RotateCcw, Rotate3d, Lightbulb } from 'lucide-react';
+import { Home, RotateCcw, Rotate3d, Lightbulb, Trophy, Award, Volume2 } from 'lucide-react';
 import { ElementBlock } from '@/components/game/ElementBlock';
 import { PieceTray } from '@/components/game/PieceTray';
 import { BlockBlastScoreboard } from '@/components/game/BlockBlastScoreboard';
 import PhasePill from '@/components/game/PhasePill';
-import { PixarChip, PixarButton, PixarOverlay } from '@/components/game/pixar';
+import { PixarChip, PixarButton, PixarOverlay, PixarBadge } from '@/components/game/pixar';
 import { ScorePopup } from '@/components/game/ScorePopup';
 import ReactionParticles from '@/components/game/ReactionParticles';
 import AdaptiveStage from '@/components/game/AdaptiveStage';
 import { FeverMeter } from '@/components/game/FeverMeter';
+import { LeaderboardModal } from '@/components/game/LeaderboardModal';
+import { PlayerNameModal } from '@/components/game/PlayerNameModal';
+import { AchievementsModal } from '@/components/game/AchievementsModal';
+import { AchievementPopup } from '@/components/game/AchievementPopup';
+import { SoundSettings } from '@/components/game/SoundSettings';
+import { StreakBadge } from '@/components/game/StreakBadge';
 import { usePhase } from '@/hooks/usePhase';
+import { useHighScores } from '@/hooks/useHighScores';
+import { useGlobalLeaderboard } from '@/hooks/useGlobalLeaderboard';
+import { useDailyStreak } from '@/hooks/useDailyStreak';
+import { useAchievements } from '@/hooks/useAchievements';
 import { Cell, DraggablePiece, Position } from '@/game/types';
 import {
   createEmptyGrid, createRandomPiece, canPlacePieceAt, canAnyPieceFit, resolveGrid, findHint, getComboText, getReactionPreview,
@@ -38,7 +48,7 @@ const FACES = [
 const FEVER_MS = 9000;
 // Fixed isometric viewing offset so the playing face is always seen at an
 // angle (depth + edges of adjacent faces) instead of flat like the 2D board.
-const ISO = { x: -16, y: 20 };
+const ISO = { x: -9, y: 11 };
 
 const placeInto = (grid: Cell[][], piece: DraggablePiece, pos: Position): Cell[][] => {
   const ng = grid.map((r) => r.map((c) => ({ ...c })));
@@ -55,16 +65,26 @@ const CubeGame = () => {
   const [selected, setSelected] = useState<DraggablePiece | null>(null);
   const [hover, setHover] = useState<Position | null>(null);
   const [score, setScore] = useState(0);
-  const [best, setBest] = useState<number>(() => Number(localStorage.getItem('cube-best') || 0));
   const [isGameOver, setIsGameOver] = useState(false);
   const [particle, setParticle] = useState<{ type: ReactionType; positions: Position[]; timestamp: number } | null>(null);
   const [popup, setPopup] = useState<{ score: number; show: boolean; text: string; reactionType?: ReactionType }>({ score: 0, show: false, text: '' });
   const [flashKey, setFlashKey] = useState(0);
   const { phase, next, progress } = usePhase(score);
 
-  useEffect(() => {
-    if (score > best) { setBest(score); localStorage.setItem('cube-best', String(score)); }
-  }, [score, best]);
+  // ── Meta features (shared with the classic game) ──
+  const { highScores, topScore, saveScore, clearScores } = useHighScores();
+  const { submitScore, getStoredPlayerName, storePlayerName } = useGlobalLeaderboard();
+  const { currentStreak, recordPlay, isStreakAtRisk } = useDailyStreak();
+  const { achievements, totalPoints, justUnlocked, checkAchievements, clearJustUnlocked } = useAchievements();
+  const [showLeaderboard, setShowLeaderboard] = useState(false);
+  const [showAchievements, setShowAchievements] = useState(false);
+  const [showSoundSettings, setShowSoundSettings] = useState(false);
+  const [showPlayerNameModal, setShowPlayerNameModal] = useState(false);
+  const [isSubmittingScore, setIsSubmittingScore] = useState(false);
+  const [submittedPlayerName, setSubmittedPlayerName] = useState<string | null>(null);
+  const [globalRank, setGlobalRank] = useState<number | null>(null);
+  const [isNewHighScore, setIsNewHighScore] = useState(false);
+  const hasEnded = useRef(false);
 
   // ── Reaction Fever ──
   const [feverMeter, setFeverMeter] = useState(0);
@@ -144,13 +164,56 @@ const CubeGame = () => {
       if (r.maxCombo > 1 || r.linesCleared >= 2) playSound('combo');
       window.setTimeout(() => setPopup((p) => ({ ...p, show: false })), 1200);
     }
+    // Achievements: combos + reactions
+    if (r.maxCombo >= 2) checkAchievements({ combo: r.maxCombo });
+    if (r.allReactionEvents.length > 0) {
+      const last = r.allReactionEvents[r.allReactionEvents.length - 1];
+      checkAchievements({ reactionType: last.type, reactionCount: 1 });
+    }
 
     const nextPieces = refill(pieces.filter((p) => p.id !== piece.id), nextScore);
     setPieces(nextPieces);
     setSelected(null);
     setHover(null);
-    if (!nextBoards.some((b) => canAnyPieceFit(b, nextPieces))) { setIsGameOver(true); playSound('gameOver'); }
-  }, [isGameOver, boards, activeFace, score, pieces, refill, activateFever]);
+    if (!nextBoards.some((b) => canAnyPieceFit(b, nextPieces))) setIsGameOver(true);
+  }, [isGameOver, boards, activeFace, score, pieces, refill, activateFever, checkAchievements]);
+
+  // Game-over meta: high score, streak, achievements, score submission.
+  useEffect(() => {
+    if (isGameOver && score > 0 && !hasEnded.current) {
+      hasEnded.current = true;
+      const isHigh = score > topScore;
+      setIsNewHighScore(isHigh);
+      playSound(isHigh ? 'highScore' : 'gameOver');
+      recordPlay();
+      checkAchievements({ score, streak: currentStreak });
+      saveScore(score);
+      if (score >= 100) setShowPlayerNameModal(true);
+    }
+    if (!isGameOver) {
+      hasEnded.current = false;
+      setIsNewHighScore(false);
+      setSubmittedPlayerName(null);
+      setGlobalRank(null);
+    }
+  }, [isGameOver, score, topScore, recordPlay, checkAchievements, currentStreak, saveScore]);
+
+  const handleSubmitScore = useCallback(async (playerName: string) => {
+    setIsSubmittingScore(true);
+    try {
+      storePlayerName(playerName);
+      const result = await submitScore(playerName, score);
+      if (result.success) {
+        setSubmittedPlayerName(playerName);
+        setGlobalRank(result.rank || null);
+        setShowPlayerNameModal(false);
+      }
+    } catch (err) {
+      console.error('Failed to submit score:', err);
+    } finally {
+      setIsSubmittingScore(false);
+    }
+  }, [score, submitScore, storePlayerName]);
 
   // Map a screen point to a board cell using the browser's real 3D hit-testing
   // (works at any cube angle, unlike flat-rect math). On touch, sample a little
@@ -261,17 +324,20 @@ const CubeGame = () => {
 
       {/* Top bar */}
       <div className="w-full flex items-center justify-between px-4 pt-4 z-20">
-        <Link to="/"><PixarChip title="Back to classic"><Home className="w-5 h-5 text-white" /></PixarChip></Link>
-        <p className="text-[10px] uppercase tracking-[0.3em] text-pixar-yellow/80 font-bold">Cube Mode</p>
-        <div className="flex gap-2">
+        <Link to="/classic"><PixarChip title="Classic mode"><Home className="w-5 h-5 text-white" /></PixarChip></Link>
+        <div className="flex gap-2 items-center">
+          {currentStreak > 0 && <StreakBadge streak={currentStreak} isAtRisk={isStreakAtRisk} size="md" />}
           <PixarChip title="Hint" onClick={handleHint}><Lightbulb className="w-5 h-5 text-pixar-yellow" /></PixarChip>
+          <PixarChip title="Sound" onClick={() => setShowSoundSettings(true)}><Volume2 className="w-5 h-5 text-white" /></PixarChip>
+          <PixarChip title="Achievements" onClick={() => setShowAchievements(true)}><Award className="w-5 h-5 text-pixar-yellow" /></PixarChip>
+          <PixarChip title="Leaderboard" onClick={() => setShowLeaderboard(true)}><Trophy className="w-5 h-5" fill="hsl(var(--pixar-yellow))" stroke="hsl(var(--pixar-yellow-deep))" /></PixarChip>
           <PixarChip title="Restart" onClick={reset}><RotateCcw className="w-5 h-5 text-white" /></PixarChip>
         </div>
       </div>
 
       {/* Classic HUD: scoreboard + phase pill + fever */}
       <div className="z-20 w-full max-w-[420px] px-4 flex flex-col items-center mt-1">
-        <BlockBlastScoreboard score={score} topScore={best} compact />
+        <BlockBlastScoreboard score={score} topScore={topScore} compact />
         <PhasePill phase={phase} next={next} progress={progress} />
         <FeverMeter meter={feverMeter} active={feverActive} endsAt={feverEndsAt} />
       </div>
@@ -370,13 +436,31 @@ const CubeGame = () => {
         {isGameOver && (
           <PixarOverlay>
             <motion.div initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="text-center">
-              <p className="text-3xl font-display text-white mb-1">Cube Complete!</p>
-              <p className="text-5xl font-display bg-gradient-to-r from-pixar-yellow to-pixar-red bg-clip-text text-transparent mb-4">{score.toLocaleString()}</p>
+              {isNewHighScore && (
+                <motion.div initial={{ scale: 0, rotate: -10 }} animate={{ scale: 1, rotate: 0 }} className="mb-3">
+                  <PixarBadge tone="yellow" className="text-sm animate-pulse">🏆 New High Score! 🏆</PixarBadge>
+                </motion.div>
+              )}
+              <p className="text-3xl font-display text-white mb-1">{isNewHighScore ? 'Amazing!' : 'Cube Complete!'}</p>
+              <p className="text-5xl font-display bg-gradient-to-r from-pixar-yellow to-pixar-red bg-clip-text text-transparent mb-2">{score.toLocaleString()}</p>
+              {globalRank && submittedPlayerName && (
+                <div className="mb-3"><PixarBadge tone="blue" icon={<Trophy className="w-4 h-4" />}>Global Rank: #{globalRank}</PixarBadge></div>
+              )}
+              {!submittedPlayerName && score >= 100 && (
+                <div className="mb-3"><PixarButton onClick={() => setShowPlayerNameModal(true)} variant="ghost" size="sm">Submit Score</PixarButton></div>
+              )}
               <PixarButton onClick={reset} variant="primary" size="md" shine>Play Again</PixarButton>
             </motion.div>
           </PixarOverlay>
         )}
       </AnimatePresence>
+
+      {/* Meta modals */}
+      <PlayerNameModal isOpen={showPlayerNameModal} onClose={() => setShowPlayerNameModal(false)} onSubmit={handleSubmitScore} score={score} defaultName={getStoredPlayerName()} isSubmitting={isSubmittingScore} />
+      <LeaderboardModal isOpen={showLeaderboard} onClose={() => setShowLeaderboard(false)} highScores={highScores} currentScore={isGameOver ? score : undefined} onClear={clearScores} highlightPlayerName={submittedPlayerName || undefined} />
+      <AchievementsModal isOpen={showAchievements} onClose={() => setShowAchievements(false)} achievements={achievements} totalPoints={totalPoints} />
+      <SoundSettings isOpen={showSoundSettings} onClose={() => setShowSoundSettings(false)} />
+      <AchievementPopup achievement={justUnlocked} onDismiss={clearJustUnlocked} />
     </div>
   );
 };
