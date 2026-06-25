@@ -84,28 +84,18 @@ export function AdaptiveStage({ phase }: AdaptiveStageProps) {
   return (
     <div
       aria-hidden
-      className="absolute inset-0 pointer-events-none overflow-hidden adaptive-stage"
+      className="absolute inset-0 pointer-events-none overflow-hidden adaptive-stage mix-blend-soft-light opacity-80"
       style={{
-        background: `radial-gradient(ellipse 60% 45% at 18% 20%, hsl(${phase.glow} / 0.22) 0%, transparent 60%),
-          radial-gradient(ellipse 55% 50% at 85% 90%, hsl(${phase.accent} / 0.22) 0%, transparent 65%),
-          linear-gradient(180deg, hsl(${phase.stageFrom}) 0%, hsl(${phase.stageTo}) 100%)`,
+        background: `radial-gradient(ellipse 60% 45% at 18% 20%, hsl(${phase.glow} / 0.42) 0%, transparent 60%),
+          radial-gradient(ellipse 55% 50% at 85% 90%, hsl(${phase.accent} / 0.42) 0%, transparent 65%)`,
         transition: "background 1.2s ease",
       }}
     >
-      {/* light vignette — only gently darkens the far corners so the scene
-          stays bold and readable (sits BELOW the animated decorations) */}
-      <div
-        className="absolute inset-0"
-        style={{
-          background: `radial-gradient(ellipse 95% 75% at 50% 46%, transparent 62%, hsl(${phase.stageTo} / 0.5) 100%)`,
-          transition: "background 1.2s ease",
-        }}
-      />
       {/* dot pattern */}
       <div
-        className="absolute inset-0 opacity-20"
+        className="absolute inset-0 opacity-15"
         style={{
-          backgroundImage: `radial-gradient(hsl(${phase.accent} / 0.18) 1.2px, transparent 1.2px)`,
+          backgroundImage: `radial-gradient(hsl(${phase.accent} / 0.5) 1.2px, transparent 1.2px)`,
           backgroundSize: "28px 28px",
         }}
       />
