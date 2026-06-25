@@ -72,6 +72,9 @@ export function PieceTray({ pieces, selectedPiece, onSelectPiece, onDragHover, o
 
   return (
     <div className="w-full">
+      <p className="mb-2 text-center text-[10px] font-black uppercase tracking-[0.22em] text-white/45">
+        Experiment Tray
+      </p>
       <div className="flex justify-center items-center gap-2 sm:gap-5 overflow-x-auto -mx-2 px-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         {pieces.map((piece) => {
           const isSelected = selectedPiece?.id === piece.id;
@@ -85,7 +88,7 @@ export function PieceTray({ pieces, selectedPiece, onSelectPiece, onDragHover, o
                 'pixar-glass-tile',
                 // Minimum touch target size of 48px for mobile
                 'min-w-[48px] min-h-[48px] sm:min-w-0 sm:min-h-0',
-                isSelected && 'pixar-glass-tile--active',
+                isSelected && 'pixar-glass-tile--active ring-2 ring-pixar-yellow/70',
                 disabled && 'opacity-40 cursor-not-allowed',
                 !disabled && 'active:scale-95'
               )}
@@ -96,8 +99,9 @@ export function PieceTray({ pieces, selectedPiece, onSelectPiece, onDragHover, o
               whileTap={!disabled ? { scale: 0.95 } : {}}
               animate={isSelected ? { 
                 scale: 1.05,
+                y: -3,
                 transition: { duration: 0.15 }
-              } : { scale: 1 }}
+              } : { scale: 1, y: 0 }}
               disabled={disabled}
             >
               {/* Piece preview grid */}
@@ -142,7 +146,7 @@ export function PieceTray({ pieces, selectedPiece, onSelectPiece, onDragHover, o
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   style={{
-                    boxShadow: '0 0 20px rgba(52, 211, 153, 0.3)',
+                    boxShadow: '0 0 24px rgba(250, 204, 21, 0.35)',
                   }}
                 />
               )}
@@ -169,10 +173,10 @@ export function PieceTray({ pieces, selectedPiece, onSelectPiece, onDragHover, o
       )}
       
       {/* Instruction hint */}
-      <p className="text-center text-xs text-game-text-muted/60 mt-3">
+      <p className="text-center text-xs text-game-text-muted/70 mt-3">
         {selectedPiece
-          ? (isMobile ? 'Drag onto the board, lift to place' : 'Tap the board to place')
-          : 'Drag a piece onto the board — or tap to select'}
+          ? (isMobile ? 'Drag over the lab board, then lift to place' : 'Tap a glowing cell to run the experiment')
+          : 'Choose a piece, complete lines, and trigger reactions'}
       </p>
     </div>
   );
