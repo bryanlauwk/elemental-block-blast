@@ -32,7 +32,7 @@ import HeroBlockDisplay from '@/components/game/HeroBlockDisplay';
 import LottieBurst from '@/components/game/LottieBurst';
 import { FeverMeter } from '@/components/game/FeverMeter';
 import { Button } from '@/components/ui/button';
-import { Trophy, Play, RotateCcw, HelpCircle, Zap, Calendar, Volume2, Home, Award, Flame, Droplets, TreeDeciduous, Mountain, Wind, Lightbulb } from 'lucide-react';
+import { Trophy, Play, RotateCcw, HelpCircle, Zap, Calendar, Volume2, Home, Award, Flame, Droplets, TreeDeciduous, Mountain, Wind, Lightbulb, ChevronRight } from 'lucide-react';
 import { PixarChip, PixarButton, PixarStatChip, PixarBadge, PixarOverlay } from '@/components/game/pixar';
 import { Position, DraggablePiece, GRID_WIDTH, GRID_HEIGHT } from '@/game/types';
 import { useIsMobile } from '@/hooks/use-mobile';
