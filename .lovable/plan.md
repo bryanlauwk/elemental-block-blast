@@ -1,33 +1,43 @@
+# Lo-fi Alley Backdrop — Reference-Match Pass
+
 ## Goal
-Add a cozy lo-fi neon-alley artwork as the game's atmosphere layer — used behind the landing screen and the gameplay board — with a navy overlay, blur during play, and a brief "sharpen/brighten" pulse on phase-up.
+Make the gameplay screen look like the attached reference: a crisp, vivid neon-alley scene framing the board, with the gameplay UI sitting on glass panels in front. Today the in-game backdrop is blurred and heavily darkened, which hides the artwork. We want the art to be the star.
 
-## Asset
-- Generate a single high-quality background image via `imagegen` (premium quality, 1536x1024, no text, empty center) and save to `src/assets/lofi-neon-alley.jpg`.
-- Prompt: "Cozy neon city alley at night, anime-inspired lo-fi game background, vibrant pink/purple/blue buildings, lanterns, plants on the sides, wet pavement reflections, soft bloom, clear empty center space for gameplay UI, no text, no characters, no logos, polished mobile game background, painterly."
-- Retire the placeholder `src/assets/lofi-neon-alley.svg` (replaced by the new JPG).
+## Reference read
+- Background is sharp (not blurred), saturated purples/pinks/blues.
+- A soft navy darkening sits only around the edges (vignette), keeping the center vivid.
+- The board, scoreboard, and tray are dark glass panels that float on top.
+- Side neon signs / lanterns are visible — not washed out.
 
-## New component
-`src/components/game/LofiAlleyBackdrop.tsx`
-- Fixed full-viewport layer (`fixed inset-0 -z-10`, `pointer-events-none`).
-- Three stacked layers:
-  1. The artwork (`bg-cover bg-center`).
-  2. Navy overlay (`bg-[hsl(224_70%_8%)]/65`) — tunable 55–70%.
-  3. Subtle radial vignette to push focus to the center.
-- Props: `blurred?: boolean` (default false → 0px; true → ~6px blur + slightly higher overlay), `pulse?: boolean` (when true, briefly drop overlay to ~25% + blur to 0 + scale 1.02 for ~900ms via Framer Motion).
-- Uses GPU-friendly `transform`/`filter` transitions only (per perf rule).
+## Changes
 
-## Wiring
-- **Landing (`src/pages/Index.tsx` pre-game view)**: render `<LofiAlleyBackdrop />` (unblurred) behind hero content. Keep existing block towers/CTA on top.
-- **In-game (`AdaptiveStage.tsx`)**: render `<LofiAlleyBackdrop blurred pulse={phasePulse} />` as the stage background instead of (or layered behind) the current solid stage gradient. Keep the existing phase-tinted stage gradient as a thin overlay at low opacity so phase color shifts still read.
-- **Phase-up pulse**: in `AdaptiveStage`, subscribe to `usePhase().justAdvanced`. When it fires, set `phasePulse=true` for ~900ms, then clear. The existing `PhaseUpOverlay` continues to play on top.
+### 1. New artwork pass — `src/assets/lofi-neon-alley.jpg`
+Regenerate at premium quality with a wider 16:9 composition, stronger neon saturation, and a clearly empty vertical center column so the board has a clean negative space. Prompt tuned for: anime lo-fi alley at night, neon signage flanking both sides, lanterns + plants, wet pavement reflections, painterly, no characters, no text, no logos, empty center for UI.
 
-## Guardrails
-- Pure presentation change — no game logic, scoring, or engine edits.
-- No new colors hardcoded in components beyond the overlay tint expressed via existing HSL tokens.
-- Image loaded once, cached; `loading="eager"` for landing, decoded async.
-- Respect `prefers-reduced-motion`: skip pulse animation, keep static blurred backdrop.
+### 2. `src/components/game/LofiAlleyBackdrop.tsx` — let the art breathe
+- Default (in-game) state: **no blur**, slight saturation boost only. Was `blur(6px) brightness(0.95)`.
+- Overlay: drop the flat navy wash from 60–68% to ~22–28%. Replace the heavy radial vignette with a soft edge-only vignette (transparent through ~70% of the frame, navy only in the outer corners) so the center stays vivid like the reference.
+- `pulse` state (phase-up): brief saturation/brightness lift + 1.02 scale, ~700ms. No blur transitions.
+- `blurred` prop kept but defaults to `false` and now means "slightly dim" (overlay ~35%, no blur) — used only for modal/menu states if needed.
+- Respect `prefers-reduced-motion` (no scale/pulse).
+
+### 3. `src/pages/Index.tsx` — wiring
+- Pass `blurred={false}` during gameplay (was `hasStarted`), so the alley reads crisp behind the board.
+- Keep `pulse={backdropPulse}` on phase-up.
+- Landing screen continues to render the unblurred backdrop.
+
+### 4. `src/styles/classic-glass.css` — let the backdrop show through
+- `.bg-gradient-pixar-stage` currently paints a solid navy gradient that fully covers the backdrop. Change its background to `transparent` (keep the `::before` / `::after` decorative glows but lower their opacity to ~0.35 so they don't fight the artwork).
+- Ensure the stage container does not set `background-color` that occludes the fixed `-z-10` backdrop.
+
+### 5. Board/HUD contrast guard
+- Nudge `pixar-grid-frame` and `pixar-hud-panel` inner fill slightly darker (+~6% navy) so panels stay legible over the now-vivid backdrop. No structural changes.
+
+## Out of scope
+- No game logic, scoring, engine, or layout changes.
+- No new components.
+- Landing page hero composition unchanged (only the backdrop layer behind it gets crisper).
 
 ## Files touched
-- add: `src/assets/lofi-neon-alley.jpg`, `src/components/game/LofiAlleyBackdrop.tsx`
-- edit: `src/pages/Index.tsx`, `src/components/game/AdaptiveStage.tsx`
-- delete: `src/assets/lofi-neon-alley.svg`
+- regenerate: `src/assets/lofi-neon-alley.jpg`
+- edit: `src/components/game/LofiAlleyBackdrop.tsx`, `src/pages/Index.tsx`, `src/styles/classic-glass.css`
