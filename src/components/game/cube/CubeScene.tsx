@@ -57,23 +57,23 @@ export function CubeScene({
 }: CubeSceneProps) {
   return (
     <div
-      className="relative z-10 flex-1 w-full cursor-grab active:cursor-grabbing"
-      style={{ touchAction: 'none', minHeight: 0 }}
+      className="cube-scene-slot fixed left-0 right-0 z-10 cursor-grab active:cursor-grabbing"
+      style={{ touchAction: 'none' }}
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
       onPointerUp={onPointerUp}
       onPointerCancel={onPointerUp}
     >
-      <div className="pointer-events-none absolute left-1/2 top-[22%] h-[78vw] max-h-[420px] w-[78vw] max-w-[420px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-white/10 blur-3xl" />
+      <div className="pointer-events-none absolute left-1/2 top-1/2 h-[78vw] max-h-[420px] w-[78vw] max-w-[420px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-white/10 blur-3xl" />
 
       <AnimatePresence>
         {lastCubeMoment && (
           <motion.div
             key={lastCubeMoment.timestamp}
-            initial={{ opacity: 0, y: 18, scale: 0.94 }}
+            initial={{ opacity: 0, y: 10, scale: 0.96 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -10 }}
-            className="pointer-events-none absolute left-1/2 top-3 z-20 -translate-x-1/2 rounded-full border border-white/20 bg-white/15 px-4 py-2 text-xs font-black uppercase tracking-[0.18em] text-white shadow-xl backdrop-blur-xl"
+            exit={{ opacity: 0, y: -8 }}
+            className="pointer-events-none absolute left-1/2 top-2 z-20 -translate-x-1/2 rounded-full border border-white/20 bg-white/15 px-4 py-2 text-xs font-black uppercase tracking-[0.18em] text-white shadow-xl backdrop-blur-xl"
           >
             {lastCubeMoment.label}
           </motion.div>
@@ -88,7 +88,7 @@ export function CubeScene({
             animate={{ opacity: [0, 1, 1, 0], scale: [0.82, 1.08, 1, 1.16] }}
             exit={{ opacity: 0 }}
             transition={{ duration: 1.6, ease: 'easeOut' }}
-            className="pointer-events-none absolute left-1/2 top-[28%] z-30 flex h-[82vw] max-h-[450px] w-[82vw] max-w-[450px] -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-pixar-yellow/60 bg-pixar-yellow/10 text-center shadow-[0_0_80px_rgba(250,204,21,0.45)] backdrop-blur-sm"
+            className="pointer-events-none absolute left-1/2 top-1/2 z-30 flex h-[82vw] max-h-[450px] w-[82vw] max-w-[450px] -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-pixar-yellow/60 bg-pixar-yellow/10 text-center shadow-[0_0_80px_rgba(250,204,21,0.45)] backdrop-blur-sm"
           >
             <span className="text-3xl font-display uppercase tracking-widest text-white drop-shadow-xl">Full Cube Sync!</span>
           </motion.div>
@@ -96,11 +96,11 @@ export function CubeScene({
       </AnimatePresence>
 
       <div
-        className="absolute left-1/2 top-4"
+        className="absolute left-1/2 top-1/2"
         style={{
           width: size,
           height: size,
-          transform: 'translateX(-50%)',
+          transform: 'translate(-50%, -50%)',
           transition: 'opacity 0.25s ease',
         }}
       >
