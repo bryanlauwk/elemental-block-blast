@@ -1,4 +1,4 @@
-import { motion } from 'framer-motion';
+import { motion, useReducedMotion } from 'framer-motion';
 import React, { useRef, useCallback, TouchEvent, memo, useEffect, useState } from 'react';
 import { Cell, DraggablePiece, Position, GRID_WIDTH, GRID_HEIGHT } from '@/game/types';
 import { ElementBlock } from './ElementBlock';
@@ -127,6 +127,7 @@ export function BlockBlastGrid({
   onGridLeave,
   reactionPreviews = [],
 }: BlockBlastGridProps) {
+  const prefersReducedMotion = useReducedMotion();
   const gridRef = useRef<HTMLDivElement>(null);
   const lastTouchCell = useRef<Position | null>(null);
   const rafRef = useRef<number | null>(null);
@@ -227,13 +228,13 @@ export function BlockBlastGrid({
 
   const [flashKey, setFlashKey] = useState(0);
   useEffect(() => {
-    if (shakeIntensity > 3) setFlashKey((k) => k + 1);
-  }, [shakeIntensity]);
+    if (!prefersReducedMotion && shakeIntensity > 3) setFlashKey((k) => k + 1);
+  }, [shakeIntensity, prefersReducedMotion]);
 
   return (
     <motion.div
-      animate={{ x: shakeIntensity > 0 ? [0, -shakeIntensity, shakeIntensity, -shakeIntensity, 0] : 0 }}
-      transition={{ duration: 0.22 }}
+      animate={prefersReducedMotion || shakeIntensity <= 0 ? { x: 0 } : { x: [0, -shakeIntensity, shakeIntensity, -shakeIntensity, 0] }}
+      transition={prefersReducedMotion ? { duration: 0.01 } : { duration: 0.22 }}
       className="classic-board-stack relative touch-none"
       onMouseLeave={onGridLeave}
       onTouchStart={handleTouchStart}
@@ -242,8 +243,9 @@ export function BlockBlastGrid({
     >
       {reactionBonus > 0 && isValidPreview && primaryReactionType && (
         <motion.div
-          initial={{ opacity: 0, y: 8, scale: 0.95 }}
+          initial={prefersReducedMotion ? false : { opacity: 0, y: 8, scale: 0.95 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
+          transition={prefersReducedMotion ? { duration: 0.01 } : { duration: 0.18, ease: 'easeOut' }}
           className={cn(
             'absolute -top-14 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center gap-0.5 px-4 py-2 rounded-2xl shadow-2xl bg-game-grid-dark/90 border-2',
             primaryReactionType === 'burn' && 'border-orange-400/60',
@@ -275,11 +277,11 @@ export function BlockBlastGrid({
           style={{
             background: 'linear-gradient(90deg, transparent 0%, hsl(var(--stage-accent, var(--pixar-yellow))) 30%, hsl(var(--pixar-red)) 70%, transparent 100%)',
             opacity: 0.85,
-            transition: 'background 1.2s ease',
+            transition: prefersReducedMotion ? 'none' : 'background 1.2s ease',
           }}
         />
 
-        {flashKey > 0 && <span key={flashKey} className="neon-flash-overlay rounded-2xl" aria-hidden />}
+        {!prefersReducedMotion && flashKey > 0 && <span key={flashKey} className="neon-flash-overlay rounded-2xl" aria-hidden />}
 
         <div
           ref={gridRef}
