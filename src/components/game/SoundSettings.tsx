@@ -13,7 +13,11 @@ import {
   getMusicVolume,
   setMusicVolume,
   startMusic,
-  stopMusic 
+  stopMusic,
+  getMusicType,
+  setMusicType,
+  getMusicTypeOptions,
+  type LoFiMusicType,
 } from '@/game/sounds';
 
 interface SoundSettingsProps {
@@ -25,6 +29,8 @@ export function SoundSettings({ isOpen, onClose }: SoundSettingsProps) {
   const [sfxOn, setSfxOn] = useState(isSfxEnabled());
   const [musicOn, setMusicOn] = useState(isMusicEnabled());
   const [volume, setVolume] = useState([getMusicVolume() * 100]);
+  const [musicType, setMusicTypeState] = useState<LoFiMusicType>(getMusicType());
+  const musicOptions = getMusicTypeOptions();
 
   const handleSfxToggle = useCallback((checked: boolean) => {
     setSfxOn(checked);
@@ -46,6 +52,16 @@ export function SoundSettings({ isOpen, onClose }: SoundSettingsProps) {
     setMusicVolume(value[0] / 100);
   }, []);
 
+  const handleMusicTypeChange = useCallback((type: LoFiMusicType) => {
+    setMusicTypeState(type);
+    setMusicType(type);
+    if (!musicOn) {
+      setMusicEnabled(true);
+      setMusicOn(true);
+      startMusic();
+    }
+  }, [musicOn]);
+
   return (
     <AnimatePresence>
       {isOpen && (
@@ -64,7 +80,7 @@ export function SoundSettings({ isOpen, onClose }: SoundSettingsProps) {
             initial={{ opacity: 0, scale: 0.9, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.9, y: 20 }}
-            className="fixed inset-x-2 sm:inset-x-4 top-1/2 -translate-y-1/2 z-50 max-w-xs mx-auto"
+            className="fixed inset-x-2 sm:inset-x-4 top-1/2 -translate-y-1/2 z-50 max-w-sm mx-auto"
           >
             <div 
               className="pixar-modal-shell p-4 sm:p-5"
@@ -131,7 +147,7 @@ export function SoundSettings({ isOpen, onClose }: SoundSettingsProps) {
                     )}
                     <div>
                       <p className="text-white font-medium">Background Music</p>
-                      <p className="text-xs text-white/50">Ambient soundtrack</p>
+                      <p className="text-xs text-white/50">Procedural lo-fi soundtrack</p>
                     </div>
                   </div>
                   <Switch
@@ -139,6 +155,31 @@ export function SoundSettings({ isOpen, onClose }: SoundSettingsProps) {
                     onCheckedChange={handleMusicToggle}
                     className="data-[state=checked]:bg-[#FF6B35]"
                   />
+                </div>
+
+                {/* Music Type */}
+                <div className={`space-y-2 ${!musicOn ? 'opacity-70' : ''}`}>
+                  <p className="text-sm text-white/50">Lo-fi Mood</p>
+                  <div className="grid grid-cols-2 gap-2">
+                    {musicOptions.map((option) => {
+                      const active = musicType === option.id;
+                      return (
+                        <button
+                          key={option.id}
+                          type="button"
+                          onClick={() => handleMusicTypeChange(option.id)}
+                          className={`rounded-2xl border px-3 py-2 text-left transition-all ${
+                            active
+                              ? 'border-[#FFD700]/70 bg-[#FFD700]/15 shadow-[0_0_18px_rgba(255,215,0,0.16)]'
+                              : 'border-white/10 bg-white/5 hover:bg-white/10'
+                          }`}
+                        >
+                          <p className="text-xs font-bold text-white">{option.label}</p>
+                          <p className="mt-0.5 text-[10px] leading-snug text-white/45">{option.description}</p>
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
 
                 {/* Volume Slider */}
