@@ -4,6 +4,7 @@ import "./index.css";
 import "./styles/classic-glass.css";
 import "./styles/cube-glass.css";
 import "./styles/overhaul-v3.css";
+import "./styles/performance.css";
 import "@fontsource/abril-fatface/400.css";
 import "@fontsource/cabin/400.css";
 import "@fontsource/cabin/700.css";
