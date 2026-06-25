@@ -1,14 +1,9 @@
 /* Cube Lab scene layer
    ---------------------------------------------------------------------------
    Scope:
-   - Visual treatment for Cube Mode only.
-   - No camera scaling, no gameplay sizing, no rotation overrides.
-   - The CSS should never transform the preserve-3d cube container directly.
-
-   Why:
-   The previous Cube CSS mixed layout, camera, scale, and art direction in one
-   file. That made the cube easier to break during rotation. This layer keeps
-   only scene dressing, compact HUD/tray layout, and non-destructive styling.
+   - Cube-specific scene dressing and mobile layout only.
+   - Cube face switching is handled in React state, not CSS camera tricks.
+   - No CSS scaling or perspective hacks on the playable board.
 */
 
 body:has(#cube-active-grid) .bg-gradient-pixar-stage {
@@ -16,13 +11,12 @@ body:has(#cube-active-grid) .bg-gradient-pixar-stage {
   min-height: 100dvh;
   overflow: hidden;
   background:
-    radial-gradient(circle at 18% 12%, hsl(var(--pixar-yellow) / 0.22), transparent 21%),
-    radial-gradient(circle at 86% 10%, hsl(var(--pixar-red) / 0.24), transparent 24%),
+    radial-gradient(circle at 18% 12%, hsl(var(--pixar-yellow) / 0.20), transparent 21%),
+    radial-gradient(circle at 86% 10%, hsl(var(--pixar-red) / 0.20), transparent 24%),
     radial-gradient(circle at 18% 82%, hsl(var(--pixar-blue) / 0.24), transparent 26%),
     linear-gradient(180deg, hsl(var(--pixar-navy)) 0%, hsl(var(--pixar-navy-deep)) 72%, hsl(218 58% 10%) 100%) !important;
 }
 
-/* Lightweight environment orbs. */
 body:has(#cube-active-grid) .bg-gradient-pixar-stage::before,
 body:has(#cube-active-grid) .bg-gradient-pixar-stage::after {
   content: "";
@@ -39,7 +33,7 @@ body:has(#cube-active-grid) .bg-gradient-pixar-stage::before {
   left: -96px;
   top: 30%;
   background: radial-gradient(circle at 32% 25%, hsl(var(--pixar-blue)), hsl(var(--neon-violet)) 46%, transparent 70%);
-  opacity: 0.42;
+  opacity: 0.38;
 }
 
 body:has(#cube-active-grid) .bg-gradient-pixar-stage::after {
@@ -48,28 +42,26 @@ body:has(#cube-active-grid) .bg-gradient-pixar-stage::after {
   right: -110px;
   bottom: 8%;
   background: radial-gradient(circle at 35% 30%, hsl(var(--pixar-yellow)), hsl(var(--pixar-red)) 48%, transparent 72%);
-  opacity: 0.4;
+  opacity: 0.36;
 }
 
-/* Shared glass tokens for Cube Mode only. */
 body:has(#cube-active-grid) .pixar-grid-frame,
 body:has(#cube-active-grid) .pixar-hud-panel,
 body:has(#cube-active-grid) .pixar-glass-tile,
 body:has(#cube-active-grid) .pixar-glass-chip {
   background-image:
-    radial-gradient(circle at 18% 0%, hsl(0 0% 100% / 0.20), transparent 34%),
-    linear-gradient(150deg, hsl(0 0% 100% / 0.10), hsl(var(--pixar-navy) / 0.34) 44%, hsl(var(--pixar-navy-deep) / 0.68) 100%);
-  border-color: hsl(0 0% 100% / 0.18);
+    radial-gradient(circle at 18% 0%, hsl(0 0% 100% / 0.18), transparent 34%),
+    linear-gradient(150deg, hsl(0 0% 100% / 0.09), hsl(var(--pixar-navy) / 0.30) 44%, hsl(var(--pixar-navy-deep) / 0.66) 100%);
+  border-color: hsl(0 0% 100% / 0.16);
   box-shadow:
-    0 16px 42px hsl(var(--pixar-navy-deep) / 0.40),
-    0 0 0 1px hsl(var(--pixar-blue) / 0.08),
-    inset 0 1px 0 hsl(0 0% 100% / 0.28),
-    inset 0 -1px 0 hsl(0 0% 100% / 0.06);
-  backdrop-filter: blur(14px) saturate(145%);
-  -webkit-backdrop-filter: blur(14px) saturate(145%);
+    0 14px 34px hsl(var(--pixar-navy-deep) / 0.36),
+    0 0 0 1px hsl(var(--pixar-blue) / 0.07),
+    inset 0 1px 0 hsl(0 0% 100% / 0.24),
+    inset 0 -1px 0 hsl(0 0% 100% / 0.05);
+  backdrop-filter: blur(12px) saturate(135%);
+  -webkit-backdrop-filter: blur(12px) saturate(135%);
 }
 
-/* Cube face styling. Keep depth readable but do not override cube transform. */
 body:has(#cube-active-grid) #cube-active-grid {
   border-radius: clamp(18px, 6vw, 30px);
 }
@@ -97,110 +89,62 @@ body:has(#cube-active-grid) .cursor-grab::before {
   transform: translate(-50%, -50%);
   border-radius: 999px;
   background:
-    radial-gradient(circle, hsl(var(--pixar-blue) / 0.22), transparent 58%),
-    radial-gradient(circle, hsl(var(--pixar-yellow) / 0.12), transparent 72%);
+    radial-gradient(circle, hsl(var(--pixar-blue) / 0.20), transparent 58%),
+    radial-gradient(circle, hsl(var(--pixar-yellow) / 0.10), transparent 72%);
   filter: blur(7px);
   pointer-events: none;
 }
 
-/* Mobile layout: compact, but no transform/scale hacks on the cube. */
 @media (max-width: 640px) {
   body:has(#cube-active-grid) .bg-gradient-pixar-stage {
     padding-bottom: max(0.2rem, env(safe-area-inset-bottom));
   }
 
-  /* App header */
   body:has(#cube-active-grid) .bg-gradient-pixar-stage > .z-20:first-of-type {
     margin-top: 0.42rem !important;
-    padding: 0.32rem 0.45rem !important;
     max-width: calc(100vw - 1rem) !important;
-    border-radius: 24px !important;
-    background: hsl(0 0% 100% / 0.08) !important;
   }
 
   body:has(#cube-active-grid) .bg-gradient-pixar-stage > .z-20:first-of-type .pixar-glass-chip,
   body:has(#cube-active-grid) .bg-gradient-pixar-stage > .z-20:first-of-type a > * {
-    transform: scale(0.82);
+    transform: scale(0.86);
   }
 
-  body:has(#cube-active-grid) .bg-gradient-pixar-stage > .z-20:first-of-type p {
-    padding: 0.38rem 1rem !important;
-    font-size: 0.56rem !important;
-    letter-spacing: 0.22em !important;
-  }
-
-  body:has(#cube-active-grid) .bg-gradient-pixar-stage > .z-20:first-of-type span {
-    margin-top: 0.1rem !important;
-    font-size: 0.5rem !important;
-  }
-
-  /* Compact HUD. Keep it in document flow to avoid dead-space bugs. */
-  body:has(#cube-active-grid) .z-20:has(.classic-scoreboard) {
-    width: calc(100vw - 1rem) !important;
-    max-width: none !important;
-    margin-top: 0.38rem !important;
-    padding: 0.42rem !important;
-    border-radius: 22px !important;
-    background: hsl(0 0% 100% / 0.08) !important;
-  }
-
-  body:has(#cube-active-grid) .classic-scoreboard .pixar-hud-panel {
-    border-radius: 18px !important;
-  }
-
-  body:has(#cube-active-grid) .classic-scoreboard .pixar-hud-panel > div {
-    padding-top: 0.28rem !important;
-    padding-bottom: 0.28rem !important;
-  }
-
-  body:has(#cube-active-grid) .classic-scoreboard span[class*="clamp"] {
-    font-size: 1.55rem !important;
-  }
-
-  body:has(#cube-active-grid) .z-20:has(.classic-scoreboard) > div:nth-child(2),
-  body:has(#cube-active-grid) .classic-phase-pill,
-  body:has(#cube-active-grid) .classic-fever-meter {
-    display: none !important;
-  }
-
-  /* Scene stage. Let the real cube size from CubeGame.tsx drive dimensions. */
   body:has(#cube-active-grid) .cursor-grab {
     flex: 1 1 auto !important;
     min-height: 0 !important;
     overflow: visible !important;
     align-items: center !important;
     justify-content: center !important;
-    padding-top: 0.2rem !important;
-    padding-bottom: 5.8rem !important;
-    perspective: 1150px !important;
+    padding-top: 0.1rem !important;
+    padding-bottom: 5.6rem !important;
+    perspective: none !important;
   }
 
-  /* Important: never scale the preserve-3d cube here. */
   body:has(#cube-active-grid) div[style*="preserve-3d"] {
-    transform-origin: center center !important;
+    transform-style: flat !important;
+    transform: none !important;
   }
 
-  /* Orbit card */
   body:has(#cube-active-grid) .z-20.mb-2.flex.flex-col {
     position: absolute !important;
     left: 50% !important;
-    bottom: 6.95rem !important;
+    bottom: 6.65rem !important;
     z-index: 26 !important;
     width: max-content !important;
-    min-width: 210px !important;
+    min-width: 190px !important;
     margin-bottom: 0 !important;
-    gap: 0.24rem !important;
-    padding: 0.42rem 0.72rem !important;
-    border-radius: 20px !important;
+    gap: 0.2rem !important;
+    padding: 0.36rem 0.62rem !important;
+    border-radius: 18px !important;
     transform: translateX(-50%) !important;
     background: hsl(0 0% 100% / 0.10) !important;
   }
 
   body:has(#cube-active-grid) .z-20.mb-2.flex.flex-col p {
-    font-size: 0.52rem !important;
+    font-size: 0.5rem !important;
   }
 
-  /* Bottom tray dock */
   body:has(#cube-active-grid) .z-20:has(.classic-piece-tray) {
     position: absolute !important;
     left: 0.65rem !important;
@@ -216,7 +160,7 @@ body:has(#cube-active-grid) .cursor-grab::before {
   }
 
   body:has(#cube-active-grid) .classic-piece-tray {
-    padding: 0.44rem 0.52rem 0.48rem !important;
+    padding: 0.4rem 0.5rem 0.44rem !important;
   }
 
   body:has(#cube-active-grid) .classic-piece-tray > div {
@@ -225,7 +169,7 @@ body:has(#cube-active-grid) .cursor-grab::before {
   }
 
   body:has(#cube-active-grid) .classic-piece-tray button {
-    padding: 0.34rem !important;
+    padding: 0.32rem !important;
     min-width: 42px !important;
     min-height: 42px !important;
     border-radius: 18px !important;
@@ -239,20 +183,20 @@ body:has(#cube-active-grid) .cursor-grab::before {
 
 @media (max-height: 760px) and (max-width: 640px) {
   body:has(#cube-active-grid) .cursor-grab {
-    padding-bottom: 5.5rem !important;
+    padding-bottom: 5.3rem !important;
   }
 
   body:has(#cube-active-grid) .z-20.mb-2.flex.flex-col {
-    bottom: 6.45rem !important;
+    bottom: 6.25rem !important;
   }
 }
 
 @media (max-height: 700px) and (max-width: 430px) {
   body:has(#cube-active-grid) .cursor-grab {
-    padding-bottom: 5.2rem !important;
+    padding-bottom: 5rem !important;
   }
 
   body:has(#cube-active-grid) .z-20.mb-2.flex.flex-col {
-    bottom: 6.05rem !important;
+    bottom: 5.9rem !important;
   }
 }
