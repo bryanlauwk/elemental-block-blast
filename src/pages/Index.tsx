@@ -334,7 +334,7 @@ const Index = () => {
       } as CSSProperties}
     >
       {/* Lo-fi neon alley atmosphere layer — sits behind everything */}
-      <LofiAlleyBackdrop blurred={hasStarted} pulse={backdropPulse} />
+      <LofiAlleyBackdrop blurred={false} pulse={backdropPulse} />
 
       {/* Pixar Toy Box gameplay overlays */}
       {hasStarted && (

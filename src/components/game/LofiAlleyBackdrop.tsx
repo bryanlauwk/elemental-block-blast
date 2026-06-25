@@ -18,36 +18,34 @@ export const LofiAlleyBackdrop = ({ blurred = false, pulse = false }: LofiAlleyB
   const pulseActive = pulse && !reduceMotion;
 
   return (
-    <div aria-hidden className="fixed inset-0 -z-10 pointer-events-none overflow-hidden">
-      {/* Artwork */}
+    <div aria-hidden className="fixed inset-0 -z-10 pointer-events-none overflow-hidden bg-[hsl(224_70%_6%)]">
+      {/* Artwork — kept crisp so the alley reads like the reference */}
       <motion.div
         className="absolute inset-0 bg-center bg-cover will-change-transform"
         style={{ backgroundImage: `url(${alleyBg})` }}
         animate={{
           filter: pulseActive
-            ? "blur(0px) brightness(1.18) saturate(1.15)"
-            : blurred
-              ? "blur(6px) brightness(0.95) saturate(1.05)"
-              : "blur(0px) brightness(1) saturate(1.05)",
+            ? "blur(0px) brightness(1.2) saturate(1.2)"
+            : "blur(0px) brightness(1.02) saturate(1.12)",
           scale: pulseActive ? 1.02 : 1,
         }}
-        transition={{ duration: pulseActive ? 0.45 : 0.9, ease: "easeOut" }}
+        transition={{ duration: pulseActive ? 0.4 : 0.7, ease: "easeOut" }}
       />
 
-      {/* Navy overlay — drops during pulse so the art shines through */}
+      {/* Light navy wash — keeps glass UI legible without killing the colors */}
       <motion.div
         className="absolute inset-0"
         style={{ backgroundColor: "hsl(224 70% 8%)" }}
-        animate={{ opacity: pulseActive ? 0.28 : blurred ? 0.68 : 0.6 }}
-        transition={{ duration: pulseActive ? 0.45 : 0.9, ease: "easeOut" }}
+        animate={{ opacity: pulseActive ? 0.14 : blurred ? 0.35 : 0.24 }}
+        transition={{ duration: pulseActive ? 0.4 : 0.7, ease: "easeOut" }}
       />
 
-      {/* Soft vignette pushing focus to the board */}
+      {/* Edge-only vignette — center stays vivid */}
       <div
         className="absolute inset-0"
         style={{
           background:
-            "radial-gradient(ellipse 70% 55% at 50% 50%, transparent 45%, hsl(224 70% 6% / 0.7) 100%)",
+            "radial-gradient(ellipse 95% 80% at 50% 50%, transparent 65%, hsl(224 70% 5% / 0.75) 100%)",
         }}
       />
     </div>
