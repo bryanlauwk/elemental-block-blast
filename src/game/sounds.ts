@@ -15,12 +15,24 @@ export type SoundType =
   | 'select'
   | 'highScore';
 
-export type LoFiMusicType = 'cozy' | 'rainy' | 'night' | 'upbeat';
+export type LoFiMusicType =
+  | 'cozy'
+  | 'rainy'
+  | 'night'
+  | 'upbeat'
+  | 'morning'
+  | 'dj'
+  | 'sunset'
+  | 'coffee';
 
 import cozyTrack from '@/assets/music/cozy.mp3.asset.json';
 import rainyTrack from '@/assets/music/rainy.mp3.asset.json';
 import nightTrack from '@/assets/music/night.mp3.asset.json';
 import upbeatTrack from '@/assets/music/upbeat.mp3.asset.json';
+import morningTrack from '@/assets/music/morning.mp3.asset.json';
+import djTrack from '@/assets/music/dj.mp3.asset.json';
+import sunsetTrack from '@/assets/music/sunset.mp3.asset.json';
+import coffeeTrack from '@/assets/music/coffee.mp3.asset.json';
 
 // Real ElevenLabs-generated lo-fi loops, one per mood.
 const LOFI_TRACK_URLS: Record<LoFiMusicType, string> = {
@@ -28,6 +40,10 @@ const LOFI_TRACK_URLS: Record<LoFiMusicType, string> = {
   rainy: rainyTrack.url,
   night: nightTrack.url,
   upbeat: upbeatTrack.url,
+  morning: morningTrack.url,
+  dj: djTrack.url,
+  sunset: sunsetTrack.url,
+  coffee: coffeeTrack.url,
 };
 
 interface LoFiPreset {
