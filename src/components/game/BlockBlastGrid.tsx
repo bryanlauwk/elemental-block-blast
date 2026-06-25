@@ -19,9 +19,9 @@ interface BlockBlastGridProps {
 }
 
 const reactionIcons = {
-  burn: { icon: Flame, color: 'text-orange-400', label: 'BURN' },
-  extinguish: { icon: Droplets, color: 'text-blue-400', label: 'SPLASH' },
-  dissolve: { icon: FlaskConical, color: 'text-green-400', label: 'DISSOLVE' },
+  burn: { icon: Flame, color: 'text-orange-400', label: 'WILDFIRE', helper: 'wood chain ignites' },
+  extinguish: { icon: Droplets, color: 'text-blue-400', label: 'STEAM BURST', helper: 'fire meets water' },
+  dissolve: { icon: FlaskConical, color: 'text-green-400', label: 'ACID MELT', helper: 'block dissolves' },
 };
 
 // Memoized grid cell component to prevent unnecessary re-renders
@@ -62,7 +62,7 @@ const GridCell = memo(function GridCell({
         !cell.element && !previewElement && 'bg-game-cell',
         !cell.element && hasSelectedPiece && 'hover:bg-game-cell-hover',
         isPreview && isValidPreview && 'ring-2 ring-game-accent/70',
-        isPreview && !isValidPreview && 'ring-2 ring-red-400/60',
+        isPreview && !isValidPreview && 'ring-2 ring-red-400/60 animate-pulse',
       )}
       onMouseEnter={() => onCellHover({ x, y })}
       onClick={() => onCellClick({ x, y })}
@@ -298,8 +298,8 @@ export function BlockBlastGrid({
           initial={{ opacity: 0, y: 10, scale: 0.9 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           className={cn(
-            "absolute -top-12 left-1/2 -translate-x-1/2 z-20",
-            "flex items-center gap-2 px-4 py-2 rounded-full",
+            "absolute -top-14 left-1/2 -translate-x-1/2 z-20",
+            "flex flex-col items-center gap-0.5 px-4 py-2 rounded-2xl shadow-2xl backdrop-blur-md",
             "bg-game-grid-dark/90 border-2",
             primaryReactionType === 'burn' && 'border-orange-400/60',
             primaryReactionType === 'extinguish' && 'border-blue-400/60',
@@ -311,13 +311,16 @@ export function BlockBlastGrid({
             const Icon = config.icon;
             return (
               <>
-                <Icon className={cn('w-4 h-4', config.color)} />
-                <span className={cn('text-sm font-bold', config.color)}>
-                  {config.label}
-                </span>
-                <span className="text-white/80 text-sm font-bold">
-                  +{reactionBonus}
-                </span>
+                <div className="flex items-center gap-2">
+                  <Icon className={cn('w-4 h-4', config.color)} />
+                  <span className={cn('text-sm font-black uppercase tracking-[0.14em]', config.color)}>
+                    {config.label}
+                  </span>
+                  <span className="text-white/90 text-sm font-black">
+                    +{reactionBonus}
+                  </span>
+                </div>
+                <span className="text-[10px] uppercase tracking-[0.12em] text-white/45">{config.helper}</span>
               </>
             );
           })()}
