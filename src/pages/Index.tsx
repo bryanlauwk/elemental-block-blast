@@ -85,7 +85,7 @@ const Index = () => {
   const [submittedPlayerName, setSubmittedPlayerName] = useState<string | null>(null);
   const [globalRank, setGlobalRank] = useState<number | null>(null);
   const [playerDailyBest, setPlayerDailyBest] = useState<number | null>(null);
-  const [tutorialComplete, setTutorialComplete] = useState(false);
+  const [tutorialOpen, setTutorialOpen] = useState(false);
   const [showReactionFeed, setShowReactionFeed] = useState(false);
   const [showSoundSettings, setShowSoundSettings] = useState(false);
   const [isNewHighScore, setIsNewHighScore] = useState(false);
@@ -376,9 +376,12 @@ const Index = () => {
         />
       )}
 
-      {/* Tutorial overlay - shows on first game */}
-      {!tutorialComplete && (
-        <ReactionTutorial onComplete={() => setTutorialComplete(true)} />
+      {/* Tutorial overlay — only opens on explicit user request (Help / menu). */}
+      {tutorialOpen && (
+        <ReactionTutorial
+          forceOpen
+          onComplete={() => setTutorialOpen(false)}
+        />
       )}
 
       {/* Top bar - text logo left, icons right */}
@@ -413,10 +416,7 @@ const Index = () => {
               onOpenDailyChallenge={() => setShowDailyChallenge(true)}
               onOpenAchievements={() => setShowAchievements(true)}
               onOpenLeaderboard={() => setShowLeaderboard(true)}
-              onOpenTutorial={() => {
-                localStorage.removeItem('elemental-blast-tutorial-seen');
-                setTutorialComplete(false);
-              }}
+              onOpenTutorial={() => setTutorialOpen(true)}
               onToggleReactionFeed={() => setShowReactionFeed(!showReactionFeed)}
               showReactionFeedToggle={hasStarted}
               reactionFeedActive={showReactionFeed}
@@ -467,10 +467,7 @@ const Index = () => {
 
               {/* Help button */}
               <PixarChip
-                onClick={() => {
-                  localStorage.removeItem('elemental-blast-tutorial-seen');
-                  setTutorialComplete(false);
-                }}
+                onClick={() => setTutorialOpen(true)}
                 title="How to Play"
               >
                 <HelpCircle className="w-5 h-5 text-white" />
@@ -544,129 +541,135 @@ const Index = () => {
           <div className="flex flex-col items-center w-full max-w-[400px] h-full">
             {/* Start screen - landing page */}
             {!hasStarted && (
-              <div className="flex flex-col items-center justify-center flex-1 gap-5 sm:gap-7 py-4 sm:py-6 w-full">
-                {/* Pixar stat chips — above title */}
-                <motion.div
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.05, duration: 0.4 }}
-                  className="flex flex-wrap items-center justify-center gap-2 sm:gap-3"
-                >
-                  <PixarStatChip label="Best" value={topScore.toLocaleString()} tone="blue" />
-                  <PixarStatChip label="Streak" value={currentStreak} tone="yellow" />
-                  <PixarStatChip label="XP" value={totalPoints.toLocaleString()} tone="neutral" />
-                </motion.div>
+              <div className="flex flex-col items-center justify-center flex-1 gap-6 sm:gap-8 py-4 sm:py-6 w-full">
+                {/* HERO: mascot + title locked together as one composition.
+                    Mascot sits behind/beside the headline so they read as a
+                    single unit rather than two stacked blocks. */}
+                <div className="relative w-full flex items-center justify-center">
+                  {/* Soft glow halo anchoring mascot + title to the same plane */}
+                  <div
+                    aria-hidden
+                    className="absolute inset-0 -z-0 mx-auto max-w-[420px] rounded-[50%] blur-3xl opacity-70"
+                    style={{
+                      background:
+                        'radial-gradient(ellipse at center, hsl(190 95% 60% / 0.28), hsl(320 95% 62% / 0.18) 45%, transparent 70%)',
+                    }}
+                  />
 
-                {/* Pixar 3D Headline + playful tagline */}
-                <div className="flex flex-col items-center gap-1.5">
-                  <GameTitle />
-                  <motion.p
-                    initial={{ opacity: 0, y: 6 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.5, duration: 0.5 }}
-                    className="font-display text-center text-cyan-200/85 font-semibold text-[10px] sm:text-xs uppercase tracking-[0.28em]"
-                  >
-                    Spark reactions · Blast lines · Explore worlds
-                  </motion.p>
-                </div>
-
-                {/* Pixar mascot + floating props */}
-                <div className="relative w-full flex items-center justify-center pointer-events-none">
-                  {/* Floating decorative props */}
+                  {/* Floating decorative props anchored to hero box */}
                   <span
                     aria-hidden
-                    className="hero-prop absolute left-[8%] top-2 w-8 h-8 rounded-lg shadow-lg"
+                    className="hero-prop absolute left-[6%] top-4 w-6 h-6 rounded-md opacity-80"
                     style={{
-                      background: 'linear-gradient(180deg, hsl(var(--pixar-yellow)), hsl(var(--pixar-yellow-deep)))',
-                      boxShadow: 'inset 0 2px 0 rgba(255,255,255,0.5), 0 4px 0 hsl(var(--pixar-yellow-deep))',
+                      background: 'linear-gradient(180deg, hsl(190 95% 60%), hsl(190 95% 35%))',
+                      boxShadow: '0 0 16px hsl(190 95% 60% / 0.7), inset 0 1px 0 rgba(255,255,255,0.5)',
                       animationDelay: '0.4s',
                     }}
                   />
                   <span
                     aria-hidden
-                    className="hero-prop absolute right-[10%] top-8 w-6 h-6 rounded-md"
+                    className="hero-prop absolute right-[8%] top-10 w-5 h-5 rounded-sm opacity-80"
                     style={{
-                      background: 'linear-gradient(180deg, hsl(var(--pixar-blue)), hsl(var(--pixar-blue-deep)))',
-                      boxShadow: 'inset 0 2px 0 rgba(255,255,255,0.5), 0 3px 0 hsl(var(--pixar-blue-deep))',
-                      animationDelay: '1.1s',
+                      background: 'linear-gradient(180deg, hsl(320 95% 65%), hsl(320 95% 38%))',
+                      boxShadow: '0 0 14px hsl(320 95% 62% / 0.7), inset 0 1px 0 rgba(255,255,255,0.5)',
+                      animationDelay: '1.2s',
                     }}
                   />
-                  <span
-                    aria-hidden
-                    className="hero-prop absolute left-[18%] bottom-2 w-4 h-4 rounded-sm"
-                    style={{
-                      background: 'linear-gradient(180deg, hsl(var(--pixar-red)), hsl(var(--pixar-red-deep)))',
-                      boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.5), 0 2px 0 hsl(var(--pixar-red-deep))',
-                      animationDelay: '1.8s',
-                    }}
-                  />
+
                   <motion.img
                     src={heroMascot}
-                    alt="Elemental Block Blast mascot — a stack of toy blocks with a flame and a star"
+                    alt="Elemental Block Blast mascot — a glowing glass-block character"
                     width={1024}
                     height={1536}
-                    initial={{ opacity: 0, scale: 0.7, y: 30 }}
+                    initial={{ opacity: 0, scale: 0.8, y: 20 }}
                     animate={{ opacity: 1, scale: 1, y: 0 }}
-                    transition={{ delay: 0.8, type: 'spring', stiffness: 220, damping: 18 }}
-                    className="mascot-bob relative z-10 w-24 sm:w-28 md:w-32 h-auto pointer-events-auto select-none drop-shadow-[0_16px_26px_rgba(0,0,0,0.45)]"
+                    transition={{ delay: 0.2, type: 'spring', stiffness: 220, damping: 20 }}
+                    className="mascot-bob absolute -top-2 sm:-top-4 left-1/2 -translate-x-1/2 z-0 w-28 sm:w-36 md:w-40 h-auto pointer-events-none select-none opacity-90 drop-shadow-[0_18px_30px_rgba(0,0,0,0.55)]"
                     draggable={false}
                   />
+
+                  <div className="relative z-10 pt-16 sm:pt-20">
+                    <GameTitle />
+                  </div>
                 </div>
 
-                {/* Element rubber-tile row */}
-                <motion.div
-                  initial={{ opacity: 0, y: 12 }}
+                {/* Single tagline — replaces the dual eyebrow/tagline stack */}
+                <motion.p
+                  initial={{ opacity: 0, y: 6 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.9, duration: 0.5 }}
-                  className="flex items-center justify-center gap-3 sm:gap-4"
+                  transition={{ delay: 0.55, duration: 0.5 }}
+                  className="-mt-2 max-w-xs text-center font-sans text-sm sm:text-base text-white/70 leading-relaxed"
                 >
-                  {[
-                    { Icon: Flame, bg: 'bg-pixar-red', shadow: 'border-pixar-red-deep', iconColor: 'text-white' },
-                    { Icon: Droplets, bg: 'bg-pixar-blue', shadow: 'border-pixar-blue-deep', iconColor: 'text-white' },
-                    { Icon: TreeDeciduous, bg: 'bg-[hsl(140_55%_40%)]', shadow: 'border-[hsl(140_60%_22%)]', iconColor: 'text-white' },
-                    { Icon: Mountain, bg: 'bg-slate-400', shadow: 'border-slate-700', iconColor: 'text-white' },
-                    { Icon: Wind, bg: 'bg-pixar-yellow', shadow: 'border-pixar-yellow-deep', iconColor: 'text-pixar-navy-deep' },
-                  ].map(({ Icon, bg, shadow, iconColor }, i) => (
-                    <motion.div
-                      key={i}
-                      whileHover={{ y: -4 }}
-                      whileTap={{ y: 2 }}
-                      className={`relative w-14 h-14 sm:w-16 sm:h-16 ${bg} ${shadow} border-b-[6px] rounded-2xl flex items-center justify-center cursor-pointer transition-shadow`}
-                      style={{
-                        boxShadow:
-                          'inset 0 2px 4px rgba(255,255,255,0.4), inset 0 -2px 4px rgba(0,0,0,0.15), 0 4px 12px rgba(0,0,0,0.35)',
-                      }}
-                    >
-                      <Icon className={`w-7 h-7 sm:w-8 sm:h-8 ${iconColor}`} strokeWidth={2.5} />
-                      {/* Glossy highlight */}
-                      <span
-                        aria-hidden
-                        className="pointer-events-none absolute top-1.5 left-2 right-2 h-2 rounded-full bg-gradient-to-b from-white/55 to-transparent"
-                      />
-                    </motion.div>
-                  ))}
-                </motion.div>
+                  Spark reactions, blast lines, and explore neon-lit worlds.
+                </motion.p>
 
-                {/* Pixar PLAY button */}
+                {/* CTA CLUSTER — element row + Play + Daily, grouped tight */}
+                <div className="flex flex-col items-center gap-4">
+                  {/* Element rubber-tile row — sits right above CTA as a preview */}
+                  <motion.div
+                    initial={{ opacity: 0, y: 12 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.7, duration: 0.5 }}
+                    className="flex items-center justify-center gap-2.5 sm:gap-3"
+                  >
+                    {[
+                      { Icon: Flame, bg: 'bg-pixar-red', shadow: 'border-pixar-red-deep', iconColor: 'text-white' },
+                      { Icon: Droplets, bg: 'bg-pixar-blue', shadow: 'border-pixar-blue-deep', iconColor: 'text-white' },
+                      { Icon: TreeDeciduous, bg: 'bg-[hsl(140_55%_40%)]', shadow: 'border-[hsl(140_60%_22%)]', iconColor: 'text-white' },
+                      { Icon: Mountain, bg: 'bg-slate-400', shadow: 'border-slate-700', iconColor: 'text-white' },
+                      { Icon: Wind, bg: 'bg-pixar-yellow', shadow: 'border-pixar-yellow-deep', iconColor: 'text-pixar-navy-deep' },
+                    ].map(({ Icon, bg, shadow, iconColor }, i) => (
+                      <motion.div
+                        key={i}
+                        whileHover={{ y: -3 }}
+                        whileTap={{ y: 1 }}
+                        className={`relative w-11 h-11 sm:w-12 sm:h-12 ${bg} ${shadow} border-b-[5px] rounded-xl flex items-center justify-center cursor-pointer transition-shadow`}
+                        style={{
+                          boxShadow:
+                            'inset 0 2px 4px rgba(255,255,255,0.4), inset 0 -2px 4px rgba(0,0,0,0.15), 0 3px 10px rgba(0,0,0,0.35)',
+                        }}
+                      >
+                        <Icon className={`w-5 h-5 sm:w-6 sm:h-6 ${iconColor}`} strokeWidth={2.5} />
+                        <span
+                          aria-hidden
+                          className="pointer-events-none absolute top-1 left-1.5 right-1.5 h-1.5 rounded-full bg-gradient-to-b from-white/55 to-transparent"
+                        />
+                      </motion.div>
+                    ))}
+                  </motion.div>
+
+                  {/* Play button */}
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: 0.85, type: 'spring', stiffness: 320, damping: 18 }}
+                  >
+                    <PixarButton onClick={handleStartGame} aria-label="Play" variant="primary" size="lg" shine>
+                      Play
+                    </PixarButton>
+                  </motion.div>
+
+                  {/* Daily Challenge — secondary link directly under Play */}
+                  <button
+                    onClick={() => setShowDailyChallenge(true)}
+                    className="font-display flex items-center gap-2 text-cyan-200/80 hover:text-cyan-100 font-semibold text-[11px] sm:text-xs uppercase tracking-[0.28em] transition-colors"
+                  >
+                    <Calendar className="w-3.5 h-3.5" />
+                    <span>Daily Challenge</span>
+                  </button>
+                </div>
+
+                {/* Stat chips — slim ground row, supporting info */}
                 <motion.div
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: 1.1, type: 'spring', stiffness: 320, damping: 18 }}
-                  className="relative inline-block"
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 1.0, duration: 0.4 }}
+                  className="flex flex-wrap items-center justify-center gap-2 sm:gap-3 pt-1 border-t border-white/[0.06] w-full max-w-xs"
                 >
-                  <PixarButton onClick={handleStartGame} aria-label="Play" variant="primary" size="lg" shine>
-                    Play
-                  </PixarButton>
+                  <PixarStatChip label="Best" value={topScore.toLocaleString()} tone="blue" />
+                  <PixarStatChip label="Streak" value={currentStreak} tone="yellow" />
+                  <PixarStatChip label="XP" value={totalPoints.toLocaleString()} tone="neutral" />
                 </motion.div>
-
-                {/* Daily Challenge subtle link */}
-                <button
-                  onClick={() => setShowDailyChallenge(true)}
-                  className="font-display flex items-center gap-2 text-cyan-200/80 hover:text-cyan-100 font-semibold text-xs sm:text-sm uppercase tracking-[0.25em] transition-colors"
-                >
-                  <Calendar className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                  <span>Daily Challenge</span>
-                </button>
               </div>
             )}
             
