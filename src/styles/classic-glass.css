@@ -8,6 +8,20 @@
   --classic-panel-deep: var(--pixar-navy-deep) / 0.72;
 }
 
+.bg-gradient-pixar-stage {
+  position: relative;
+  isolation: isolate;
+  background:
+    linear-gradient(180deg, hsl(var(--pixar-navy-deep) / 0.72), hsl(var(--pixar-navy-deep) / 0.88)),
+    url('../assets/lofi-neon-alley.svg') center center / cover no-repeat,
+    linear-gradient(180deg, hsl(var(--pixar-navy)) 0%, hsl(var(--pixar-navy-deep)) 100%) !important;
+}
+
+.bg-gradient-pixar-stage > * {
+  position: relative;
+  z-index: 2;
+}
+
 .bg-gradient-pixar-stage::before,
 .bg-gradient-pixar-stage::after {
   content: "";
@@ -26,6 +40,7 @@
   top: 14%;
   background: radial-gradient(circle at 30% 25%, hsl(var(--pixar-yellow)) 0%, hsl(var(--pixar-red)) 48%, transparent 72%);
   box-shadow: 0 0 60px hsl(var(--pixar-red) / 0.35);
+  mix-blend-mode: screen;
 }
 
 .bg-gradient-pixar-stage::after {
@@ -35,6 +50,11 @@
   bottom: -70px;
   background: radial-gradient(circle at 30% 25%, hsl(var(--pixar-blue)) 0%, hsl(var(--neon-violet)) 48%, transparent 72%);
   box-shadow: 0 0 70px hsl(var(--pixar-blue) / 0.35);
+  mix-blend-mode: screen;
+}
+
+.bg-gradient-pixar-stage::backdrop {
+  background: hsl(var(--pixar-navy-deep));
 }
 
 .pixar-hud-panel,
@@ -158,6 +178,7 @@
 @media (max-width: 640px) {
   .bg-gradient-pixar-stage {
     min-height: 100dvh;
+    background-position: center top !important;
   }
 
   .classic-scoreboard .pixar-hud-panel {
