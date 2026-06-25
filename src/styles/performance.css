@@ -1,0 +1,68 @@
+/* Performance guardrails for lower-end mobile devices.
+   Keeps the look, but reduces expensive blur/glow/animation costs during gameplay. */
+
+@media (max-width: 640px), (prefers-reduced-motion: reduce) {
+  .pixar-hud-panel,
+  .pixar-grid-frame,
+  .pixar-glass-tile,
+  .pixar-glass-chip,
+  .classic-piece-tray,
+  .classic-reaction-legend,
+  .v3-mode-card {
+    backdrop-filter: blur(12px) saturate(135%) !important;
+    -webkit-backdrop-filter: blur(12px) saturate(135%) !important;
+    box-shadow:
+      0 14px 36px hsl(var(--pixar-navy-deep) / 0.42),
+      inset 0 1px 0 hsl(0 0% 100% / 0.28) !important;
+  }
+
+  .bg-gradient-pixar-stage::before,
+  .bg-gradient-pixar-stage::after {
+    filter: blur(0) !important;
+    opacity: 0.36 !important;
+  }
+
+  .neon-flash-overlay {
+    display: none !important;
+  }
+
+  .animate-reaction-pulse,
+  .animate-source-pulse,
+  .animate-pulse,
+  .mascot-bob,
+  .hero-prop {
+    animation-duration: 1.4s !important;
+  }
+
+  #bb-grid .game-grid-cell,
+  [data-cube-cell] {
+    transition-duration: 50ms !important;
+    box-shadow:
+      inset 0 1px 0 hsl(0 0% 100% / 0.14),
+      0 0 0 1px hsl(0 0% 100% / 0.03) !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+  }
+
+  .animate-reaction-pulse,
+  .animate-source-pulse,
+  .animate-pulse,
+  .mascot-bob,
+  .hero-prop,
+  .neon-flash-overlay {
+    animation: none !important;
+  }
+
+  .transition-all,
+  .transition-colors,
+  .transition-transform,
+  .transition-shadow {
+    transition-duration: 0.01ms !important;
+  }
+}
