@@ -89,10 +89,10 @@ export function LeaderboardModal({
             initial={{ opacity: 0, scale: 0.9, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.9, y: 20 }}
-            className="fixed inset-x-4 top-1/2 -translate-y-1/2 z-50 max-w-md mx-auto"
+            className="fixed inset-x-2 sm:inset-x-4 top-1/2 -translate-y-1/2 z-50 max-w-md mx-auto"
           >
             <div 
-              className="rounded-2xl p-5 max-h-[80vh] flex flex-col overflow-hidden relative"
+              className="pixar-modal-shell p-4 sm:p-5"
               style={modalStyles.container}
             >
               {/* Decorative top gradient bar */}

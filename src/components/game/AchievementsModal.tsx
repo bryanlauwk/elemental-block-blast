@@ -20,14 +20,14 @@ export function AchievementsModal({ isOpen, onClose, achievements, totalPoints }
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-50 flex items-center justify-center bg-pixar-navy-deep/80 backdrop-blur-md p-4"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-pixar-navy-deep/60 backdrop-blur-2xl backdrop-saturate-150 p-2 sm:p-4"
           onClick={onClose}
         >
           <motion.div
             initial={{ scale: 0.9, opacity: 0, y: 20 }}
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.9, opacity: 0, y: 20 }}
-            className="relative w-full max-w-md max-h-[80vh] rounded-2xl overflow-hidden"
+            className="pixar-modal-shell w-full max-w-md"
             onClick={(e) => e.stopPropagation()}
             style={modalStyles.container}
           >
@@ -40,8 +40,8 @@ export function AchievementsModal({ isOpen, onClose, achievements, totalPoints }
             />
 
             {/* Header */}
-            <div className="sticky top-0 backdrop-blur-sm border-b border-white/10 px-6 py-4 z-10"
-              style={{ background: 'rgba(15,23,42,0.95)' }}
+            <div className="sticky top-0 backdrop-blur-md border-b border-white/10 px-4 sm:px-6 py-3 sm:py-4 z-10"
+              style={{ background: 'hsl(var(--pixar-navy-deep) / 0.6)' }}
             >
               <button
                 onClick={onClose}
@@ -67,7 +67,7 @@ export function AchievementsModal({ isOpen, onClose, achievements, totalPoints }
             </div>
 
             {/* Achievements list */}
-            <div className="p-4 space-y-3 overflow-y-auto max-h-[calc(80vh-100px)]">
+            <div className="p-3 sm:p-4 space-y-2 sm:space-y-3 overflow-y-auto flex-1 min-h-0">
               {achievements.map((achievement, index) => (
                 <motion.div
                   key={achievement.id}
