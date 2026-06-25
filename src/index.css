@@ -462,22 +462,16 @@ All colors MUST be HSL.
 
 .pixar-letter-shadow-yellow {
   text-shadow:
-    0 1px 0 hsl(var(--pixar-yellow-deep)),
-    0 2px 0 hsl(var(--pixar-yellow-deep)),
-    0 3px 0 hsl(40 95% 25%),
-    0 4px 0 hsl(40 95% 20%),
-    0 8px 15px rgba(0, 0, 0, 0.6),
-    0 15px 30px rgba(0, 0, 0, 0.4);
+    0 0 18px hsl(var(--pixar-yellow) / 0.55),
+    0 0 38px hsl(var(--pixar-yellow) / 0.25),
+    0 2px 8px rgba(0, 0, 0, 0.45);
 }
 
 .pixar-letter-shadow-red {
   text-shadow:
-    0 1px 0 hsl(var(--pixar-red-deep)),
-    0 2px 0 hsl(8 78% 30%),
-    0 3px 0 hsl(8 78% 24%),
-    0 4px 0 hsl(8 78% 18%),
-    0 8px 15px rgba(0, 0, 0, 0.6),
-    0 15px 30px rgba(0, 0, 0, 0.4);
+    0 0 18px hsl(var(--pixar-red) / 0.55),
+    0 0 38px hsl(var(--pixar-red) / 0.25),
+    0 2px 8px rgba(0, 0, 0, 0.45);
 }
 
 .pixar-shimmer-sweep {
