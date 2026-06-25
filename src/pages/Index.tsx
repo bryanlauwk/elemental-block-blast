@@ -85,7 +85,6 @@ const Index = () => {
   const [submittedPlayerName, setSubmittedPlayerName] = useState<string | null>(null);
   const [globalRank, setGlobalRank] = useState<number | null>(null);
   const [playerDailyBest, setPlayerDailyBest] = useState<number | null>(null);
-  const [tutorialComplete, setTutorialComplete] = useState(false);
   const [tutorialOpen, setTutorialOpen] = useState(false);
   const [showReactionFeed, setShowReactionFeed] = useState(false);
   const [showSoundSettings, setShowSoundSettings] = useState(false);
