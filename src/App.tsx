@@ -7,6 +7,7 @@ import { lazy, Suspense } from "react";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import LandingModeDock from "./components/game/LandingModeDock";
+import { GlobalModalA11y } from "./components/a11y/GlobalModalA11y";
 
 // Admin tooling is rarely visited by players — load it on demand so it stays
 // out of the main game bundle.
@@ -20,6 +21,7 @@ const queryClient = new QueryClient();
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
+      <GlobalModalA11y />
       <Toaster />
       <Sonner />
       <BrowserRouter>
