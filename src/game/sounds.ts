@@ -281,7 +281,16 @@ function playHighScore(): void {
 // Sound settings state
 let sfxEnabled = true;
 let musicEnabled = true;
-let musicVolume = 0.3;
+let musicVolume = 0.24;
+
+// Background music system
+let musicOscillators: OscillatorNode[] = [];
+let musicSources: AudioBufferSourceNode[] = [];
+let musicGainNode: GainNode | null = null;
+let musicIntervals: number[] = [];
+let musicPlaying = false;
+let musicStep = 0;
+let visibilityHandler: (() => void) | null = null;
 
 // Load settings from localStorage
 function loadSoundSettings(): void {
@@ -291,7 +300,7 @@ function loadSoundSettings(): void {
       const parsed = JSON.parse(settings);
       sfxEnabled = parsed.sfxEnabled ?? true;
       musicEnabled = parsed.musicEnabled ?? true;
-      musicVolume = parsed.musicVolume ?? 0.3;
+      musicVolume = parsed.musicVolume ?? 0.24;
     }
   } catch (e) {
     // Ignore errors, use defaults
@@ -339,7 +348,7 @@ export function setMusicVolume(volume: number): void {
   musicVolume = Math.max(0, Math.min(1, volume));
   saveSoundSettings();
   if (musicGainNode) {
-    musicGainNode.gain.value = musicVolume;
+    musicGainNode.gain.setTargetAtTime(musicVolume, getAudioContext().currentTime, 0.05);
   }
 }
 
@@ -356,94 +365,161 @@ export function isSoundEnabled(): boolean {
   return sfxEnabled;
 }
 
-// Background music system
-let musicOscillators: OscillatorNode[] = [];
-let musicGainNode: GainNode | null = null;
-let musicIntervalId: number | null = null;
-let musicPlaying = false;
+const BEAT_MS = 732; // 82 BPM, relaxed lo-fi puzzle tempo
+const CHORDS = [
+  [220.0, 261.63, 329.63, 392.0],     // Am7
+  [174.61, 220.0, 261.63, 329.63],    // Fmaj7
+  [130.81, 164.81, 196.0, 246.94],    // Cmaj7
+  [196.0, 246.94, 293.66, 329.63],    // G6
+];
+const BASS = [110.0, 87.31, 65.41, 98.0];
 
-// Ambient music generator - creates a relaxing, procedural ambient soundtrack
-function createAmbientMusic(ctx: AudioContext): void {
-  // Master gain for music
+function connectToMusic(node: AudioNode): void {
+  if (musicGainNode) node.connect(musicGainNode);
+}
+
+function scheduleLoFiChord(ctx: AudioContext, freqs: number[], startAt: number): void {
+  const chordBus = ctx.createGain();
+  const filter = ctx.createBiquadFilter();
+  filter.type = 'lowpass';
+  filter.frequency.setValueAtTime(620, startAt);
+  filter.frequency.linearRampToValueAtTime(980, startAt + 1.4);
+  filter.Q.value = 0.55;
+  chordBus.gain.setValueAtTime(0, startAt);
+  chordBus.gain.linearRampToValueAtTime(0.055, startAt + 0.24);
+  chordBus.gain.setValueAtTime(0.045, startAt + 2.1);
+  chordBus.gain.exponentialRampToValueAtTime(0.001, startAt + 3.15);
+  filter.connect(chordBus);
+  connectToMusic(chordBus);
+
+  freqs.forEach((freq, index) => {
+    const osc = ctx.createOscillator();
+    osc.type = index % 2 === 0 ? 'triangle' : 'sine';
+    osc.frequency.setValueAtTime(freq, startAt);
+    osc.detune.setValueAtTime(index % 2 === 0 ? -7 : 6, startAt);
+    osc.connect(filter);
+    osc.start(startAt);
+    osc.stop(startAt + 3.2);
+    musicOscillators.push(osc);
+  });
+}
+
+function scheduleLoFiBass(ctx: AudioContext, freq: number, startAt: number): void {
+  const osc = ctx.createOscillator();
+  const gain = ctx.createGain();
+  const filter = ctx.createBiquadFilter();
+  osc.type = 'sine';
+  osc.frequency.setValueAtTime(freq, startAt);
+  osc.frequency.exponentialRampToValueAtTime(freq * 0.96, startAt + 0.36);
+  filter.type = 'lowpass';
+  filter.frequency.value = 260;
+  gain.gain.setValueAtTime(0, startAt);
+  gain.gain.linearRampToValueAtTime(0.085, startAt + 0.035);
+  gain.gain.exponentialRampToValueAtTime(0.001, startAt + 0.62);
+  osc.connect(filter);
+  filter.connect(gain);
+  connectToMusic(gain);
+  osc.start(startAt);
+  osc.stop(startAt + 0.68);
+  musicOscillators.push(osc);
+}
+
+function scheduleLoFiKick(ctx: AudioContext, startAt: number): void {
+  const osc = ctx.createOscillator();
+  const gain = ctx.createGain();
+  osc.type = 'sine';
+  osc.frequency.setValueAtTime(95, startAt);
+  osc.frequency.exponentialRampToValueAtTime(42, startAt + 0.18);
+  gain.gain.setValueAtTime(0.12, startAt);
+  gain.gain.exponentialRampToValueAtTime(0.001, startAt + 0.22);
+  osc.connect(gain);
+  connectToMusic(gain);
+  osc.start(startAt);
+  osc.stop(startAt + 0.24);
+  musicOscillators.push(osc);
+}
+
+function scheduleLoFiHat(ctx: AudioContext, startAt: number): void {
+  const buffer = ctx.createBuffer(1, Math.floor(ctx.sampleRate * 0.05), ctx.sampleRate);
+  const data = buffer.getChannelData(0);
+  for (let i = 0; i < data.length; i++) data[i] = (Math.random() * 2 - 1) * (1 - i / data.length);
+
+  const source = ctx.createBufferSource();
+  const filter = ctx.createBiquadFilter();
+  const gain = ctx.createGain();
+  source.buffer = buffer;
+  filter.type = 'highpass';
+  filter.frequency.value = 5200;
+  gain.gain.setValueAtTime(0, startAt);
+  gain.gain.linearRampToValueAtTime(0.035, startAt + 0.006);
+  gain.gain.exponentialRampToValueAtTime(0.001, startAt + 0.05);
+  source.connect(filter);
+  filter.connect(gain);
+  connectToMusic(gain);
+  source.start(startAt);
+  source.stop(startAt + 0.055);
+  musicSources.push(source);
+}
+
+function createVinylBed(ctx: AudioContext): void {
+  const duration = 2;
+  const buffer = ctx.createBuffer(1, ctx.sampleRate * duration, ctx.sampleRate);
+  const data = buffer.getChannelData(0);
+  for (let i = 0; i < data.length; i++) {
+    const dust = Math.random() < 0.002 ? (Math.random() * 2 - 1) * 0.55 : 0;
+    data[i] = (Math.random() * 2 - 1) * 0.035 + dust;
+  }
+
+  const source = ctx.createBufferSource();
+  const filter = ctx.createBiquadFilter();
+  const gain = ctx.createGain();
+  source.buffer = buffer;
+  source.loop = true;
+  filter.type = 'bandpass';
+  filter.frequency.value = 1600;
+  filter.Q.value = 0.35;
+  gain.gain.value = 0.028;
+  source.connect(filter);
+  filter.connect(gain);
+  connectToMusic(gain);
+  source.start();
+  musicSources.push(source);
+}
+
+function createLoFiMusic(ctx: AudioContext): void {
   musicGainNode = ctx.createGain();
-  musicGainNode.gain.value = musicVolume;
-  musicGainNode.connect(ctx.destination);
+  musicGainNode.gain.value = 0;
 
-  // Low drone
-  const droneOsc = ctx.createOscillator();
-  const droneGain = ctx.createGain();
-  droneOsc.type = 'sine';
-  droneOsc.frequency.value = 55; // Low A
-  droneGain.gain.value = 0.15;
-  droneOsc.connect(droneGain);
-  droneGain.connect(musicGainNode);
-  droneOsc.start();
-  musicOscillators.push(droneOsc);
+  const compressor = ctx.createDynamicsCompressor();
+  compressor.threshold.value = -28;
+  compressor.knee.value = 20;
+  compressor.ratio.value = 4;
+  compressor.attack.value = 0.03;
+  compressor.release.value = 0.22;
 
-  // Second drone (fifth)
-  const droneOsc2 = ctx.createOscillator();
-  const droneGain2 = ctx.createGain();
-  droneOsc2.type = 'sine';
-  droneOsc2.frequency.value = 82.5; // E above
-  droneGain2.gain.value = 0.08;
-  droneOsc2.connect(droneGain2);
-  droneGain2.connect(musicGainNode);
-  droneOsc2.start();
-  musicOscillators.push(droneOsc2);
+  musicGainNode.connect(compressor);
+  compressor.connect(ctx.destination);
+  musicGainNode.gain.setTargetAtTime(musicVolume, ctx.currentTime, 0.9);
 
-  // Pad oscillator with slow LFO
-  const padOsc = ctx.createOscillator();
-  const padGain = ctx.createGain();
-  const padFilter = ctx.createBiquadFilter();
-  padOsc.type = 'triangle';
-  padOsc.frequency.value = 220;
-  padFilter.type = 'lowpass';
-  padFilter.frequency.value = 800;
-  padGain.gain.value = 0.06;
-  padOsc.connect(padFilter);
-  padFilter.connect(padGain);
-  padGain.connect(musicGainNode);
-  padOsc.start();
-  musicOscillators.push(padOsc);
+  createVinylBed(ctx);
 
-  // Slowly modulate pad frequency for movement
-  const lfo = ctx.createOscillator();
-  const lfoGain = ctx.createGain();
-  lfo.type = 'sine';
-  lfo.frequency.value = 0.05; // Very slow
-  lfoGain.gain.value = 30;
-  lfo.connect(lfoGain);
-  lfoGain.connect(padOsc.frequency);
-  lfo.start();
-  musicOscillators.push(lfo);
+  const tick = () => {
+    if (!musicEnabled || !musicPlaying || document.hidden) return;
 
-  // Occasional high sparkle notes
-  const sparkleNotes = [440, 523, 659, 784, 880, 1047];
-  
-  musicIntervalId = window.setInterval(() => {
-    if (!musicEnabled || !musicPlaying) return;
-    
-    // Random chance to play a sparkle
-    if (Math.random() < 0.3) {
-      const sparkleOsc = ctx.createOscillator();
-      const sparkleGain = ctx.createGain();
-      
-      sparkleOsc.type = 'sine';
-      sparkleOsc.frequency.value = sparkleNotes[Math.floor(Math.random() * sparkleNotes.length)];
-      
-      sparkleGain.gain.value = 0;
-      sparkleOsc.connect(sparkleGain);
-      sparkleGain.connect(musicGainNode!);
-      
-      const now = ctx.currentTime;
-      sparkleGain.gain.setValueAtTime(0, now);
-      sparkleGain.gain.linearRampToValueAtTime(0.04, now + 0.1);
-      sparkleGain.gain.linearRampToValueAtTime(0, now + 2);
-      
-      sparkleOsc.start(now);
-      sparkleOsc.stop(now + 2);
-    }
-  }, 3000);
+    const startAt = ctx.currentTime + 0.045;
+    const step = musicStep % 16;
+    const bar = Math.floor(step / 4);
+
+    if (step % 4 === 0) scheduleLoFiChord(ctx, CHORDS[bar], startAt);
+    if ([0, 4, 8, 12].includes(step)) scheduleLoFiKick(ctx, startAt);
+    if ([0, 3, 6, 8, 11, 14].includes(step)) scheduleLoFiBass(ctx, BASS[bar], startAt + 0.02);
+    if (step % 2 === 1) scheduleLoFiHat(ctx, startAt + 0.03);
+
+    musicStep += 1;
+  };
+
+  tick();
+  musicIntervals.push(window.setInterval(tick, BEAT_MS));
 }
 
 export function startMusic(): void {
@@ -452,16 +528,23 @@ export function startMusic(): void {
   try {
     const ctx = getAudioContext();
     musicPlaying = true;
-    createAmbientMusic(ctx);
+    musicStep = 0;
+    createLoFiMusic(ctx);
+
+    if (!visibilityHandler) {
+      visibilityHandler = () => {
+        if (document.hidden && musicPlaying) stopMusic(false);
+      };
+      document.addEventListener('visibilitychange', visibilityHandler);
+    }
   } catch (error) {
     console.warn('Failed to start music:', error);
   }
 }
 
-export function stopMusic(): void {
+export function stopMusic(persistSetting = true): void {
   musicPlaying = false;
   
-  // Stop all oscillators
   musicOscillators.forEach(osc => {
     try {
       osc.stop();
@@ -471,17 +554,32 @@ export function stopMusic(): void {
     }
   });
   musicOscillators = [];
+
+  musicSources.forEach(source => {
+    try {
+      source.stop();
+      source.disconnect();
+    } catch (e) {
+      // Ignore
+    }
+  });
+  musicSources = [];
   
-  // Disconnect gain node
   if (musicGainNode) {
-    musicGainNode.disconnect();
+    try {
+      musicGainNode.disconnect();
+    } catch (e) {
+      // Ignore
+    }
     musicGainNode = null;
   }
   
-  // Clear interval
-  if (musicIntervalId) {
-    clearInterval(musicIntervalId);
-    musicIntervalId = null;
+  musicIntervals.forEach(id => clearInterval(id));
+  musicIntervals = [];
+
+  if (visibilityHandler && persistSetting) {
+    document.removeEventListener('visibilitychange', visibilityHandler);
+    visibilityHandler = null;
   }
 }
 
