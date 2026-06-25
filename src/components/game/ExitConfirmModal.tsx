@@ -17,18 +17,15 @@ export function ExitConfirmModal({ isOpen, onClose, onConfirm, currentScore }: E
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-50 flex items-center justify-center bg-pixar-navy-deep/80 backdrop-blur-md p-4"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-pixar-navy-deep/60 backdrop-blur-2xl backdrop-saturate-150 p-2 sm:p-4"
           onClick={onClose}
         >
           <motion.div
             initial={{ scale: 0.9, opacity: 0, y: 20 }}
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.9, opacity: 0, y: 20 }}
-            className="relative w-full max-w-sm bg-game-grid-dark border border-game-grid-border/50 rounded-2xl p-6 shadow-2xl"
+            className="pixar-modal-shell w-full max-w-sm p-4 sm:p-6"
             onClick={(e) => e.stopPropagation()}
-            style={{
-              boxShadow: '0 0 60px rgba(139, 92, 246, 0.15), 0 25px 50px rgba(0,0,0,0.5)',
-            }}
           >
             {/* Close button */}
             <button

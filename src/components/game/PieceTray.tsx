@@ -64,13 +64,15 @@ export function PieceTray({ pieces, selectedPiece, onSelectPiece, onDragHover, o
     return { width: maxX - minX + 1, height: maxY - minY + 1, minX, minY };
   };
 
-  // Larger sizes for mobile touch targets
-  const blockSize = isMobile ? 26 : 22;
-  const cellSize = isMobile ? 28 : 22;
+  // Sizes scale down on narrow viewports so 3 pieces always fit a phone.
+  const viewportW = typeof window !== 'undefined' ? window.innerWidth : 400;
+  const isTight = viewportW < 380;
+  const blockSize = isTight ? 20 : isMobile ? 24 : 22;
+  const cellSize = isTight ? 22 : isMobile ? 26 : 22;
 
   return (
     <div className="w-full">
-      <div className="flex justify-center items-center gap-3 sm:gap-5">
+      <div className="flex justify-center items-center gap-2 sm:gap-5 overflow-x-auto -mx-2 px-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         {pieces.map((piece) => {
           const isSelected = selectedPiece?.id === piece.id;
           const bounds = getPieceBounds(piece.shape);
@@ -79,10 +81,10 @@ export function PieceTray({ pieces, selectedPiece, onSelectPiece, onDragHover, o
             <motion.button
               key={piece.id}
               className={cn(
-                'relative p-3 sm:p-3 rounded-xl transition-all touch-manipulation',
+                'relative shrink-0 p-2 sm:p-3 rounded-xl transition-all touch-manipulation',
                 'pixar-glass-tile',
                 // Minimum touch target size of 48px for mobile
-                'min-w-[56px] min-h-[56px] sm:min-w-0 sm:min-h-0',
+                'min-w-[48px] min-h-[48px] sm:min-w-0 sm:min-h-0',
                 isSelected && 'pixar-glass-tile--active',
                 disabled && 'opacity-40 cursor-not-allowed',
                 !disabled && 'active:scale-95'
