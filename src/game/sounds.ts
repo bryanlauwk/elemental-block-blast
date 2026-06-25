@@ -334,7 +334,12 @@ export function setSfxEnabled(enabled: boolean): void { sfxEnabled = enabled; sa
 export function isSfxEnabled(): boolean { return sfxEnabled; }
 export function setMusicEnabled(enabled: boolean): void { musicEnabled = enabled; saveSoundSettings(); if (!enabled) stopMusic(); }
 export function isMusicEnabled(): boolean { return musicEnabled; }
-export function setMusicVolume(volume: number): void { musicVolume = Math.max(0, Math.min(1, volume)); saveSoundSettings(); if (musicGainNode) musicGainNode.gain.setTargetAtTime(musicVolume, getAudioContext().currentTime, 0.05); }
+export function setMusicVolume(volume: number): void {
+  musicVolume = Math.max(0, Math.min(1, volume));
+  saveSoundSettings();
+  if (musicGainNode) musicGainNode.gain.setTargetAtTime(musicVolume, getAudioContext().currentTime, 0.05);
+  if (musicAudioEl) musicAudioEl.volume = Math.min(1, musicVolume * 2.6);
+}
 export function getMusicVolume(): number { return musicVolume; }
 export function getMusicType(): LoFiMusicType { return musicType; }
 export function getMusicTypeOptions(): LoFiPreset[] { return LOFI_MUSIC_PRESETS; }
@@ -492,10 +497,15 @@ function createLoFiMusic(ctx: AudioContext): void {
 export function startMusic(): void {
   if (!musicEnabled || musicPlaying) return;
   try {
-    const ctx = getAudioContext();
     musicPlaying = true;
     musicStep = 0;
-    createLoFiMusic(ctx);
+    const trackUrl = LOFI_TRACK_URLS[musicType];
+    if (trackUrl) {
+      startTrack(trackUrl);
+    } else {
+      const ctx = getAudioContext();
+      createLoFiMusic(ctx);
+    }
     if (!visibilityHandler) {
       visibilityHandler = () => { if (document.hidden && musicPlaying) stopMusic(false); };
       document.addEventListener('visibilitychange', visibilityHandler);
@@ -507,6 +517,10 @@ export function startMusic(): void {
 
 export function stopMusic(persistSetting = true): void {
   musicPlaying = false;
+  if (musicAudioEl) {
+    try { musicAudioEl.pause(); musicAudioEl.src = ''; } catch (e) {}
+    musicAudioEl = null;
+  }
   musicOscillators.forEach(osc => { try { osc.stop(); osc.disconnect(); } catch (e) {} });
   musicOscillators = [];
   musicSources.forEach(source => { try { source.stop(); source.disconnect(); } catch (e) {} });
