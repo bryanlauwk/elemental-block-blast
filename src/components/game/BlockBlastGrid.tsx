@@ -19,9 +19,9 @@ interface BlockBlastGridProps {
 }
 
 const reactionIcons = {
-  burn: { icon: Flame, color: 'text-orange-400', label: 'WILDFIRE', helper: 'wood chain ignites' },
-  extinguish: { icon: Droplets, color: 'text-blue-400', label: 'STEAM BURST', helper: 'fire meets water' },
-  dissolve: { icon: FlaskConical, color: 'text-green-400', label: 'ACID MELT', helper: 'block dissolves' },
+  burn: { icon: Flame, color: 'text-orange-400', label: 'WILDFIRE', helper: 'wood chain' },
+  extinguish: { icon: Droplets, color: 'text-blue-400', label: 'STEAM BURST', helper: 'fire + water' },
+  dissolve: { icon: FlaskConical, color: 'text-green-400', label: 'ACID MELT', helper: 'acid clears' },
 };
 
 // Memoized grid cell component to prevent unnecessary re-renders
@@ -286,7 +286,7 @@ export function BlockBlastGrid({
         x: shakeIntensity > 0 ? [0, -shakeIntensity, shakeIntensity, -shakeIntensity, 0] : 0,
       }}
       transition={{ duration: 0.3 }}
-      className="relative touch-none"
+      className="classic-board-stack relative touch-none"
       onMouseLeave={onGridLeave}
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
@@ -387,6 +387,21 @@ export function BlockBlastGrid({
             })
           )}
         </div>
+      </div>
+
+      <div className="classic-reaction-legend" aria-label="Elemental reaction guide">
+        {(Object.entries(reactionIcons) as Array<[keyof typeof reactionIcons, typeof reactionIcons[keyof typeof reactionIcons]]>).map(([type, config]) => {
+          const Icon = config.icon;
+          return (
+            <div key={type} className="classic-reaction-card">
+              <Icon className={config.color} />
+              <span>
+                <span className={cn('classic-reaction-card__label', config.color)}>{config.label}</span>
+                <span className="classic-reaction-card__helper">{config.helper}</span>
+              </span>
+            </div>
+          );
+        })}
       </div>
     </motion.div>
   );

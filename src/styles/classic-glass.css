@@ -1,0 +1,243 @@
+/* Classic Mode glassmorphism facelift
+   Keeps the Pixar toy-box CI, but tightens the gameplay screen for mobile. */
+
+:root {
+  --classic-glass-edge: 0 0% 100% / 0.18;
+  --classic-glass-fill: 0 0% 100% / 0.10;
+  --classic-panel-fill: var(--pixar-navy) / 0.42;
+  --classic-panel-deep: var(--pixar-navy-deep) / 0.72;
+}
+
+.bg-gradient-pixar-stage::before,
+.bg-gradient-pixar-stage::after {
+  content: "";
+  position: absolute;
+  pointer-events: none;
+  border-radius: 9999px;
+  filter: blur(2px);
+  opacity: 0.65;
+  z-index: 0;
+}
+
+.bg-gradient-pixar-stage::before {
+  width: min(42vw, 220px);
+  height: min(42vw, 220px);
+  left: -70px;
+  top: 14%;
+  background: radial-gradient(circle at 30% 25%, hsl(var(--pixar-yellow)) 0%, hsl(var(--pixar-red)) 48%, transparent 72%);
+  box-shadow: 0 0 60px hsl(var(--pixar-red) / 0.35);
+}
+
+.bg-gradient-pixar-stage::after {
+  width: min(52vw, 280px);
+  height: min(52vw, 280px);
+  right: -110px;
+  bottom: -70px;
+  background: radial-gradient(circle at 30% 25%, hsl(var(--pixar-blue)) 0%, hsl(var(--neon-violet)) 48%, transparent 72%);
+  box-shadow: 0 0 70px hsl(var(--pixar-blue) / 0.35);
+}
+
+.pixar-hud-panel,
+.pixar-grid-frame,
+.pixar-glass-tile,
+.pixar-glass-chip {
+  background-image:
+    radial-gradient(circle at 18% 0%, hsl(0 0% 100% / 0.22), transparent 34%),
+    linear-gradient(155deg, hsl(var(--classic-glass-fill)) 0%, hsl(var(--classic-panel-fill)) 44%, hsl(var(--classic-panel-deep)) 100%);
+  border-color: hsl(var(--classic-glass-edge));
+  box-shadow:
+    0 20px 60px hsl(var(--pixar-navy-deep) / 0.52),
+    0 0 0 1px hsl(var(--pixar-blue) / 0.12),
+    inset 0 1px 0 hsl(0 0% 100% / 0.38),
+    inset 0 -1px 0 hsl(0 0% 100% / 0.06);
+  backdrop-filter: blur(24px) saturate(170%);
+  -webkit-backdrop-filter: blur(24px) saturate(170%);
+}
+
+.pixar-grid-frame {
+  border-radius: clamp(18px, 6vw, 32px);
+  box-shadow:
+    0 18px 52px hsl(var(--pixar-navy-deep) / 0.62),
+    0 0 42px hsl(var(--stage-accent, var(--pixar-blue)) / 0.24),
+    inset 0 1px 0 hsl(0 0% 100% / 0.42),
+    inset 0 -1px 0 hsl(0 0% 100% / 0.08);
+}
+
+.classic-board-stack {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: clamp(6px, 1.5vh, 10px);
+}
+
+.classic-reaction-legend {
+  width: min(100%, 420px);
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1px;
+  overflow: hidden;
+  border-radius: 9999px;
+  border: 1px solid hsl(0 0% 100% / 0.16);
+  background: linear-gradient(155deg, hsl(0 0% 100% / 0.11), hsl(var(--pixar-navy-deep) / 0.58));
+  box-shadow:
+    0 12px 34px hsl(var(--pixar-navy-deep) / 0.48),
+    inset 0 1px 0 hsl(0 0% 100% / 0.24);
+  backdrop-filter: blur(18px) saturate(160%);
+  -webkit-backdrop-filter: blur(18px) saturate(160%);
+}
+
+.classic-reaction-card {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  min-width: 0;
+  padding: 0.55rem 0.45rem;
+  background: hsl(0 0% 100% / 0.035);
+}
+
+.classic-reaction-card svg {
+  width: 1rem;
+  height: 1rem;
+  flex: 0 0 auto;
+  filter: drop-shadow(0 0 8px currentColor);
+}
+
+.classic-reaction-card span {
+  display: block;
+  min-width: 0;
+}
+
+.classic-reaction-card__label {
+  font-size: 0.62rem;
+  line-height: 1;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.classic-reaction-card__helper {
+  margin-top: 0.12rem;
+  font-size: 0.56rem;
+  line-height: 1;
+  color: hsl(0 0% 100% / 0.54);
+  white-space: nowrap;
+}
+
+.classic-piece-tray {
+  border-radius: clamp(18px, 6vw, 30px);
+  padding: clamp(0.45rem, 1.5vh, 0.75rem) clamp(0.55rem, 2.2vw, 1rem) clamp(0.55rem, 1.7vh, 0.9rem);
+  border: 1px solid hsl(0 0% 100% / 0.18);
+  background:
+    radial-gradient(circle at 18% 0%, hsl(0 0% 100% / 0.16), transparent 38%),
+    linear-gradient(150deg, hsl(0 0% 100% / 0.08), hsl(var(--pixar-navy-deep) / 0.68));
+  box-shadow:
+    0 18px 46px hsl(var(--pixar-navy-deep) / 0.55),
+    inset 0 1px 0 hsl(0 0% 100% / 0.3);
+  backdrop-filter: blur(20px) saturate(170%);
+  -webkit-backdrop-filter: blur(20px) saturate(170%);
+}
+
+.classic-scoreboard .pixar-hud-panel {
+  border-radius: 24px;
+}
+
+.classic-phase-pill,
+.classic-fever-meter {
+  width: min(100%, 420px);
+}
+
+#bb-grid .game-grid-cell {
+  box-shadow:
+    inset 0 1px 0 hsl(0 0% 100% / 0.18),
+    inset 0 -8px 18px hsl(0 0% 0% / 0.16),
+    0 0 0 1px hsl(0 0% 100% / 0.035);
+}
+
+@media (max-width: 640px) {
+  .bg-gradient-pixar-stage {
+    min-height: 100dvh;
+  }
+
+  .classic-scoreboard .pixar-hud-panel {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .classic-reaction-legend {
+    max-width: calc(100vw - 1.5rem);
+  }
+
+  .classic-reaction-card {
+    gap: 0.32rem;
+    padding: 0.45rem 0.32rem;
+  }
+
+  .classic-reaction-card__label {
+    font-size: 0.54rem;
+    letter-spacing: 0.05em;
+  }
+
+  .classic-reaction-card__helper {
+    font-size: 0.5rem;
+  }
+}
+
+@media (max-height: 780px) and (max-width: 640px) {
+  #bb-grid .game-grid-cell {
+    width: clamp(31px, 10.1vw, 38px) !important;
+    height: clamp(31px, 10.1vw, 38px) !important;
+    border-radius: 0.55rem !important;
+  }
+
+  .pixar-grid-frame {
+    padding: 0.45rem !important;
+  }
+
+  .classic-board-stack {
+    gap: 0.35rem;
+  }
+
+  .classic-scoreboard .pixar-hud-panel > div {
+    padding-top: 0.42rem !important;
+    padding-bottom: 0.42rem !important;
+  }
+
+  .classic-scoreboard .pixar-hud-panel span[class*="text-4xl"] {
+    font-size: 2rem !important;
+  }
+
+  .classic-scoreboard .pixar-hud-panel span[class*="text-2xl"] {
+    font-size: 1.35rem !important;
+  }
+
+  .classic-phase-pill,
+  .classic-fever-meter {
+    margin-top: 0.35rem !important;
+  }
+
+  .classic-piece-tray p:first-child {
+    display: none;
+  }
+
+  .classic-piece-tray p:last-child {
+    margin-top: 0.35rem !important;
+    font-size: 0.68rem !important;
+  }
+}
+
+@media (max-height: 690px) and (max-width: 420px) {
+  #bb-grid .game-grid-cell {
+    width: clamp(28px, 9.25vw, 34px) !important;
+    height: clamp(28px, 9.25vw, 34px) !important;
+  }
+
+  .classic-reaction-card__helper {
+    display: none;
+  }
+
+  .classic-piece-tray {
+    padding-top: 0.4rem;
+    padding-bottom: 0.45rem;
+  }
+}

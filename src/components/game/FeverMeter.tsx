@@ -36,18 +36,19 @@ export function FeverMeter({ meter, active, endsAt }: FeverMeterProps) {
   const fill = active ? remaining * 100 : meter;
 
   return (
-    <div className="w-full max-w-[420px] mt-2">
+    <div className="classic-fever-meter w-full max-w-[420px] mt-2">
       <div
         className={cn(
           "flex items-center gap-2 rounded-2xl px-3 py-1.5 border transition-colors",
-          active ? "border-pixar-red/60" : "border-pixar-blue/25",
+          active ? "border-pixar-red/60" : "border-white/15",
         )}
         style={{
           background:
-            "linear-gradient(180deg, hsl(var(--pixar-navy) / 0.85), hsl(var(--pixar-navy-deep) / 0.95))",
+            "linear-gradient(155deg, hsl(0 0% 100% / 0.10), hsl(var(--pixar-navy) / 0.52), hsl(var(--pixar-navy-deep) / 0.78))",
           boxShadow: active
             ? "0 0 22px hsl(var(--pixar-red) / 0.5), 0 1px 0 hsl(var(--pixar-red) / 0.3) inset"
-            : "0 1px 0 hsl(var(--pixar-blue) / 0.25) inset",
+            : "0 1px 0 hsl(0 0% 100% / 0.25) inset, 0 8px 24px hsl(var(--pixar-navy-deep) / 0.5)",
+          backdropFilter: "blur(18px) saturate(160%)",
         }}
       >
         <motion.span

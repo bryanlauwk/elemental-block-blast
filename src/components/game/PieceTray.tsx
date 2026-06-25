@@ -67,11 +67,11 @@ export function PieceTray({ pieces, selectedPiece, onSelectPiece, onDragHover, o
   // Sizes scale down on narrow viewports so 3 pieces always fit a phone.
   const viewportW = typeof window !== 'undefined' ? window.innerWidth : 400;
   const isTight = viewportW < 380;
-  const blockSize = isTight ? 20 : isMobile ? 24 : 22;
-  const cellSize = isTight ? 22 : isMobile ? 26 : 22;
+  const blockSize = isTight ? 18 : isMobile ? 22 : 22;
+  const cellSize = isTight ? 20 : isMobile ? 24 : 22;
 
   return (
-    <div className="w-full">
+    <div className="classic-piece-tray w-full">
       <p className="mb-2 text-center text-[10px] font-black uppercase tracking-[0.22em] text-white/45">
         Experiment Tray
       </p>
@@ -176,7 +176,7 @@ export function PieceTray({ pieces, selectedPiece, onSelectPiece, onDragHover, o
       <p className="text-center text-xs text-game-text-muted/70 mt-3">
         {selectedPiece
           ? (isMobile ? 'Drag over the lab board, then lift to place' : 'Tap a glowing cell to run the experiment')
-          : 'Choose a piece, complete lines, and trigger reactions'}
+          : 'Drag a piece onto the board'}
       </p>
     </div>
   );
