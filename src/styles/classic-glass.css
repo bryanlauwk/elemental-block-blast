@@ -1,18 +1,18 @@
-/* Classic Mode glassmorphism facelift
-   Keeps the Pixar toy-box CI, but tightens the gameplay screen for mobile. */
+/* Pop-Art Neon District restyle.
+   Overrides the shared Pixar HUD/panel classes with the saturated comic-book
+   look: dark plum panel fills, thick ink borders, chunky offset shadows. */
 
 :root {
-  --classic-glass-edge: 0 0% 100% / 0.18;
-  --classic-glass-fill: 0 0% 100% / 0.10;
-  --classic-panel-fill: var(--pixar-navy) / 0.42;
-  --classic-panel-deep: var(--pixar-navy-deep) / 0.72;
+  --classic-glass-edge: var(--popart-ink) / 0.85;
+  --classic-glass-fill: var(--popart-panel) / 0.72;
+  --classic-panel-fill: var(--popart-panel) / 0.78;
+  --classic-panel-deep: var(--popart-panel-deep) / 0.88;
 }
 
 .bg-gradient-pixar-stage {
   position: relative;
   isolation: isolate;
-  background:
-    linear-gradient(180deg, hsl(var(--pixar-navy)) 0%, hsl(var(--pixar-navy-deep)) 100%) !important;
+  background: transparent !important;
 }
 
 .bg-gradient-pixar-stage > * {
@@ -22,37 +22,7 @@
 
 .bg-gradient-pixar-stage::before,
 .bg-gradient-pixar-stage::after {
-  content: "";
-  position: absolute;
-  pointer-events: none;
-  border-radius: 9999px;
-  filter: blur(2px);
-  opacity: 0.65;
-  z-index: 0;
-}
-
-.bg-gradient-pixar-stage::before {
-  width: min(42vw, 220px);
-  height: min(42vw, 220px);
-  left: -70px;
-  top: 14%;
-  background: radial-gradient(circle at 30% 25%, hsl(var(--pixar-yellow)) 0%, hsl(var(--pixar-red)) 48%, transparent 72%);
-  box-shadow: 0 0 60px hsl(var(--pixar-red) / 0.35);
-  mix-blend-mode: screen;
-}
-
-.bg-gradient-pixar-stage::after {
-  width: min(52vw, 280px);
-  height: min(52vw, 280px);
-  right: -110px;
-  bottom: -70px;
-  background: radial-gradient(circle at 30% 25%, hsl(var(--pixar-blue)) 0%, hsl(var(--neon-violet)) 48%, transparent 72%);
-  box-shadow: 0 0 70px hsl(var(--pixar-blue) / 0.35);
-  mix-blend-mode: screen;
-}
-
-.bg-gradient-pixar-stage::backdrop {
-  background: hsl(var(--pixar-navy-deep));
+  content: none;
 }
 
 .pixar-hud-panel,
@@ -60,25 +30,23 @@
 .pixar-glass-tile,
 .pixar-glass-chip {
   background-image:
-    radial-gradient(circle at 18% 0%, hsl(0 0% 100% / 0.22), transparent 34%),
-    linear-gradient(155deg, hsl(var(--classic-glass-fill)) 0%, hsl(var(--classic-panel-fill)) 44%, hsl(var(--classic-panel-deep)) 100%);
-  border-color: hsl(var(--classic-glass-edge));
+    linear-gradient(160deg, hsl(var(--popart-panel) / 0.86) 0%, hsl(var(--popart-panel-deep) / 0.94) 100%);
+  border: 2px solid hsl(var(--popart-ink));
   box-shadow:
-    0 20px 60px hsl(var(--pixar-navy-deep) / 0.52),
-    0 0 0 1px hsl(var(--pixar-blue) / 0.12),
-    inset 0 1px 0 hsl(0 0% 100% / 0.38),
-    inset 0 -1px 0 hsl(0 0% 100% / 0.06);
-  backdrop-filter: blur(24px) saturate(170%);
-  -webkit-backdrop-filter: blur(24px) saturate(170%);
+    4px 6px 0 hsl(var(--popart-ink)),
+    0 18px 38px hsl(var(--popart-ink) / 0.5),
+    inset 0 2px 0 hsl(var(--popart-magenta) / 0.18);
+  backdrop-filter: blur(10px) saturate(140%);
+  -webkit-backdrop-filter: blur(10px) saturate(140%);
 }
 
 .pixar-grid-frame {
   border-radius: clamp(18px, 6vw, 32px);
   box-shadow:
-    0 18px 52px hsl(var(--pixar-navy-deep) / 0.62),
-    0 0 42px hsl(var(--stage-accent, var(--pixar-blue)) / 0.24),
-    inset 0 1px 0 hsl(0 0% 100% / 0.42),
-    inset 0 -1px 0 hsl(0 0% 100% / 0.08);
+    6px 8px 0 hsl(var(--popart-ink)),
+    0 22px 50px hsl(var(--popart-ink) / 0.6),
+    0 0 56px hsl(var(--stage-accent, var(--popart-magenta)) / 0.35),
+    inset 0 2px 0 hsl(var(--popart-magenta) / 0.22);
 }
 
 .classic-board-stack {
@@ -95,13 +63,13 @@
   gap: 1px;
   overflow: hidden;
   border-radius: 9999px;
-  border: 1px solid hsl(0 0% 100% / 0.16);
-  background: linear-gradient(155deg, hsl(0 0% 100% / 0.11), hsl(var(--pixar-navy-deep) / 0.58));
+  border: 2px solid hsl(var(--popart-ink));
+  background: linear-gradient(155deg, hsl(var(--popart-panel) / 0.7), hsl(var(--popart-panel-deep) / 0.85));
   box-shadow:
-    0 12px 34px hsl(var(--pixar-navy-deep) / 0.48),
-    inset 0 1px 0 hsl(0 0% 100% / 0.24);
-  backdrop-filter: blur(18px) saturate(160%);
-  -webkit-backdrop-filter: blur(18px) saturate(160%);
+    3px 4px 0 hsl(var(--popart-ink)),
+    0 12px 28px hsl(var(--popart-ink) / 0.5);
+  backdrop-filter: blur(8px) saturate(140%);
+  -webkit-backdrop-filter: blur(8px) saturate(140%);
 }
 
 .classic-reaction-card {
@@ -111,7 +79,7 @@
   gap: 0.45rem;
   min-width: 0;
   padding: 0.55rem 0.45rem;
-  background: hsl(0 0% 100% / 0.035);
+  background: hsl(var(--popart-panel-deep) / 0.35);
 }
 
 .classic-reaction-card svg {
@@ -146,15 +114,15 @@
 .classic-piece-tray {
   border-radius: clamp(18px, 6vw, 30px);
   padding: clamp(0.45rem, 1.5vh, 0.75rem) clamp(0.55rem, 2.2vw, 1rem) clamp(0.55rem, 1.7vh, 0.9rem);
-  border: 1px solid hsl(0 0% 100% / 0.18);
+  border: 2px solid hsl(var(--popart-ink));
   background:
-    radial-gradient(circle at 18% 0%, hsl(0 0% 100% / 0.16), transparent 38%),
-    linear-gradient(150deg, hsl(0 0% 100% / 0.08), hsl(var(--pixar-navy-deep) / 0.68));
+    linear-gradient(160deg, hsl(var(--popart-panel) / 0.82), hsl(var(--popart-panel-deep) / 0.92));
   box-shadow:
-    0 18px 46px hsl(var(--pixar-navy-deep) / 0.55),
-    inset 0 1px 0 hsl(0 0% 100% / 0.3);
-  backdrop-filter: blur(20px) saturate(170%);
-  -webkit-backdrop-filter: blur(20px) saturate(170%);
+    4px 6px 0 hsl(var(--popart-ink)),
+    0 16px 32px hsl(var(--popart-ink) / 0.5),
+    inset 0 2px 0 hsl(var(--popart-magenta) / 0.18);
+  backdrop-filter: blur(8px) saturate(140%);
+  -webkit-backdrop-filter: blur(8px) saturate(140%);
 }
 
 .classic-scoreboard .pixar-hud-panel {
