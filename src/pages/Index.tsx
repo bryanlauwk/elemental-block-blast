@@ -683,9 +683,9 @@ const Index = () => {
                   animate={{ opacity: 1, y: 0 }}
                 >
                   {/* Hidden on phones to save vertical space (top bar already brands it) */}
-                  <h1 className="hidden sm:block text-xl sm:text-2xl font-black tracking-tight">
-                    <span className="bg-gradient-to-r from-game-score-start via-game-score-mid to-game-score-end bg-clip-text text-transparent">
-                      Elemental Block Blast
+                  <h1 className="hidden sm:block font-display text-xl sm:text-2xl font-bold tracking-tight uppercase">
+                    <span className="bg-clip-text text-transparent bg-[linear-gradient(180deg,#ffffff,rgba(255,255,255,0.65))] drop-shadow-[0_0_12px_hsl(190_95%_60%/0.35)]">
+                      Block Blast
                     </span>
                   </h1>
                   {/* Daily challenge indicator */}
