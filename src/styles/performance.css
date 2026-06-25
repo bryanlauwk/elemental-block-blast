@@ -66,3 +66,64 @@
     transition-duration: 0.01ms !important;
   }
 }
+
+/* Cube mobile stability overrides.
+   These intentionally undo the previous fragile CSS camera scaling. */
+@media (max-width: 640px) {
+  body:has(#cube-active-grid) .z-20:has(.classic-scoreboard),
+  body:has(#cube-active-grid) .z-20:has(.classic-piece-tray),
+  body:has(#cube-active-grid) .z-20.mb-2.flex.flex-col {
+    position: relative !important;
+    left: auto !important;
+    right: auto !important;
+    top: auto !important;
+    bottom: auto !important;
+  }
+
+  body:has(#cube-active-grid) .z-20:has(.classic-scoreboard) {
+    flex: 0 0 auto !important;
+    width: calc(100vw - 1rem) !important;
+    max-width: 420px !important;
+    margin-top: 0.3rem !important;
+    padding: 0.36rem !important;
+  }
+
+  body:has(#cube-active-grid) .z-20:has(.classic-scoreboard) > div:nth-child(2),
+  body:has(#cube-active-grid) .classic-phase-pill,
+  body:has(#cube-active-grid) .classic-fever-meter {
+    display: none !important;
+  }
+
+  body:has(#cube-active-grid) .cursor-grab {
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+    perspective: 1250px !important;
+  }
+
+  body:has(#cube-active-grid) div[style*="preserve-3d"] {
+    scale: 1 !important;
+    transform-origin: center center !important;
+  }
+
+  body:has(#cube-active-grid) .z-20.mb-2.flex.flex-col {
+    margin-bottom: 0.24rem !important;
+    transform: scale(0.86) !important;
+    transform-origin: bottom center !important;
+  }
+
+  body:has(#cube-active-grid) .z-20:has(.classic-piece-tray) {
+    flex: 0 0 auto !important;
+    width: calc(100vw - 1rem) !important;
+    max-width: 430px !important;
+    margin-bottom: max(0.35rem, env(safe-area-inset-bottom)) !important;
+    padding: 0 !important;
+    transform: none !important;
+  }
+
+  body:has(#cube-active-grid) .classic-piece-tray p:first-child,
+  body:has(#cube-active-grid) .classic-piece-tray p:last-child {
+    display: none !important;
+  }
+}
