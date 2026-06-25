@@ -31,14 +31,11 @@ const FACES = [
   { id: 1, name: 'Right',  place: 'rotateY(90deg) translateZ(H)' },
   { id: 2, name: 'Back',   place: 'rotateY(180deg) translateZ(H)' },
   { id: 3, name: 'Left',   place: 'rotateY(-90deg) translateZ(H)' },
-  { id: 4, name: 'Top',    place: 'rotateX(90deg) translateZ(H)' },
-  { id: 5, name: 'Bottom', place: 'rotateX(-90deg) translateZ(H)' },
 ] as const;
 
 const FEVER_MS = 9000;
-// Fixed isometric viewing offset so the playing face is always seen at an
-// angle (depth + edges of adjacent faces) instead of flat like the 2D board.
-const ISO = { x: -16, y: 20 };
+// Gentle side-view offset: keeps depth visible without skewing targets too much.
+const ISO = { x: -8, y: 12 };
 
 const placeInto = (grid: Cell[][], piece: DraggablePiece, pos: Position): Cell[][] => {
   const ng = grid.map((r) => r.map((c) => ({ ...c })));
@@ -91,7 +88,7 @@ const CubeGame = () => {
   }, [endFever]);
   useEffect(() => () => { if (feverTimer.current) clearTimeout(feverTimer.current); }, []);
 
-  // ── Free 3D orbit ──
+  // ── Side-only 3D orbit ──
   const [rot, setRot] = useState({ x: 0, y: 0 });
   const [snapping, setSnapping] = useState(true);
   const rotRef = useRef({ x: 0, y: 0 });
@@ -181,12 +178,9 @@ const CubeGame = () => {
     setHover(h.pos);
   }, [boards, activeFace, pieces]);
 
-  // ── Orbit / snap ──
-  const faceFromRot = (rx: number, ry: number) => {
-    const rxs = Math.max(-90, Math.min(90, Math.round(rx / 90) * 90));
+  // ── Side orbit / snap ──
+  const faceFromRot = (_rx: number, ry: number) => {
     const rys = (((Math.round(ry / 90) * 90) % 360) + 360) % 360;
-    if (rxs === -90) return { face: 4, x: -90, y: 0 };
-    if (rxs === 90) return { face: 5, x: 90, y: 0 };
     const sideByYaw: Record<number, number> = { 0: 0, 90: 3, 180: 2, 270: 1 };
     return { face: sideByYaw[rys], x: 0, y: rys };
   };
@@ -199,12 +193,10 @@ const CubeGame = () => {
     const d = dragRef.current;
     if (!d) return;
     const dx = e.clientX - d.x;
-    const dy = e.clientY - d.y;
-    if (!movedRef.current && Math.hypot(dx, dy) > 6) movedRef.current = true;
+    if (!movedRef.current && Math.abs(dx) > 6) movedRef.current = true;
     if (!movedRef.current) return;
-    const nx = Math.max(-90, Math.min(90, d.rx - dy * 0.4));
     const ny = d.ry + dx * 0.4;
-    rotRef.current = { x: nx, y: ny };
+    rotRef.current = { x: 0, y: ny };
     setRot(rotRef.current);
     setHover(null);
   };
@@ -254,29 +246,30 @@ const CubeGame = () => {
       style={{ ['--stage-accent' as string]: phase.accent, ['--stage-glow' as string]: phase.glow } as CSSProperties}
     >
       <AdaptiveStage phase={phase} />
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.22),transparent_32%),radial-gradient(circle_at_bottom_right,rgba(255,255,255,0.12),transparent_36%)]" />
 
       <div className="pointer-events-none fixed inset-0 z-40 flex items-start justify-center pt-28">
         <ScorePopup score={popup.score} show={popup.show} text={popup.text} reactionType={popup.reactionType} />
       </div>
 
-      {/* Top bar */}
-      <div className="w-full flex items-center justify-between px-4 pt-4 z-20">
+      {/* Glass top bar */}
+      <div className="z-20 mt-4 flex w-[calc(100%-2rem)] max-w-md items-center justify-between rounded-full border border-white/15 bg-white/10 px-3 py-2 shadow-2xl shadow-black/20 backdrop-blur-xl">
         <Link to="/"><PixarChip title="Back to classic"><Home className="w-5 h-5 text-white" /></PixarChip></Link>
-        <p className="text-[10px] uppercase tracking-[0.3em] text-pixar-yellow/80 font-bold">Cube Mode</p>
+        <p className="rounded-full border border-white/10 bg-white/10 px-4 py-2 text-[10px] uppercase tracking-[0.3em] text-white/85 font-bold shadow-inner backdrop-blur-md">Cube Mode</p>
         <div className="flex gap-2">
           <PixarChip title="Hint" onClick={handleHint}><Lightbulb className="w-5 h-5 text-pixar-yellow" /></PixarChip>
           <PixarChip title="Restart" onClick={reset}><RotateCcw className="w-5 h-5 text-white" /></PixarChip>
         </div>
       </div>
 
-      {/* Classic HUD: scoreboard + phase pill + fever */}
-      <div className="z-20 w-full max-w-[420px] px-4 flex flex-col items-center mt-1">
+      {/* Glass HUD: scoreboard + phase pill + fever */}
+      <div className="z-20 mt-3 flex w-[calc(100%-2rem)] max-w-[420px] flex-col items-center rounded-[28px] border border-white/15 bg-white/10 px-4 py-3 shadow-2xl shadow-black/20 backdrop-blur-xl">
         <BlockBlastScoreboard score={score} topScore={best} compact />
         <PhasePill phase={phase} next={next} progress={progress} />
         <FeverMeter meter={feverMeter} active={feverActive} endsAt={feverEndsAt} />
       </div>
 
-      {/* 3D stage — drag to orbit */}
+      {/* Glass 3D stage — horizontal drag rotates the four side faces only */}
       <div
         className="relative z-10 flex-1 w-full flex items-center justify-center cursor-grab active:cursor-grabbing"
         style={{ perspective: '1100px', touchAction: 'none' }}
@@ -285,6 +278,7 @@ const CubeGame = () => {
         onPointerUp={onScenePointerUp}
         onPointerCancel={onScenePointerUp}
       >
+        <div className="pointer-events-none absolute h-[78vw] max-h-[420px] w-[78vw] max-w-[420px] rounded-full bg-white/10 blur-3xl" />
         <div
           className="relative"
           style={{
@@ -299,19 +293,22 @@ const CubeGame = () => {
             return (
               <div
                 key={face.id}
-                className="absolute left-0 top-0 rounded-2xl pixar-grid-frame"
+                className="absolute left-0 top-0 rounded-[30px] border border-white/20 bg-white/10 shadow-2xl shadow-black/30 backdrop-blur-xl pixar-grid-frame"
                 style={{
                   width: size, height: size, padding: pad,
                   transform: face.place.replace(/H/g, `${half}px`),
                   backfaceVisibility: 'hidden',
                   pointerEvents: isActive ? 'auto' : 'none',
-                  opacity: isActive ? 1 : 0.5,
-                  transition: 'opacity 0.4s',
+                  opacity: isActive ? 1 : 0.38,
+                  transition: 'opacity 0.4s, box-shadow 0.4s',
+                  boxShadow: isActive
+                    ? '0 30px 80px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.22)'
+                    : '0 18px 50px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.14)',
                 }}
               >
-                <span aria-hidden className="pointer-events-none absolute inset-x-4 top-1 h-[2px] rounded-full"
-                  style={{ background: 'linear-gradient(90deg, transparent, hsl(var(--stage-accent, var(--pixar-yellow))) 30%, hsl(var(--pixar-red)) 70%, transparent)', opacity: 0.85 }} />
-                {isActive && flashKey > 0 && <span key={flashKey} className="neon-flash-overlay rounded-2xl" aria-hidden />}
+                <span aria-hidden className="pointer-events-none absolute inset-x-6 top-2 h-[2px] rounded-full"
+                  style={{ background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.85) 30%, hsl(var(--stage-accent, var(--pixar-yellow))) 70%, transparent)', opacity: 0.9 }} />
+                {isActive && flashKey > 0 && <span key={flashKey} className="neon-flash-overlay rounded-[30px]" aria-hidden />}
                 {isActive && <ReactionParticles trigger={particle} cellSize={cellPx + gap} gridOffset={{ x: pad, y: pad }} />}
                 <div id={isActive ? 'cube-active-grid' : undefined} className="grid h-full w-full" style={{ gridTemplateColumns: `repeat(${FACE}, 1fr)`, gridTemplateRows: `repeat(${FACE}, 1fr)`, gap }}>
                   {board.map((row, y) =>
@@ -325,8 +322,11 @@ const CubeGame = () => {
                           data-cube-cell={isActive ? '' : undefined}
                           data-x={x}
                           data-y={y}
-                          className={`flex items-center justify-center rounded-lg ${rType ? REACTION_RING[rType] : ''}`}
-                          style={{ background: cell.element ? 'transparent' : 'hsl(var(--game-cell) / 0.6)' }}
+                          className={`flex items-center justify-center rounded-xl border border-white/10 shadow-inner backdrop-blur-sm transition-colors ${rType ? REACTION_RING[rType] : ''}`}
+                          style={{
+                            background: cell.element ? 'transparent' : 'rgba(255,255,255,0.08)',
+                            boxShadow: cell.element ? 'none' : 'inset 0 1px 0 rgba(255,255,255,0.16)',
+                          }}
                           onMouseEnter={isActive ? () => setHover({ x, y }) : undefined}
                           onClick={isActive ? () => { if (!movedRef.current && selected) placePieceAt(selected, { x, y }); } : undefined}
                         >
@@ -345,16 +345,16 @@ const CubeGame = () => {
         </div>
       </div>
 
-      {/* Orbit hint + current face */}
-      <div className="z-20 flex items-center gap-2 pb-1 text-white/70">
+      {/* Glass orbit hint + current face */}
+      <div className="z-20 mb-2 flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-4 py-2 text-white/75 shadow-xl shadow-black/20 backdrop-blur-xl">
         <Rotate3d className="w-4 h-4 text-pixar-yellow" />
-        <span className="text-xs uppercase tracking-widest font-bold">Drag to rotate</span>
+        <span className="text-xs uppercase tracking-widest font-bold">Drag left / right</span>
         <span className="text-white/30">·</span>
         <span className="text-xs uppercase tracking-widest font-bold text-white/90">{FACES[activeFace].name}</span>
       </div>
 
-      {/* Full classic piece tray (tap-to-select or drag onto the front face) */}
-      <div className="z-20 w-full max-w-md px-4 pb-6">
+      {/* Glass piece tray (tap-to-select or drag onto the active side face) */}
+      <div className="z-20 w-[calc(100%-2rem)] max-w-md rounded-[30px] border border-white/15 bg-white/10 px-4 pb-4 pt-3 shadow-2xl shadow-black/20 backdrop-blur-xl mb-5">
         <PieceTray
           pieces={pieces}
           selectedPiece={selected}
@@ -369,7 +369,7 @@ const CubeGame = () => {
       <AnimatePresence>
         {isGameOver && (
           <PixarOverlay>
-            <motion.div initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="text-center">
+            <motion.div initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="rounded-[32px] border border-white/20 bg-white/10 px-8 py-7 text-center shadow-2xl shadow-black/30 backdrop-blur-2xl">
               <p className="text-3xl font-display text-white mb-1">Cube Complete!</p>
               <p className="text-5xl font-display bg-gradient-to-r from-pixar-yellow to-pixar-red bg-clip-text text-transparent mb-4">{score.toLocaleString()}</p>
               <PixarButton onClick={reset} variant="primary" size="md" shine>Play Again</PixarButton>
