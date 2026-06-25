@@ -64,15 +64,15 @@ export const CUBE_FACE_SYNC_BONUS = 500;
 export const CUBE_FULL_SYNC_BONUS = 2500;
 export const CUBE_ORBIT_COMBO_BONUS = 300;
 
-// Gentle side-view offset: keeps depth visible without skewing targets too much.
-export const CUBE_ISO_ROTATION = { x: -8, y: 12 };
+export const CUBE_ISO_ROTATION = { x: 0, y: 0 };
 
 export const getCubeBoardSize = () => {
   if (typeof window === 'undefined') return 300;
 
-  const widthCap = window.innerWidth <= 640 ? window.innerWidth * 0.62 : window.innerWidth * 0.8;
-  const heightCap = window.innerWidth <= 640 ? window.innerHeight * 0.34 : window.innerHeight * 0.5;
-  const maxSize = window.innerWidth <= 640 ? 280 : 360;
+  const isMobile = window.innerWidth <= 640;
+  const widthCap = isMobile ? window.innerWidth * 0.72 : window.innerWidth * 0.42;
+  const heightCap = isMobile ? window.innerHeight * 0.36 : window.innerHeight * 0.46;
+  const maxSize = isMobile ? 300 : 360;
 
   return Math.round(Math.min(widthCap, heightCap, maxSize));
 };
