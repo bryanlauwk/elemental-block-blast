@@ -13,16 +13,36 @@ interface PixarButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 const variantFace: Record<Variant, string> = {
-  primary: "bg-pixar-red text-white",
-  secondary: "bg-pixar-yellow text-pixar-navy-deep",
-  ghost:
-    "bg-pixar-navy/70 text-white border border-pixar-blue/40 backdrop-blur",
+  primary: "text-white",
+  secondary: "text-white",
+  ghost: "text-white backdrop-blur",
 };
 
 const variantShadow: Record<Variant, string> = {
-  primary: "bg-pixar-red-deep",
-  secondary: "bg-pixar-yellow-deep",
-  ghost: "bg-pixar-navy-deep",
+  primary: "",
+  secondary: "",
+  ghost: "",
+};
+
+const variantFaceStyle: Record<Variant, React.CSSProperties> = {
+  primary: {
+    background: "linear-gradient(180deg, hsl(var(--popart-coral)) 0%, hsl(var(--popart-coral-deep)) 100%)",
+    border: "3px solid hsl(var(--popart-ink))",
+  },
+  secondary: {
+    background: "linear-gradient(180deg, hsl(var(--popart-teal)) 0%, hsl(var(--popart-teal-deep)) 100%)",
+    border: "3px solid hsl(var(--popart-ink))",
+  },
+  ghost: {
+    background: "linear-gradient(180deg, hsl(var(--popart-panel) / 0.85), hsl(var(--popart-panel-deep) / 0.95))",
+    border: "3px solid hsl(var(--popart-ink))",
+  },
+};
+
+const variantShadowStyle: Record<Variant, React.CSSProperties> = {
+  primary: { background: "hsl(var(--popart-ink))" },
+  secondary: { background: "hsl(var(--popart-ink))" },
+  ghost: { background: "hsl(var(--popart-ink))" },
 };
 
 const sizeMap: Record<Size, { pad: string; text: string; offset: string }> = {
@@ -45,8 +65,7 @@ export const PixarButton = forwardRef<HTMLButtonElement, PixarButtonProps>(
     ref,
   ) => {
     const s = sizeMap[size];
-    const ringColor =
-      variant === "secondary" ? "focus-visible:ring-pixar-red/60" : "focus-visible:ring-pixar-yellow/60";
+    const ringColor = "focus-visible:ring-[hsl(var(--popart-magenta)/0.7)]";
     return (
       <button
         ref={ref}
@@ -70,6 +89,7 @@ export const PixarButton = forwardRef<HTMLButtonElement, PixarButtonProps>(
             s.offset,
             variantShadow[variant],
           )}
+          style={variantShadowStyle[variant]}
         />
         {/* Face */}
         <span
@@ -79,16 +99,17 @@ export const PixarButton = forwardRef<HTMLButtonElement, PixarButtonProps>(
             s.pad,
             variantFace[variant],
           )}
+          style={variantFaceStyle[variant]}
         >
           {/* Top gloss */}
           <span
             aria-hidden
-            className="absolute inset-x-0 top-0 h-1/2 bg-gradient-to-b from-white/40 to-transparent rounded-t-full"
+            className="absolute inset-x-0 top-0 h-2/5 bg-gradient-to-b from-white/45 to-transparent rounded-t-full"
           />
           {/* Bottom inner shadow */}
           <span
             aria-hidden
-            className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/20 to-transparent rounded-b-full"
+            className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/30 to-transparent rounded-b-full"
           />
           {/* Animated light sweep */}
           {shine && <span aria-hidden className="pixar-shine" />}
@@ -99,9 +120,8 @@ export const PixarButton = forwardRef<HTMLButtonElement, PixarButtonProps>(
             )}
             style={{
               textShadow:
-                variant === "secondary"
-                  ? "0 2px 0 hsl(var(--pixar-yellow-deep)), 0 4px 8px rgba(0,0,0,0.25)"
-                  : "0 2px 0 hsl(var(--pixar-red-deep)), 0 4px 8px rgba(0,0,0,0.35)",
+                "0 2px 0 hsl(var(--popart-ink)), 0 3px 0 hsl(var(--popart-ink)), 0 6px 14px hsl(var(--popart-ink) / 0.6)",
+              WebkitTextStroke: "1px hsl(var(--popart-ink))",
             }}
           >
             {children}

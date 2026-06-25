@@ -56,13 +56,13 @@ export const GameTitle = () => {
           text="BLOCK"
           baseDelay={0.25}
           size="text-6xl sm:text-7xl md:text-8xl lg:text-9xl"
-          className="text-pixar-yellow pixar-letter-shadow-yellow tracking-tighter"
+          className="popart-letter popart-letter--coral tracking-tighter"
         />
         <PixarWord
           text="BLAST"
           baseDelay={0.55}
           size="text-6xl sm:text-7xl md:text-8xl lg:text-9xl -mt-3 sm:-mt-4 md:-mt-5"
-          className="text-pixar-red pixar-letter-shadow-red"
+          className="popart-letter popart-letter--magenta"
         />
       </h1>
     </div>
