@@ -1,0 +1,29 @@
+/* Final Cube playfield anchor override.
+   Keeps the active face in a stable gameplay position above the tray. */
+
+@media (max-width: 640px) {
+  body:has(#cube-active-grid) .cursor-grab {
+    align-items: flex-start !important;
+    justify-content: center !important;
+    padding-top: clamp(0.65rem, 2.4vh, 1.35rem) !important;
+    padding-bottom: 8.4rem !important;
+  }
+
+  body:has(#cube-active-grid) .cursor-grab::before {
+    top: 38% !important;
+  }
+}
+
+@media (max-height: 760px) and (max-width: 640px) {
+  body:has(#cube-active-grid) .cursor-grab {
+    padding-top: 0.45rem !important;
+    padding-bottom: 7.9rem !important;
+  }
+}
+
+@media (max-height: 700px) and (max-width: 430px) {
+  body:has(#cube-active-grid) .cursor-grab {
+    padding-top: 0.25rem !important;
+    padding-bottom: 7.45rem !important;
+  }
+}
