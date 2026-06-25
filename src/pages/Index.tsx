@@ -86,6 +86,7 @@ const Index = () => {
   const [globalRank, setGlobalRank] = useState<number | null>(null);
   const [playerDailyBest, setPlayerDailyBest] = useState<number | null>(null);
   const [tutorialComplete, setTutorialComplete] = useState(false);
+  const [tutorialOpen, setTutorialOpen] = useState(false);
   const [showReactionFeed, setShowReactionFeed] = useState(false);
   const [showSoundSettings, setShowSoundSettings] = useState(false);
   const [isNewHighScore, setIsNewHighScore] = useState(false);
@@ -376,9 +377,12 @@ const Index = () => {
         />
       )}
 
-      {/* Tutorial overlay - shows on first game */}
-      {!tutorialComplete && (
-        <ReactionTutorial onComplete={() => setTutorialComplete(true)} />
+      {/* Tutorial overlay — only opens on explicit user request (Help / menu). */}
+      {tutorialOpen && (
+        <ReactionTutorial
+          forceOpen
+          onComplete={() => setTutorialOpen(false)}
+        />
       )}
 
       {/* Top bar - text logo left, icons right */}
@@ -413,10 +417,7 @@ const Index = () => {
               onOpenDailyChallenge={() => setShowDailyChallenge(true)}
               onOpenAchievements={() => setShowAchievements(true)}
               onOpenLeaderboard={() => setShowLeaderboard(true)}
-              onOpenTutorial={() => {
-                localStorage.removeItem('elemental-blast-tutorial-seen');
-                setTutorialComplete(false);
-              }}
+              onOpenTutorial={() => setTutorialOpen(true)}
               onToggleReactionFeed={() => setShowReactionFeed(!showReactionFeed)}
               showReactionFeedToggle={hasStarted}
               reactionFeedActive={showReactionFeed}
@@ -467,10 +468,7 @@ const Index = () => {
 
               {/* Help button */}
               <PixarChip
-                onClick={() => {
-                  localStorage.removeItem('elemental-blast-tutorial-seen');
-                  setTutorialComplete(false);
-                }}
+                onClick={() => setTutorialOpen(true)}
                 title="How to Play"
               >
                 <HelpCircle className="w-5 h-5 text-white" />
