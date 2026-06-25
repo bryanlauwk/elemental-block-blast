@@ -868,3 +868,45 @@ All colors MUST be HSL.
   .pixar-shine { animation: none; opacity: 0; }
 }
 
+/* =============================================================
+   Shared UI scale — single source of truth for buttons, chips,
+   and uppercase labels across the landing page and the in-game
+   HUD. Keeps padding, font-size, line-height, and tracking in
+   lockstep so every interactive surface reads as one system.
+   ============================================================= */
+@layer components {
+  /* Uppercase label scale (font-display, bold, neon tracking).
+     Use these on every uppercase chip/button/eyebrow label. */
+  .ui-label-xs {
+    @apply font-display font-bold uppercase;
+    font-size: 10px;
+    line-height: 1;
+    letter-spacing: 0.28em;
+  }
+  .ui-label-sm {
+    @apply font-display font-bold uppercase;
+    font-size: 12px;
+    line-height: 1;
+    letter-spacing: 0.24em;
+  }
+  .ui-label-md {
+    @apply font-display font-bold uppercase;
+    font-size: 14px;
+    line-height: 1;
+    letter-spacing: 0.2em;
+  }
+  .ui-label-lg {
+    @apply font-display font-bold uppercase;
+    font-size: 18px;
+    line-height: 1;
+    letter-spacing: 0.18em;
+  }
+
+  /* Padded button surfaces — height-stable across breakpoints so
+     a home CTA and an in-game HUD button line up on the same grid. */
+  .ui-btn-xs { @apply inline-flex items-center justify-center gap-2 px-3 py-1.5 rounded-full; }
+  .ui-btn-sm { @apply inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl; }
+  .ui-btn-md { @apply inline-flex items-center justify-center gap-2 px-6 py-3 rounded-2xl; }
+  .ui-btn-lg { @apply inline-flex items-center justify-center gap-2 px-10 sm:px-12 py-4 sm:py-5 rounded-2xl; }
+}
+

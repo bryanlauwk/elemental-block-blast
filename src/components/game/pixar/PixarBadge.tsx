@@ -28,7 +28,7 @@ export function PixarBadge({
     <span
       {...props}
       className={cn(
-        "inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-widest font-sans border-b-2",
+        "ui-btn-xs ui-label-xs gap-1.5 border-b-2",
         toneStyles[tone],
         className,
       )}

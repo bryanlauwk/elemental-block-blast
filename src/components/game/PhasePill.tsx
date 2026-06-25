@@ -35,7 +35,7 @@ export function PhasePill({ phase, next, progress }: PhasePillProps) {
             <span className="font-display text-sm text-white truncate tracking-wide">
               {phase.name}
             </span>
-            <span className="text-[10px] font-sans uppercase tracking-[0.2em] text-white/55 shrink-0">
+            <span className="ui-label-xs text-white/55 shrink-0">
               {next ? `Next: ${next.name}` : "Max phase"}
             </span>
           </div>

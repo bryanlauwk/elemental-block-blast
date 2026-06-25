@@ -63,7 +63,7 @@ export function FeverMeter({ meter, active, endsAt }: FeverMeterProps) {
 
         <span
           className={cn(
-            "text-[10px] font-sans font-bold uppercase tracking-[0.2em] shrink-0 w-14",
+            "ui-label-xs shrink-0 w-14",
             active ? "text-pixar-yellow" : "text-white/55",
           )}
         >
