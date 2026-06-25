@@ -6,6 +6,9 @@ import { modalStyles } from '@/game/theme';
 
 interface ReactionTutorialProps {
   onComplete: () => void;
+  /** When true, skip the localStorage gate and always show. Used by the
+   *  "How to Play" buttons. The first-visit auto-popup has been removed. */
+  forceOpen?: boolean;
 }
 
 const TUTORIAL_STORAGE_KEY = 'elemental-blast-tutorial-seen';
@@ -137,18 +140,19 @@ const tutorialSteps = [
   },
 ];
 
-const ReactionTutorial: React.FC<ReactionTutorialProps> = ({ onComplete }) => {
+const ReactionTutorial: React.FC<ReactionTutorialProps> = ({ onComplete, forceOpen = false }) => {
   const [currentStep, setCurrentStep] = useState(0);
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
-    const hasSeenTutorial = localStorage.getItem(TUTORIAL_STORAGE_KEY);
-    if (!hasSeenTutorial) {
+    // First-visit auto-popup intentionally removed. Tutorial only opens when
+    // the user explicitly requests it via the menu / help chip.
+    if (forceOpen) {
       setIsVisible(true);
     } else {
       onComplete();
     }
-  }, [onComplete]);
+  }, [forceOpen, onComplete]);
 
   const handleNext = () => {
     if (currentStep < tutorialSteps.length - 1) {
