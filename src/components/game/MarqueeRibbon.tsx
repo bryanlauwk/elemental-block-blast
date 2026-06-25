@@ -24,7 +24,7 @@ export const MarqueeRibbon = () => {
             'linear-gradient(90deg, hsl(var(--pixar-navy-deep)) 0%, transparent 8%, transparent 92%, hsl(var(--pixar-navy-deep)) 100%)',
         }}
       />
-      <div className="neon-marquee-track flex w-max items-center gap-10 whitespace-nowrap px-6 text-[10px] font-bold uppercase tracking-[0.35em] sm:text-xs font-sans">
+      <div className="neon-marquee-track flex w-max items-center gap-10 whitespace-nowrap px-6 text-[10px] font-bold uppercase tracking-[0.35em] sm:text-xs font-display">
         {ITEMS.map(({ icon: Icon, label }, i) => (
           <span key={i} className="flex items-center gap-2 text-pixar-yellow">
             <Icon className="h-3 w-3 text-pixar-red" />

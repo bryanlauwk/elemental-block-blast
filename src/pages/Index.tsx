@@ -715,10 +715,10 @@ const Index = () => {
                 {!gameState.isGameOver && (
                   <button
                     onClick={handleHint}
-                    className="mt-2 flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-game-tray/60 border border-game-grid-border/30 text-xs font-bold text-game-text-muted hover:text-white hover:border-pixar-yellow/50 active:scale-95 transition-all"
+                    className="mt-2 flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-white/[0.04] backdrop-blur-md border border-cyan-300/30 text-[11px] font-display font-bold uppercase tracking-[0.22em] text-white/80 hover:text-white hover:border-cyan-300/60 hover:shadow-[0_0_18px_-4px_hsl(190_95%_60%/0.55)] active:scale-95 transition-all"
                     title="Show a helpful move"
                   >
-                    <Lightbulb className="w-3.5 h-3.5 text-pixar-yellow" />
+                    <Lightbulb className="w-3.5 h-3.5 text-cyan-300 drop-shadow-[0_0_6px_hsl(190_95%_60%/0.7)]" />
                     Hint
                   </button>
                 )}
