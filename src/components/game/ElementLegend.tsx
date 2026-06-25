@@ -20,7 +20,7 @@ export function ElementLegend({ variant = 'horizontal' }: ElementLegendProps) {
     <div className="relative w-full">
       {/* Vertical header */}
       {isVertical && (
-        <p className="font-display text-[10px] text-cyan-200/70 uppercase tracking-[0.25em] mb-3 font-bold">
+        <p className="text-xs text-game-text-muted/60 uppercase tracking-wider mb-3 font-medium">
           Elements
         </p>
       )}
