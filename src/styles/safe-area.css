@@ -1,37 +1,11 @@
 /* iOS safe-area and modal guardrails.
-   Loaded last so HUD, tray, orbit controls, and overlays avoid notches/home indicators. */
+   Loaded last so overlays avoid notches and home indicators. */
 
 :root {
   --safe-top: env(safe-area-inset-top, 0px);
   --safe-right: env(safe-area-inset-right, 0px);
   --safe-bottom: env(safe-area-inset-bottom, 0px);
   --safe-left: env(safe-area-inset-left, 0px);
-  --cube-hud-bottom: 184px;
-  --cube-tray-top: 208px;
-}
-
-body:has(#cube-active-grid) .bg-gradient-pixar-stage {
-  padding-top: max(0px, var(--safe-top)) !important;
-  padding-left: max(0px, var(--safe-left)) !important;
-  padding-right: max(0px, var(--safe-right)) !important;
-  padding-bottom: max(0.25rem, var(--safe-bottom)) !important;
-}
-
-body:has(#cube-active-grid) .cube-scene-slot {
-  top: calc(var(--safe-top) + var(--cube-hud-bottom));
-  bottom: calc(var(--safe-bottom) + var(--cube-tray-top));
-  min-height: 190px;
-  pointer-events: auto;
-}
-
-body:has(#cube-active-grid) .z-20.mb-2.flex.flex-col {
-  bottom: calc(var(--safe-bottom) + 6.4rem) !important;
-}
-
-body:has(#cube-active-grid) .z-20:has(.classic-piece-tray) {
-  bottom: max(0.45rem, calc(var(--safe-bottom) + 0.3rem)) !important;
-  left: calc(var(--safe-left) + 0.65rem) !important;
-  right: calc(var(--safe-right) + 0.65rem) !important;
 }
 
 .pixar-modal-overlay,
@@ -40,42 +14,4 @@ body:has(#cube-active-grid) .z-20:has(.classic-piece-tray) {
   padding-right: max(1rem, calc(var(--safe-right) + 1rem));
   padding-bottom: max(1rem, calc(var(--safe-bottom) + 1rem));
   padding-left: max(1rem, calc(var(--safe-left) + 1rem));
-}
-
-@media (min-width: 641px) {
-  body:has(#cube-active-grid) .cube-scene-slot {
-    left: 50%;
-    right: auto;
-    width: min(520px, calc(100vw - 2rem));
-    transform: translateX(-50%);
-  }
-}
-
-@media (max-width: 640px) {
-  :root {
-    --cube-hud-bottom: 172px;
-    --cube-tray-top: 214px;
-  }
-}
-
-@media (max-height: 760px) and (max-width: 640px) {
-  :root {
-    --cube-hud-bottom: 154px;
-    --cube-tray-top: 204px;
-  }
-
-  body:has(#cube-active-grid) .z-20.mb-2.flex.flex-col {
-    bottom: calc(var(--safe-bottom) + 6.05rem) !important;
-  }
-}
-
-@media (max-height: 700px) and (max-width: 430px) {
-  :root {
-    --cube-hud-bottom: 142px;
-    --cube-tray-top: 188px;
-  }
-
-  body:has(#cube-active-grid) .z-20.mb-2.flex.flex-col {
-    bottom: calc(var(--safe-bottom) + 5.7rem) !important;
-  }
 }
