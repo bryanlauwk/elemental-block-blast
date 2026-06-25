@@ -21,11 +21,11 @@ interface MobileMenuProps {
 }
 
 const menuItems = [
-  { id: 'sound', label: 'Sound Settings', icon: Volume2, color: 'text-white' },
-  { id: 'daily', label: 'Daily Challenge', icon: Calendar, color: 'text-pixar-yellow' },
-  { id: 'achievements', label: 'Achievements', icon: Award, color: 'text-pixar-yellow' },
-  { id: 'leaderboard', label: 'Leaderboard', icon: Trophy, color: 'text-pixar-yellow' },
-  { id: 'tutorial', label: 'How to Play', icon: HelpCircle, color: 'text-white' },
+  { id: 'sound', label: 'Sound Lab', helper: 'Music + effects', icon: Volume2, color: 'text-white' },
+  { id: 'daily', label: 'Daily Experiment', helper: 'Same puzzle for everyone', icon: Calendar, color: 'text-pixar-yellow' },
+  { id: 'achievements', label: 'Badges', helper: 'Track toybox milestones', icon: Award, color: 'text-pixar-yellow' },
+  { id: 'leaderboard', label: 'Leaderboard', helper: 'Compare your best run', icon: Trophy, color: 'text-pixar-yellow' },
+  { id: 'tutorial', label: 'How to Play', helper: 'Lines, reactions, Fever', icon: HelpCircle, color: 'text-white' },
 ] as const;
 
 export function MobileMenu({
@@ -58,7 +58,7 @@ export function MobileMenu({
 
   return (
     <>
-      <PixarChip onClick={() => setIsOpen(true)} aria-label="Open menu">
+      <PixarChip onClick={() => setIsOpen(true)} aria-label="Open lab menu">
         <Menu className="w-5 h-5 text-white" />
       </PixarChip>
 
@@ -75,9 +75,12 @@ export function MobileMenu({
             <SheetTitle className="text-white font-display tracking-wide flex items-center gap-2">
               <Flame className="w-5 h-5 text-pixar-red" />
               <span className="bg-gradient-to-r from-pixar-yellow via-white to-pixar-red bg-clip-text text-transparent">
-                Menu
+                Lab Menu
               </span>
             </SheetTitle>
+            <p className="text-left text-xs font-sans text-white/55">
+              Keep the board clean; move everything else into the toybox.
+            </p>
           </SheetHeader>
 
           <nav className="flex flex-col p-3 gap-1.5">
@@ -89,7 +92,7 @@ export function MobileMenu({
                 transition={{ delay: index * 0.05 }}
                 onClick={() => handleItemClick(item.id)}
                 className={cn(
-                  'flex items-center gap-3 w-full px-4 py-3.5 rounded-2xl transition-all',
+                  'flex items-center gap-3 w-full px-4 py-3.5 rounded-2xl transition-all text-left',
                   'bg-pixar-navy-deep/60 hover:bg-pixar-navy/70 active:scale-[0.98]',
                   'border border-pixar-blue/20 hover:border-pixar-yellow/45',
                 )}
@@ -100,7 +103,10 @@ export function MobileMenu({
                     fill={item.id === 'leaderboard' ? 'hsl(var(--pixar-yellow))' : undefined}
                   />
                 </div>
-                <span className="text-white font-sans font-bold text-sm tracking-wide">{item.label}</span>
+                <span className="flex flex-col">
+                  <span className="text-white font-sans font-bold text-sm tracking-wide">{item.label}</span>
+                  <span className="text-white/45 text-[11px] font-sans">{item.helper}</span>
+                </span>
               </motion.button>
             ))}
 
@@ -134,7 +140,7 @@ export function MobileMenu({
                 transition={{ delay: (menuItems.length + 1) * 0.05 }}
                 onClick={() => handleItemClick('reactions')}
                 className={cn(
-                  'flex items-center gap-3 w-full px-4 py-3.5 rounded-2xl transition-all',
+                  'flex items-center gap-3 w-full px-4 py-3.5 rounded-2xl transition-all text-left',
                   reactionFeedActive
                     ? 'bg-pixar-yellow/15 border border-pixar-yellow/50'
                     : 'bg-pixar-navy-deep/60 hover:bg-pixar-navy/70 border border-pixar-blue/20 hover:border-pixar-yellow/45',
@@ -144,8 +150,11 @@ export function MobileMenu({
                 <div className="pixar-glass-chip w-10 h-10 rounded-xl flex items-center justify-center">
                   <Zap className={cn('w-5 h-5', reactionFeedActive ? 'text-pixar-yellow' : 'text-white')} />
                 </div>
-                <span className="text-white font-sans font-bold text-sm tracking-wide">
-                  {reactionFeedActive ? 'Hide Reactions' : 'Show Reactions'}
+                <span className="flex flex-col">
+                  <span className="text-white font-sans font-bold text-sm tracking-wide">
+                    {reactionFeedActive ? 'Hide Reactions' : 'Reaction Log'}
+                  </span>
+                  <span className="text-white/45 text-[11px] font-sans">See the latest experiment chain</span>
                 </span>
               </motion.button>
             )}
