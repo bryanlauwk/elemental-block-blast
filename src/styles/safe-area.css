@@ -6,8 +6,8 @@
   --safe-right: env(safe-area-inset-right, 0px);
   --safe-bottom: env(safe-area-inset-bottom, 0px);
   --safe-left: env(safe-area-inset-left, 0px);
-  --cube-hud-bottom: clamp(134px, 18dvh, 178px);
-  --cube-tray-top: clamp(132px, 18dvh, 170px);
+  --cube-hud-bottom: 184px;
+  --cube-tray-top: 208px;
 }
 
 body:has(#cube-active-grid) .bg-gradient-pixar-stage {
@@ -20,7 +20,7 @@ body:has(#cube-active-grid) .bg-gradient-pixar-stage {
 body:has(#cube-active-grid) .cube-scene-slot {
   top: calc(var(--safe-top) + var(--cube-hud-bottom));
   bottom: calc(var(--safe-bottom) + var(--cube-tray-top));
-  min-height: 180px;
+  min-height: 190px;
   pointer-events: auto;
 }
 
@@ -42,10 +42,26 @@ body:has(#cube-active-grid) .z-20:has(.classic-piece-tray) {
   padding-left: max(1rem, calc(var(--safe-left) + 1rem));
 }
 
+@media (min-width: 641px) {
+  body:has(#cube-active-grid) .cube-scene-slot {
+    left: 50%;
+    right: auto;
+    width: min(520px, calc(100vw - 2rem));
+    transform: translateX(-50%);
+  }
+}
+
+@media (max-width: 640px) {
+  :root {
+    --cube-hud-bottom: 172px;
+    --cube-tray-top: 214px;
+  }
+}
+
 @media (max-height: 760px) and (max-width: 640px) {
   :root {
-    --cube-hud-bottom: clamp(120px, 16dvh, 150px);
-    --cube-tray-top: clamp(122px, 17dvh, 155px);
+    --cube-hud-bottom: 154px;
+    --cube-tray-top: 204px;
   }
 
   body:has(#cube-active-grid) .z-20.mb-2.flex.flex-col {
@@ -55,8 +71,8 @@ body:has(#cube-active-grid) .z-20:has(.classic-piece-tray) {
 
 @media (max-height: 700px) and (max-width: 430px) {
   :root {
-    --cube-hud-bottom: 112px;
-    --cube-tray-top: 142px;
+    --cube-hud-bottom: 142px;
+    --cube-tray-top: 188px;
   }
 
   body:has(#cube-active-grid) .z-20.mb-2.flex.flex-col {
