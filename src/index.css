@@ -665,6 +665,20 @@ All colors MUST be HSL.
   position: relative;
 }
 
+.pixar-modal-shell--scroll {
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+@supports (height: 100svh) {
+  @media (max-width: 640px) {
+    .pixar-modal-shell--scroll {
+      max-height: calc(100svh - 1.5rem);
+    }
+  }
+}
+
 .pixar-text-shimmer {
   background: linear-gradient(
     100deg,
