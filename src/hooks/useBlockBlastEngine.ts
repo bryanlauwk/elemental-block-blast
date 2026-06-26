@@ -24,7 +24,6 @@ import {
   type ReactionPreviewSummary,
   type ParticleTrigger,
 } from '@/game/engine';
-import { GRID_WIDTH, GRID_HEIGHT } from '@/game/types';
 
 // Re-export the reaction types so existing component imports keep working.
 export type { ReactionPreview, ReactionEvent, ReactionPreviewSummary, ParticleTrigger };
