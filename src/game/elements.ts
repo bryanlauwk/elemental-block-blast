@@ -130,4 +130,16 @@ export const ELEMENT_INFO: Record<ElementType, ElementInfo> = {
       'Banks the treasure bonus',
     ],
   },
+  bomb: {
+    name: 'Ticking Bomb',
+    symbol: '💣',
+    color: 'hsl(0, 0%, 14%)',
+    glowColor: 'hsl(0, 95%, 58%)',
+    description: '5-second fuse — detonates its entire row & column!',
+    rules: [
+      'Counts down from 5 each second',
+      'On 0: clears the full row AND column',
+      'Clear lines around it to defuse early',
+    ],
+  },
 };
