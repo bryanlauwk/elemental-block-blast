@@ -1,7 +1,6 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Award, Lock, Trophy } from 'lucide-react';
 import { Achievement } from '@/hooks/useAchievements';
-import { modalStyles } from '@/game/theme';
 
 interface AchievementsModalProps {
   isOpen: boolean;
@@ -20,28 +19,21 @@ export function AchievementsModal({ isOpen, onClose, achievements, totalPoints }
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-50 flex items-center justify-center bg-pixar-navy-deep/60 backdrop-blur-2xl backdrop-saturate-150 p-2 sm:p-4"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-[hsl(var(--neon-bg-deep)/0.78)] backdrop-blur-2xl backdrop-saturate-150 p-2 sm:p-4"
           onClick={onClose}
         >
           <motion.div
             initial={{ scale: 0.9, opacity: 0, y: 20 }}
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.9, opacity: 0, y: 20 }}
-            className="pixar-modal-shell w-full max-w-md"
+            className="neon-modal-shell w-full max-w-md"
             onClick={(e) => e.stopPropagation()}
-            style={modalStyles.container}
           >
-            {/* Decorative top gradient bar */}
-            <div 
-              className="absolute top-0 left-0 right-0 h-1"
-              style={{
-                background: 'linear-gradient(90deg, #FF6B35 0%, #FFD700 50%, #00E5FF 100%)',
-              }}
-            />
+            <div className="neon-accent-bar" />
 
             {/* Header */}
-            <div className="sticky top-0 backdrop-blur-md border-b border-white/10 px-4 sm:px-6 py-3 sm:py-4 z-10"
-              style={{ background: 'hsl(var(--pixar-navy-deep) / 0.6)' }}
+            <div className="sticky top-0 backdrop-blur-md border-b border-[hsl(var(--neon-cyan)/0.2)] px-4 sm:px-6 py-3 sm:py-4 z-10"
+              style={{ background: 'hsl(var(--neon-bg-deep) / 0.7)' }}
             >
               <button
                 onClick={onClose}
@@ -51,16 +43,13 @@ export function AchievementsModal({ isOpen, onClose, achievements, totalPoints }
               </button>
 
               <div className="flex items-center gap-3">
-                <div 
-                  className="w-11 h-11 rounded-xl flex items-center justify-center"
-                  style={modalStyles.headerIconGold}
-                >
-                  <Trophy className="w-6 h-6 text-amber-900" />
+                <div className="neon-icon-chip neon-icon-chip--amber w-11 h-11">
+                  <Trophy className="w-6 h-6" />
                 </div>
                 <div>
-                  <h2 className="text-xl font-bold text-white">Achievements</h2>
+                  <h2 className="font-display text-xl font-bold uppercase tracking-wide text-white">Achievements</h2>
                   <p className="text-sm text-white/50">
-                    <span className="text-[#FFD700] font-medium">{unlockedCount}/{achievements.length}</span> unlocked • <span className="text-[#00E5FF] font-medium">{totalPoints}</span> pts
+                    <span className="font-display text-[hsl(var(--neon-amber))] font-bold">{unlockedCount}/{achievements.length}</span> unlocked • <span className="font-display text-[hsl(var(--neon-cyan))] font-bold">{totalPoints}</span> pts
                   </p>
                 </div>
               </div>
@@ -74,28 +63,15 @@ export function AchievementsModal({ isOpen, onClose, achievements, totalPoints }
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: index * 0.05 }}
-                  className={`
-                    relative p-4 rounded-xl border transition-all
-                    ${achievement.unlocked 
-                      ? 'border-[#FFD700]/30' 
-                      : 'bg-white/5 border-white/10 opacity-60'
-                    }
-                  `}
-                  style={achievement.unlocked ? modalStyles.infoBoxFire : undefined}
+                  className={`neon-row p-4 ${achievement.unlocked ? 'neon-row--amber' : 'neon-row--locked'}`}
                 >
                   <div className="flex items-center gap-4">
                     {/* Icon */}
-                    <div className={`
-                      w-12 h-12 rounded-xl flex items-center justify-center text-2xl
-                      ${achievement.unlocked 
-                        ? '' 
-                        : 'bg-white/10 border border-white/10'
-                      }
-                    `}
-                    style={achievement.unlocked ? {
-                      background: 'linear-gradient(135deg, rgba(255,215,0,0.2) 0%, rgba(255,159,67,0.15) 100%)',
-                      border: '1px solid rgba(255,215,0,0.4)',
-                    } : undefined}
+                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-2xl ${
+                      achievement.unlocked
+                        ? 'neon-icon-chip neon-icon-chip--amber'
+                        : 'bg-white/5 border border-white/10'
+                    }`}
                     >
                       {achievement.unlocked ? achievement.icon : <Lock className="w-5 h-5 text-white/40" />}
                     </div>
@@ -103,12 +79,12 @@ export function AchievementsModal({ isOpen, onClose, achievements, totalPoints }
                     {/* Info */}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-0.5">
-                        <h3 className={`font-bold truncate ${achievement.unlocked ? 'text-white' : 'text-white/50'}`}>
+                        <h3 className={`font-display font-bold uppercase tracking-wide truncate ${achievement.unlocked ? 'text-white' : 'text-white/50'}`}>
                           {achievement.name}
                         </h3>
-                        <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
+                        <span className={`font-display text-xs font-bold px-2 py-0.5 rounded-full ${
                           achievement.unlocked 
-                            ? 'bg-[#FFD700]/20 text-[#FFD700]' 
+                            ? 'bg-[hsl(var(--neon-amber)/0.18)] text-[hsl(var(--neon-amber))] border border-[hsl(var(--neon-amber)/0.4)]'
                             : 'bg-white/10 text-white/40'
                         }`}>
                           +{achievement.points}
@@ -129,7 +105,10 @@ export function AchievementsModal({ isOpen, onClose, achievements, totalPoints }
                             <motion.div
                               className="h-full rounded-full"
                               style={{
-                                background: 'linear-gradient(90deg, #FF6B35 0%, #FFD700 100%)',
+                                background:
+                                  'linear-gradient(90deg, hsl(var(--neon-cyan)) 0%, hsl(var(--neon-magenta)) 100%)',
+                                boxShadow:
+                                  '0 0 12px hsl(var(--neon-cyan) / 0.5)',
                               }}
                               initial={{ width: 0 }}
                               animate={{ 
@@ -147,13 +126,9 @@ export function AchievementsModal({ isOpen, onClose, achievements, totalPoints }
                       <motion.div
                         initial={{ scale: 0 }}
                         animate={{ scale: 1 }}
-                        className="w-8 h-8 rounded-full flex items-center justify-center"
-                        style={{
-                          background: 'linear-gradient(135deg, rgba(0,229,255,0.2) 0%, rgba(0,180,216,0.15) 100%)',
-                          border: '1px solid rgba(0,229,255,0.5)',
-                        }}
+                        className="neon-icon-chip w-8 h-8 rounded-full"
                       >
-                        <span className="text-[#00E5FF]">✓</span>
+                        <span className="text-[hsl(var(--neon-cyan))]">✓</span>
                       </motion.div>
                     )}
                   </div>
