@@ -57,6 +57,15 @@ const ReactionParticles: React.FC<ReactionParticlesProps> = ({
   const [bombFlashes, setBombFlashes] = useState<
     { id: string; x: number; y: number }[]
   >([]);
+  const [bombCharges, setBombCharges] = useState<
+    { id: string; x: number; y: number }[]
+  >([]);
+  const [bombFireballs, setBombFireballs] = useState<
+    { id: string; x: number; y: number }[]
+  >([]);
+  const [bombSmokes, setBombSmokes] = useState<
+    { id: string; x: number; y: number }[]
+  >([]);
 
   useEffect(() => {
     if (!trigger || trigger.positions.length === 0) return;
@@ -64,24 +73,24 @@ const ReactionParticles: React.FC<ReactionParticlesProps> = ({
     if (trigger.type === 'bomb') {
       const centers = trigger.centers ?? trigger.positions;
       const newParticles: Particle[] = [];
-      const debrisColors = ['#fff3b0', '#ffb627', '#ff6b35', '#d62828', '#6c757d'];
+      const debrisColors = ['#fff3b0', '#ffb627', '#ff6b35', '#d62828', '#6c757d', '#2b2b2b'];
 
       centers.forEach((pos) => {
         const cx = gridOffset.x + (pos.x + 0.5) * cellSize;
         const cy = gridOffset.y + (pos.y + 0.5) * cellSize;
-        // Radial debris shards — fast outward, gravity-tinted downward bias.
-        for (let i = 0; i < 14; i++) {
-          const angle = (Math.PI * 2 * i) / 14 + Math.random() * 0.3;
+        // Radial debris shards — denser ring with gravity-affected fall.
+        for (let i = 0; i < 22; i++) {
+          const angle = (Math.PI * 2 * i) / 22 + Math.random() * 0.3;
           newParticles.push({
             id: `bomb-${trigger.timestamp}-${pos.x}-${pos.y}-${i}`,
             x: cx,
             y: cy,
             type: 'bomb',
             emoji: '',
-            delay: Math.random() * 0.04,
+            delay: Math.random() * 0.05,
             angle,
-            distance: 60 + Math.random() * 90,
-            size: 3 + Math.random() * 4,
+            distance: 70 + Math.random() * 130,
+            size: 3 + Math.random() * 5,
             color: debrisColors[i % debrisColors.length],
           });
         }
@@ -89,7 +98,12 @@ const ReactionParticles: React.FC<ReactionParticlesProps> = ({
 
       setParticles((prev) => [...prev, ...newParticles]);
 
-      // Big bomb shockwave + white flash per epicenter.
+      // Layered FX per epicenter: charge ring → flash → shockwave → fireball → smoke plume.
+      const newCharges = centers.map((pos) => ({
+        id: `bc-${trigger.timestamp}-${pos.x}-${pos.y}`,
+        x: gridOffset.x + (pos.x + 0.5) * cellSize,
+        y: gridOffset.y + (pos.y + 0.5) * cellSize,
+      }));
       const newShocks = centers.map((pos) => ({
         id: `bs-${trigger.timestamp}-${pos.x}-${pos.y}`,
         x: gridOffset.x + (pos.x + 0.5) * cellSize,
@@ -101,21 +115,46 @@ const ReactionParticles: React.FC<ReactionParticlesProps> = ({
         x: gridOffset.x + (pos.x + 0.5) * cellSize,
         y: gridOffset.y + (pos.y + 0.5) * cellSize,
       }));
+      const newFireballs = centers.map((pos) => ({
+        id: `bfb-${trigger.timestamp}-${pos.x}-${pos.y}`,
+        x: gridOffset.x + (pos.x + 0.5) * cellSize,
+        y: gridOffset.y + (pos.y + 0.5) * cellSize,
+      }));
+      const newSmokes = centers.map((pos) => ({
+        id: `bsm-${trigger.timestamp}-${pos.x}-${pos.y}`,
+        x: gridOffset.x + (pos.x + 0.5) * cellSize,
+        y: gridOffset.y + (pos.y + 0.5) * cellSize,
+      }));
+      setBombCharges((prev) => [...prev, ...newCharges]);
       setShockwaves((prev) => [...prev, ...newShocks]);
       setBombFlashes((prev) => [...prev, ...newFlashes]);
+      setBombFireballs((prev) => [...prev, ...newFireballs]);
+      setBombSmokes((prev) => [...prev, ...newSmokes]);
 
+      const chargeTimeout = setTimeout(() => {
+        setBombCharges((prev) => prev.filter((c) => !newCharges.some((nc) => nc.id === c.id)));
+      }, 260);
       const shockTimeout = setTimeout(() => {
         setShockwaves((prev) => prev.filter((s) => !newShocks.some((ns) => ns.id === s.id)));
-      }, 900);
+      }, 950);
       const flashTimeout = setTimeout(() => {
         setBombFlashes((prev) => prev.filter((f) => !newFlashes.some((nf) => nf.id === f.id)));
-      }, 500);
+      }, 550);
+      const fireballTimeout = setTimeout(() => {
+        setBombFireballs((prev) => prev.filter((b) => !newFireballs.some((nb) => nb.id === b.id)));
+      }, 700);
+      const smokeTimeout = setTimeout(() => {
+        setBombSmokes((prev) => prev.filter((s) => !newSmokes.some((ns) => ns.id === s.id)));
+      }, 1500);
       const particleTimeout = setTimeout(() => {
         setParticles((prev) => prev.filter((p) => !newParticles.some((np) => np.id === p.id)));
-      }, 950);
+      }, 1100);
       return () => {
+        clearTimeout(chargeTimeout);
         clearTimeout(shockTimeout);
         clearTimeout(flashTimeout);
+        clearTimeout(fireballTimeout);
+        clearTimeout(smokeTimeout);
         clearTimeout(particleTimeout);
       };
     }
@@ -159,6 +198,28 @@ const ReactionParticles: React.FC<ReactionParticlesProps> = ({
 
   return (
     <div className="absolute inset-0 pointer-events-none overflow-hidden z-40">
+      {/* Bomb charge ring — quick yellow pre-detonation pop */}
+      {bombCharges.map((c) => (
+        <motion.div
+          key={c.id}
+          className="absolute rounded-full"
+          initial={{ opacity: 0.9, scale: 0.4 }}
+          animate={{ opacity: 0, scale: 1.6 }}
+          transition={{ duration: 0.22, ease: 'easeOut' }}
+          style={{
+            left: c.x,
+            top: c.y,
+            width: cellSize * 1.4,
+            height: cellSize * 1.4,
+            marginLeft: -(cellSize * 0.7),
+            marginTop: -(cellSize * 0.7),
+            background:
+              'radial-gradient(circle, rgba(255,247,194,1) 0%, rgba(255,209,102,0.85) 45%, rgba(255,107,53,0) 80%)',
+            mixBlendMode: 'screen',
+            filter: 'blur(0.5px)',
+          }}
+        />
+      ))}
       {/* Bomb white flash — quick high-intensity burst */}
       {bombFlashes.map((f) => (
         <motion.div
@@ -178,6 +239,28 @@ const ReactionParticles: React.FC<ReactionParticlesProps> = ({
               'radial-gradient(circle, rgba(255,255,255,1) 0%, rgba(255,224,130,0.85) 25%, rgba(255,107,53,0.55) 55%, rgba(214,40,40,0) 80%)',
             mixBlendMode: 'screen',
             filter: 'blur(1px)',
+          }}
+        />
+      ))}
+      {/* Fireball — orange/red core that lingers a moment longer */}
+      {bombFireballs.map((b) => (
+        <motion.div
+          key={b.id}
+          className="absolute rounded-full"
+          initial={{ opacity: 0.95, scale: 0.5 }}
+          animate={{ opacity: [0.95, 0.8, 0], scale: [0.5, 1.6, 2.1] }}
+          transition={{ duration: 0.65, times: [0, 0.5, 1], ease: 'easeOut' }}
+          style={{
+            left: b.x,
+            top: b.y,
+            width: cellSize * 2,
+            height: cellSize * 2,
+            marginLeft: -(cellSize * 1),
+            marginTop: -(cellSize * 1),
+            background:
+              'radial-gradient(circle, rgba(255,209,102,0.95) 0%, rgba(255,107,53,0.85) 35%, rgba(214,40,40,0.55) 65%, rgba(60,10,10,0) 90%)',
+            filter: 'blur(2px)',
+            mixBlendMode: 'screen',
           }}
         />
       ))}
@@ -203,6 +286,27 @@ const ReactionParticles: React.FC<ReactionParticlesProps> = ({
             }}
           />
         ) : null
+      ))}
+      {/* Dissipation — rising dark smoke plume */}
+      {bombSmokes.map((s) => (
+        <motion.div
+          key={s.id}
+          className="absolute rounded-full"
+          initial={{ opacity: 0.55, scale: 0.7, x: 0, y: 0 }}
+          animate={{ opacity: 0, scale: 1.9, y: -cellSize * 1.4 }}
+          transition={{ duration: 1.3, delay: 0.25, ease: 'easeOut' }}
+          style={{
+            left: s.x,
+            top: s.y,
+            width: cellSize * 1.8,
+            height: cellSize * 1.8,
+            marginLeft: -(cellSize * 0.9),
+            marginTop: -(cellSize * 0.9),
+            background:
+              'radial-gradient(circle, rgba(70,55,55,0.7) 0%, rgba(40,30,30,0.45) 45%, rgba(20,15,15,0) 85%)',
+            filter: 'blur(4px)',
+          }}
+        />
       ))}
       {/* Dark smoke ring follow-up for bomb */}
       {shockwaves.filter((s) => s.kind === 'bomb').map((s) => (

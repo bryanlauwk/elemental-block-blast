@@ -15,7 +15,8 @@ interface ElementBlockProps {
 export function ElementBlock({ element, size = 36, isPreview = false, showSymbol = true, countdown }: ElementBlockProps) {
   const info = ELEMENT_INFO[element];
   const isBomb = element === 'bomb';
-  const bombUrgent = isBomb && typeof countdown === 'number' && countdown <= 2;
+  const bombUrgent = isBomb && typeof countdown === 'number' && countdown <= 3;
+  const bombCritical = isBomb && typeof countdown === 'number' && countdown <= 1;
 
   const getElementStyles = (): React.CSSProperties => {
     // Chunky Pixar "toy cube": glossy top, beveled inner edges and a short
@@ -50,10 +51,13 @@ export function ElementBlock({ element, size = 36, isPreview = false, showSymbol
       }
       className={cn(
         'relative flex items-center justify-center select-none border border-white/25 game-grid-cell overflow-hidden',
-        bombUrgent && 'animate-pulse',
+        isBomb && !isPreview && (bombCritical ? 'bomb-critical-shell' : bombUrgent ? 'bomb-urgent-shell' : ''),
       )}
       style={getElementStyles()}
     >
+      {isBomb && !isPreview && (
+        <span aria-hidden className="bomb-fuse-spark" />
+      )}
       {/* Top gloss */}
       {!isPreview && (
         <span
