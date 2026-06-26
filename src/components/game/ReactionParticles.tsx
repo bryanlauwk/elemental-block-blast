@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Position } from '@/game/types';
+import { BOMB_TIMINGS } from '@/game/bombTimings';
 
 interface Particle {
   id: string;
@@ -133,22 +134,22 @@ const ReactionParticles: React.FC<ReactionParticlesProps> = ({
 
       const chargeTimeout = setTimeout(() => {
         setBombCharges((prev) => prev.filter((c) => !newCharges.some((nc) => nc.id === c.id)));
-      }, 260);
+      }, BOMB_TIMINGS.chargeMs + 40);
       const shockTimeout = setTimeout(() => {
         setShockwaves((prev) => prev.filter((s) => !newShocks.some((ns) => ns.id === s.id)));
-      }, 950);
+      }, BOMB_TIMINGS.shockwaveMs + 250);
       const flashTimeout = setTimeout(() => {
         setBombFlashes((prev) => prev.filter((f) => !newFlashes.some((nf) => nf.id === f.id)));
-      }, 550);
+      }, BOMB_TIMINGS.flashMs + 100);
       const fireballTimeout = setTimeout(() => {
         setBombFireballs((prev) => prev.filter((b) => !newFireballs.some((nb) => nb.id === b.id)));
-      }, 700);
+      }, BOMB_TIMINGS.fireballMs + 50);
       const smokeTimeout = setTimeout(() => {
         setBombSmokes((prev) => prev.filter((s) => !newSmokes.some((ns) => ns.id === s.id)));
-      }, 1500);
+      }, BOMB_TIMINGS.smokePlumeDelayMs + BOMB_TIMINGS.smokePlumeMs);
       const particleTimeout = setTimeout(() => {
         setParticles((prev) => prev.filter((p) => !newParticles.some((np) => np.id === p.id)));
-      }, 1100);
+      }, BOMB_TIMINGS.debrisMs + 300);
       return () => {
         clearTimeout(chargeTimeout);
         clearTimeout(shockTimeout);
