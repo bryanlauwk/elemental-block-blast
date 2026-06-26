@@ -208,7 +208,7 @@ const ReactionParticles: React.FC<ReactionParticlesProps> = ({
             id: `brp-${trigger.timestamp}-${pos.x}-${pos.y}-${i}`,
             x: cx,
             y: cy,
-            delay: (i * 90) / 1000,
+            delay: (i * 40) / 1000,
             ringIndex: i,
           });
         }
