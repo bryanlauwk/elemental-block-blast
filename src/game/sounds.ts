@@ -402,6 +402,41 @@ function playHighScore(): void {
   setTimeout(() => { for (let i = 0; i < 6; i++) setTimeout(() => createTone(ctx, 1500 + Math.random() * 1000, 'sine', 0.1, 0.1, 0.01, 0.05), i * 50); }, 400);
 }
 
+// === Bomb SFX (sample-based via HTMLAudioElement) ===
+// Pooled players so rapid triggers don't cut each other off.
+const SFX_POOL_SIZE = 3;
+function buildSfxPool(url: string): HTMLAudioElement[] {
+  if (typeof window === 'undefined') return [];
+  const pool: HTMLAudioElement[] = [];
+  for (let i = 0; i < SFX_POOL_SIZE; i++) {
+    try {
+      const a = new Audio(url);
+      a.preload = 'auto';
+      a.crossOrigin = 'anonymous';
+      pool.push(a);
+    } catch {}
+  }
+  return pool;
+}
+const bombPool = buildSfxPool(bombSfx.url);
+const fusePool = buildSfxPool(fuseSfx.url);
+let bombPoolIdx = 0;
+let fusePoolIdx = 0;
+function playFromPool(pool: HTMLAudioElement[], idxRef: 'bomb' | 'fuse', volume: number) {
+  if (!pool.length) return;
+  const idx = idxRef === 'bomb' ? bombPoolIdx : fusePoolIdx;
+  const audio = pool[idx];
+  if (idxRef === 'bomb') bombPoolIdx = (bombPoolIdx + 1) % pool.length;
+  else fusePoolIdx = (fusePoolIdx + 1) % pool.length;
+  try {
+    audio.currentTime = 0;
+    audio.volume = volume;
+    void audio.play();
+  } catch {}
+}
+function playBomb(): void { playFromPool(bombPool, 'bomb', 0.75); }
+function playFuse(): void { playFromPool(fusePool, 'fuse', 0.45); }
+
 let sfxEnabled = true;
 let musicEnabled = true;
 let musicVolume = 0.24;
