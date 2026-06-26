@@ -435,6 +435,37 @@ const ReactionParticles: React.FC<ReactionParticlesProps> = ({
           />
         );
       })}
+      {/* Centered shockwave ripples — concentric expanding rings synced with the beam */}
+      {bombRipples.map((r) => {
+        const baseSize = cellSize * (2.6 + r.ringIndex * 0.4);
+        const maxScale = 3.4 + r.ringIndex * 0.5;
+        const borderAlpha = 0.85 - r.ringIndex * 0.22;
+        return (
+          <motion.span
+            key={r.id}
+            className="absolute rounded-full pointer-events-none"
+            initial={{ opacity: 0, scale: 0.15 }}
+            animate={{ opacity: [0, borderAlpha, 0], scale: [0.15, maxScale * 0.6, maxScale] }}
+            transition={{
+              duration: (BOMB_TIMINGS.shockwaveMs + 200) / 1000,
+              delay: r.delay,
+              times: [0, 0.35, 1],
+              ease: [0.16, 1, 0.3, 1],
+            }}
+            style={{
+              left: r.x,
+              top: r.y,
+              width: baseSize,
+              height: baseSize,
+              marginLeft: -(baseSize / 2),
+              marginTop: -(baseSize / 2),
+              border: `${Math.max(2, 4 - r.ringIndex)}px solid rgba(255, ${210 - r.ringIndex * 20}, ${120 - r.ringIndex * 30}, ${borderAlpha})`,
+              boxShadow: `0 0 ${28 - r.ringIndex * 6}px rgba(255,140,60,${0.6 - r.ringIndex * 0.15}), inset 0 0 ${18 - r.ringIndex * 4}px rgba(255,200,100,${0.45 - r.ringIndex * 0.12})`,
+              mixBlendMode: 'screen',
+            }}
+          />
+        );
+      })}
       {/* Per-cell impact flashes sweeping outward along the row/column */}
       {bombCellFlashes.map((f) => (
         <motion.div
