@@ -13,7 +13,9 @@ export type SoundType =
   | 'gameOver'
   | 'drop'
   | 'select'
-  | 'highScore';
+  | 'highScore'
+  | 'bomb'
+  | 'fuse';
 
 export type LoFiMusicType =
   | 'cozy'
@@ -33,6 +35,8 @@ import morningTrack from '@/assets/music/morning.mp3.asset.json';
 import djTrack from '@/assets/music/dj.mp3.asset.json';
 import sunsetTrack from '@/assets/music/sunset.mp3.asset.json';
 import coffeeTrack from '@/assets/music/coffee.mp3.asset.json';
+import bombSfx from '@/assets/sfx/bomb.mp3.asset.json';
+import fuseSfx from '@/assets/sfx/fuse.mp3.asset.json';
 
 // Real ElevenLabs-generated lo-fi loops, one per mood.
 const LOFI_TRACK_URLS: Record<LoFiMusicType, string> = {
