@@ -65,8 +65,8 @@ const GridCell = memo(function GridCell({
         cellSize,
         !cell.element && !previewElement && 'bg-game-cell',
         !cell.element && hasSelectedPiece && 'hover:bg-game-cell-hover',
-        isPreview && isValidPreview && 'ring-2 ring-game-accent/70',
-        isPreview && !isValidPreview && 'ring-2 ring-red-400/60 animate-pulse',
+        isPreview && isValidPreview && 'placement-preview-valid',
+        isPreview && !isValidPreview && 'placement-preview-invalid animate-pulse',
       )}
       onMouseEnter={() => onCellHover({ x, y })}
       onClick={() => onCellClick({ x, y })}
@@ -108,7 +108,7 @@ const GridCell = memo(function GridCell({
       )}
 
       {previewElement && !cell.element && isValidPreview && (
-        <div className="w-full h-full flex items-center justify-center p-0.5 opacity-60">
+        <div className="w-full h-full flex items-center justify-center p-0.5 opacity-85 placement-ghost-block">
           <ElementBlock element={previewElement as any} size={36} isPreview />
         </div>
       )}
