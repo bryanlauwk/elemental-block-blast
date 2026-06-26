@@ -37,8 +37,10 @@ export interface ReactionPreviewSummary {
 }
 
 export interface ParticleTrigger {
-  type: 'burn' | 'extinguish' | 'dissolve';
+  type: 'burn' | 'extinguish' | 'dissolve' | 'bomb';
   positions: Position[];
+  /** For 'bomb': the detonation epicenters (bomb cells). Used for fireball + flash. */
+  centers?: Position[];
   timestamp: number;
 }
 

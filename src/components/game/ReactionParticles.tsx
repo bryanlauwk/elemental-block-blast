@@ -6,18 +6,20 @@ interface Particle {
   id: string;
   x: number;
   y: number;
-  type: 'burn' | 'extinguish' | 'dissolve';
+  type: 'burn' | 'extinguish' | 'dissolve' | 'bomb';
   emoji: string;
   delay: number;
   angle: number;
   distance: number;
   size: number;
+  color?: string;
 }
 
 interface ReactionParticlesProps {
   trigger: {
-    type: 'burn' | 'extinguish' | 'dissolve';
+    type: 'burn' | 'extinguish' | 'dissolve' | 'bomb';
     positions: Position[];
+    centers?: Position[];
     timestamp: number;
   } | null;
   cellSize?: number;
@@ -27,19 +29,19 @@ interface ReactionParticlesProps {
 // Subtle, quick particle bursts so they don't obscure the board.
 const particleConfig = {
   burn: {
-    emojis: ['✨', '🔥'],
-    colors: ['#ff6b35', '#ff9f1c', '#ffcd3c'],
-    count: 3,
+    emojis: ['✨'],
+    colors: ['#ff9f1c'],
+    count: 1,
   },
   extinguish: {
-    emojis: ['💧', '✨'],
-    colors: ['#00b4d8', '#48cae4', '#90e0ef'],
-    count: 3,
+    emojis: ['✨'],
+    colors: ['#48cae4'],
+    count: 1,
   },
   dissolve: {
-    emojis: ['✨', '🧪'],
-    colors: ['#52b788', '#40916c', '#74c69d'],
-    count: 2,
+    emojis: ['✨'],
+    colors: ['#52b788'],
+    count: 1,
   },
 };
 
@@ -50,11 +52,73 @@ const ReactionParticles: React.FC<ReactionParticlesProps> = ({
 }) => {
   const [particles, setParticles] = useState<Particle[]>([]);
   const [shockwaves, setShockwaves] = useState<
-    { id: string; x: number; y: number; type: 'burn' | 'extinguish' | 'dissolve' }[]
+    { id: string; x: number; y: number; kind: 'reaction' | 'bomb' }[]
+  >([]);
+  const [bombFlashes, setBombFlashes] = useState<
+    { id: string; x: number; y: number }[]
   >([]);
 
   useEffect(() => {
     if (!trigger || trigger.positions.length === 0) return;
+
+    if (trigger.type === 'bomb') {
+      const centers = trigger.centers ?? trigger.positions;
+      const newParticles: Particle[] = [];
+      const debrisColors = ['#fff3b0', '#ffb627', '#ff6b35', '#d62828', '#6c757d'];
+
+      centers.forEach((pos) => {
+        const cx = gridOffset.x + (pos.x + 0.5) * cellSize;
+        const cy = gridOffset.y + (pos.y + 0.5) * cellSize;
+        // Radial debris shards — fast outward, gravity-tinted downward bias.
+        for (let i = 0; i < 14; i++) {
+          const angle = (Math.PI * 2 * i) / 14 + Math.random() * 0.3;
+          newParticles.push({
+            id: `bomb-${trigger.timestamp}-${pos.x}-${pos.y}-${i}`,
+            x: cx,
+            y: cy,
+            type: 'bomb',
+            emoji: '',
+            delay: Math.random() * 0.04,
+            angle,
+            distance: 60 + Math.random() * 90,
+            size: 3 + Math.random() * 4,
+            color: debrisColors[i % debrisColors.length],
+          });
+        }
+      });
+
+      setParticles((prev) => [...prev, ...newParticles]);
+
+      // Big bomb shockwave + white flash per epicenter.
+      const newShocks = centers.map((pos) => ({
+        id: `bs-${trigger.timestamp}-${pos.x}-${pos.y}`,
+        x: gridOffset.x + (pos.x + 0.5) * cellSize,
+        y: gridOffset.y + (pos.y + 0.5) * cellSize,
+        kind: 'bomb' as const,
+      }));
+      const newFlashes = centers.map((pos) => ({
+        id: `bf-${trigger.timestamp}-${pos.x}-${pos.y}`,
+        x: gridOffset.x + (pos.x + 0.5) * cellSize,
+        y: gridOffset.y + (pos.y + 0.5) * cellSize,
+      }));
+      setShockwaves((prev) => [...prev, ...newShocks]);
+      setBombFlashes((prev) => [...prev, ...newFlashes]);
+
+      const shockTimeout = setTimeout(() => {
+        setShockwaves((prev) => prev.filter((s) => !newShocks.some((ns) => ns.id === s.id)));
+      }, 900);
+      const flashTimeout = setTimeout(() => {
+        setBombFlashes((prev) => prev.filter((f) => !newFlashes.some((nf) => nf.id === f.id)));
+      }, 500);
+      const particleTimeout = setTimeout(() => {
+        setParticles((prev) => prev.filter((p) => !newParticles.some((np) => np.id === p.id)));
+      }, 950);
+      return () => {
+        clearTimeout(shockTimeout);
+        clearTimeout(flashTimeout);
+        clearTimeout(particleTimeout);
+      };
+    }
 
     const config = particleConfig[trigger.type];
     const newParticles: Particle[] = [];
@@ -76,57 +140,124 @@ const ReactionParticles: React.FC<ReactionParticlesProps> = ({
           delay: Math.random() * 0.1,
           angle,
           distance,
-          size: 10 + Math.random() * 6,
+          size: 8 + Math.random() * 4,
         });
       }
     });
 
     setParticles(prev => [...prev, ...newParticles]);
 
-    // Spawn one cheap shockwave ring per source position
-    const newShocks = trigger.positions.map((pos) => ({
-      id: `s-${trigger.timestamp}-${pos.x}-${pos.y}`,
-      x: gridOffset.x + (pos.x + 0.5) * cellSize,
-      y: gridOffset.y + (pos.y + 0.5) * cellSize,
-      type: trigger.type,
-    }));
-    setShockwaves((prev) => [...prev, ...newShocks]);
-    const shockTimeout = setTimeout(() => {
-      setShockwaves((prev) => prev.filter((s) => !newShocks.some((ns) => ns.id === s.id)));
-    }, 600);
-
     // Clean up particles after the (now shorter) animation
     const timeout = setTimeout(() => {
       setParticles(prev => prev.filter(p => !newParticles.some(np => np.id === p.id)));
-    }, 800);
+    }, 600);
 
     return () => {
       clearTimeout(timeout);
-      clearTimeout(shockTimeout);
     };
   }, [trigger, cellSize, gridOffset]);
 
   return (
     <div className="absolute inset-0 pointer-events-none overflow-hidden z-40">
-      {/* Shockwave rings — single CSS animation each */}
+      {/* Bomb white flash — quick high-intensity burst */}
+      {bombFlashes.map((f) => (
+        <motion.div
+          key={f.id}
+          className="absolute rounded-full"
+          initial={{ opacity: 0.95, scale: 0.3 }}
+          animate={{ opacity: 0, scale: 2.4 }}
+          transition={{ duration: 0.45, ease: 'easeOut' }}
+          style={{
+            left: f.x,
+            top: f.y,
+            width: cellSize * 2.2,
+            height: cellSize * 2.2,
+            marginLeft: -(cellSize * 1.1),
+            marginTop: -(cellSize * 1.1),
+            background:
+              'radial-gradient(circle, rgba(255,255,255,1) 0%, rgba(255,224,130,0.85) 25%, rgba(255,107,53,0.55) 55%, rgba(214,40,40,0) 80%)',
+            mixBlendMode: 'screen',
+            filter: 'blur(1px)',
+          }}
+        />
+      ))}
+      {/* Shockwave rings */}
       {shockwaves.map((s) => (
-        <span
-          key={s.id}
-          className={`neon-shockwave ${
-            s.type === 'burn' ? 'neon-shockwave--magenta' : ''
-          }`}
+        s.kind === 'bomb' ? (
+          <motion.span
+            key={s.id}
+            className="absolute rounded-full pointer-events-none"
+            initial={{ opacity: 0.9, scale: 0.2 }}
+            animate={{ opacity: 0, scale: 3.2 }}
+            transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
+            style={{
+              left: s.x,
+              top: s.y,
+              width: cellSize * 2.4,
+              height: cellSize * 2.4,
+              marginLeft: -(cellSize * 1.2),
+              marginTop: -(cellSize * 1.2),
+              border: '3px solid rgba(255,180,80,0.85)',
+              boxShadow:
+                '0 0 32px rgba(255,107,53,0.7), inset 0 0 24px rgba(214,40,40,0.55)',
+            }}
+          />
+        ) : null
+      ))}
+      {/* Dark smoke ring follow-up for bomb */}
+      {shockwaves.filter((s) => s.kind === 'bomb').map((s) => (
+        <motion.span
+          key={`${s.id}-smoke`}
+          className="absolute rounded-full pointer-events-none"
+          initial={{ opacity: 0.6, scale: 0.4 }}
+          animate={{ opacity: 0, scale: 2.6 }}
+          transition={{ duration: 0.85, delay: 0.1, ease: 'easeOut' }}
           style={{
             left: s.x,
             top: s.y,
-            width: cellSize * 1.6,
-            height: cellSize * 1.6,
+            width: cellSize * 2.2,
+            height: cellSize * 2.2,
+            marginLeft: -(cellSize * 1.1),
+            marginTop: -(cellSize * 1.1),
+            background:
+              'radial-gradient(circle, rgba(40,30,30,0) 35%, rgba(60,50,50,0.55) 55%, rgba(20,15,15,0) 85%)',
+            filter: 'blur(2px)',
           }}
         />
       ))}
       <AnimatePresence>
         {particles.map((particle) => {
+          const isBomb = particle.type === 'bomb';
           const endX = Math.cos(particle.angle) * particle.distance;
-          const endY = Math.sin(particle.angle) * particle.distance - 20; // Slight upward bias
+          const endY = isBomb
+            ? Math.sin(particle.angle) * particle.distance + 30 // gravity drop for debris
+            : Math.sin(particle.angle) * particle.distance - 20;
+
+          if (isBomb) {
+            return (
+              <motion.div
+                key={particle.id}
+                initial={{ x: particle.x, y: particle.y, opacity: 1, scale: 1 }}
+                animate={{
+                  x: particle.x + endX,
+                  y: particle.y + endY,
+                  opacity: [1, 1, 0],
+                  scale: [1, 0.9, 0.4],
+                }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.55 + Math.random() * 0.25, delay: particle.delay, ease: 'easeOut' }}
+                className="absolute rounded-full"
+                style={{
+                  width: particle.size,
+                  height: particle.size,
+                  marginLeft: -particle.size / 2,
+                  marginTop: -particle.size / 2,
+                  background: particle.color,
+                  boxShadow: `0 0 ${particle.size * 1.5}px ${particle.color}`,
+                }}
+              />
+            );
+          }
 
           return (
             <motion.div
@@ -135,18 +266,18 @@ const ReactionParticles: React.FC<ReactionParticlesProps> = ({
                 x: particle.x, 
                 y: particle.y, 
                 scale: 0,
-                opacity: 1,
+                opacity: 0.7,
               }}
               animate={{
                 x: particle.x + endX,
                 y: particle.y + endY,
-                scale: [0, 1, 0.6],
-                opacity: [0.9, 0.8, 0],
+                scale: [0, 0.9, 0.5],
+                opacity: [0.7, 0.6, 0],
                 rotate: particle.type === 'dissolve' ? [0, 120] : [0, 30],
               }}
               exit={{ opacity: 0 }}
               transition={{
-                duration: 0.45 + Math.random() * 0.25,
+                duration: 0.35 + Math.random() * 0.2,
                 delay: particle.delay,
                 ease: 'easeOut',
               }}
