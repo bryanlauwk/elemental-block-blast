@@ -1,50 +1,17 @@
-# Neon Glass Bento — UI Restyle
+## Goal
+Replace each of the 8 short lo-fi mood tracks with a multi-minute version that loops seamlessly in the background.
 
-Restyle (not refactor) the home page and in-game UI so the entire app reads as a frosted-glass neon-alley interface on top of the existing lo-fi backdrop. No game logic, components, or routes change — only tokens, typography, and the visual layer of shared Pixar components.
+## Approach
+1. **Regenerate audio** via the ElevenLabs Music API at ~3 minutes per mood (`music_length_ms: 180000`), using prompts that explicitly request a seamless, loopable lo-fi loop with consistent tempo/key and no intro/outro fade. One file per mood: `cozy`, `rainy`, `night`, `upbeat`, `morning`, `dj`, `sunset`, `coffee`.
+2. **Upload via `lovable-assets`** and overwrite the existing pointers under `src/assets/music/*.mp3.asset.json`. No code import changes needed — `src/game/sounds.ts` already imports from those pointer files.
+3. **Confirm seamless loop playback**: `startTrack()` in `src/game/sounds.ts` already sets `audio.loop = true`, so once tracks are longer the same `<audio>` element will keep looping indefinitely. No engine changes required.
+4. **Light polish (optional, same file)**: keep the current crossfade-free loop, but verify `preload = 'auto'` is enough; if not, add a tiny `audio.addEventListener('ended', ...)` safety net (browsers honor `loop` natively, so this is only a fallback).
 
-## Design lock (from your selection)
-
-- **Typography:** Space Grotesk (display, 700, tight tracking) + DM Sans (body, 400/500/700). Retire Abril Fatface + Cabin everywhere.
-- **Palette:** deep ink `#0a0510` base, magenta `#e879f9`, cyan `#22d3ff`, violet `#a78bfa`, white text at 100/80/60/40 opacity tiers.
-- **Surfaces:** `bg-white/5` + `backdrop-blur-xl` + `border border-white/10`, hairline neon borders on active/highlight states, soft inner-glow on filled cells.
-- **Title:** gradient-clip white → white/60 with a soft white glow drop-shadow. No 3D candy letter stacks.
-- **CTA:** full-width pill, `cyan → magenta` gradient, cyan glow shadow, hover scale 1.02.
-
-## Build steps
-
-### 1. Tokens & fonts
-- `bun add @fontsource/space-grotesk @fontsource/dm-sans`; import both in `src/main.tsx`.
-- `tailwind.config.ts`: set `fontFamily.display = ['Space Grotesk', …]`, `fontFamily.sans = ['DM Sans', …]`. Add `neon: { ink, magenta, cyan, violet }` colors.
-- `src/index.css`: add neon HSL tokens; rewrite `pixar-hud-panel`, `pixar-glass-chip`, `pixar-glass-tile`, `pixar-grid-frame`, `pixar-modal-shell` to the new frosted recipe (white/5 fill, 18–24px blur, white/10 hairline, optional cyan/magenta accent border variant). Keep class names so consumers don't need edits.
-- Remove unused Abril Fatface / Cabin imports.
-
-### 2. Shared Pixar components (restyle in place)
-- `GameTitle.tsx`: rebuild as Space Grotesk gradient-clip headline with optional eyebrow chips ("Neo-Alley Ed.", "Lo-Fi Rhythm" style). Drop per-letter spring animation; keep a subtle fade/blur-in.
-- `pixar/PixarButton.tsx`: primary = cyan→magenta gradient pill with neon glow; secondary = glass with cyan hairline; ghost = glass with white/10 hairline. Remove red/yellow 3D shadow stacks.
-- `pixar/PixarChip.tsx` / `PixarStatChip.tsx` / `PixarBadge.tsx` / `PixarPanel.tsx` / `PixarOverlay.tsx`: switch fills to white/5 + blur-xl + white/10 borders; accent variants use cyan or magenta hairline + faint inner glow. Top-accent line on `PixarPanel` becomes cyan→magenta.
-- `MarqueeRibbon.tsx`, `StreakBadge.tsx`, `PhasePill.tsx`: same glass recipe, neon accent text.
-
-### 3. Board, tray, HUD
-- `BlockBlastGrid.tsx`: frame becomes `pixar-grid-frame` glass; empty cells `bg-white/5 border-white/5`; filled cells keep element color but switch to `/20` fill + `/50` hairline + `inset 0 0 10px` glow.
-- `PieceTray.tsx`: each slot becomes a glass tile (`bg-white/5 backdrop-blur-lg border-white/10 rounded-2xl`), mini blocks render with neon glow shadow.
-- `BlockBlastScoreboard.tsx`: rebuild as 6-col bento — Score tile col-span-4, Best tile col-span-2; cyan eyebrow for Score, magenta for Best, Space Grotesk numerics.
-- `ComboDisplay.tsx`, `ScorePopup.tsx`, `FeverMeter.tsx`: swap to neon palette + Space Grotesk numerics.
-
-### 4. Home & gameplay page
-- `src/pages/Index.tsx`: landing hero uses new title, two eyebrow pill chips, stat bento (Best / Streak / XP) using `PixarStatChip`, then the gradient PLAY CTA. Floating mascot/props stay but lose Pixar-yellow accents.
-- Remove the navy `bg-gradient-pixar-stage` wherever it competes with the backdrop. `AdaptiveStage` phase glows shift to magenta/cyan/violet so they harmonize with the alley.
-
-### 5. Modals & overlays
-- All six game modals already use `.pixar-modal-shell` — they pick up the new glass recipe automatically. Audit `LeaderboardModal`, `AchievementsModal`, `DailyChallengeModal`, `PlayerNameModal`, `ExitConfirmModal`, `SoundSettings` for any hard-coded Pixar red/yellow text and swap to neon tokens.
-- `PhaseUpOverlay`: cyan→magenta sweep instead of red/yellow.
-
-### 6. Cleanup
-- Delete `src/game/theme.ts` fire→cyan literal usages that conflict (or repoint to neon tokens). Grep for `text-pixar-`, `bg-pixar-`, `from-pixar-` and replace with neon equivalents or `text-white/…` opacity tiers.
-- Update `mem://brand/identity-and-style` to record the new Neon Glass Bento direction and retire the Pixar Toy Box guidance.
+## Technical notes
+- ElevenLabs Music API: `POST https://api.elevenlabs.io/v1/music` with `prompt` + `music_length_ms` (max 300000 = 5 min). Target 180000 ms for cost/quality balance.
+- Prompt template per mood: "Lo-fi {mood descriptor}, ~{bpm} BPM, mellow {instrumentation}. Seamless loop: identical energy and key at start and end, no intro, no outro, no fade in or out, no spoken words."
+- Files written: 8 updated `.asset.json` pointers in `src/assets/music/`. No new files, no deleted files, no changes to `sounds.ts` unless the fallback `ended` handler is added.
+- Synthesized Web Audio fallback in `createLoFiMusic` stays untouched — only kicks in if a track URL is missing.
 
 ## Out of scope
-- Backdrop artwork, sounds, game engine, leaderboard logic, auth, RLS, routes.
-- No new components; only restyle existing ones.
-
-## Verification
-- Run Playwright: capture home and mid-gameplay; confirm Space Grotesk renders, glass panels frosted, alley backdrop visible through every surface, no red/yellow Pixar accents remain.
+- No new moods, no UI changes in `SoundSettings.tsx`, no changes to SFX.
