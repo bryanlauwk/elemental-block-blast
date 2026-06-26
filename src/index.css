@@ -875,7 +875,7 @@ All colors MUST be HSL.
   gap: 0.375rem;
   padding: 0.5rem 0.75rem;
   border-radius: 0.625rem;
-  font-family: var(--font-display, inherit);
+  font-family: 'Space Grotesk', system-ui, -apple-system, sans-serif;
   font-size: 0.8125rem;
   font-weight: 600;
   letter-spacing: 0.02em;
@@ -945,7 +945,7 @@ All colors MUST be HSL.
   width: 100%;
   padding: 0.875rem 1.25rem;
   border-radius: 1rem;
-  font-family: var(--font-display, inherit);
+  font-family: 'Space Grotesk', system-ui, -apple-system, sans-serif;
   font-weight: 700;
   letter-spacing: 0.04em;
   text-transform: uppercase;
