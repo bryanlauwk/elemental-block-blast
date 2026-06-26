@@ -157,6 +157,26 @@ export function SoundSettings({ isOpen, onClose }: SoundSettingsProps) {
                   />
                 </div>
 
+                {/* Reduced Motion */}
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <Sparkles
+                      className={`w-5 h-5 ${
+                        reducedOn ? 'text-white/40' : 'text-[hsl(var(--neon-cyan))]'
+                      }`}
+                    />
+                    <div>
+                      <p className="font-display text-white font-semibold tracking-wide">Reduced Motion</p>
+                      <p className="text-xs text-white/50">Simpler effects · no debris or smoke</p>
+                    </div>
+                  </div>
+                  <Switch
+                    checked={reducedOn}
+                    onCheckedChange={handleReducedToggle}
+                    className="data-[state=checked]:bg-[hsl(var(--neon-cyan))]"
+                  />
+                </div>
+
                 {/* Music Type */}
                 <div className={`space-y-2 ${!musicOn ? 'opacity-70' : ''}`}>
                   <p className="font-display text-xs uppercase tracking-[0.18em] text-[hsl(var(--neon-cyan)/0.85)]">Lo-fi Mood</p>
