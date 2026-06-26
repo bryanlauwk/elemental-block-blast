@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Volume2, VolumeX, Music, Music2, X, Settings } from 'lucide-react';
+import { Volume2, VolumeX, Music, Music2, X, Settings, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Slider } from '@/components/ui/slider';
@@ -18,6 +18,11 @@ import {
   getMusicTypeOptions,
   type LoFiMusicType,
 } from '@/game/sounds';
+import {
+  isReducedMotion,
+  setReducedMotionOverride,
+  subscribeReducedMotion,
+} from '@/game/motionPreferences';
 
 interface SoundSettingsProps {
   isOpen: boolean;
@@ -29,7 +34,10 @@ export function SoundSettings({ isOpen, onClose }: SoundSettingsProps) {
   const [musicOn, setMusicOn] = useState(isMusicEnabled());
   const [volume, setVolume] = useState([getMusicVolume() * 100]);
   const [musicType, setMusicTypeState] = useState<LoFiMusicType>(getMusicType());
+  const [reducedOn, setReducedOn] = useState<boolean>(() => isReducedMotion());
   const musicOptions = getMusicTypeOptions();
+
+  useEffect(() => subscribeReducedMotion(setReducedOn), []);
 
   const handleSfxToggle = useCallback((checked: boolean) => {
     setSfxOn(checked);
@@ -60,6 +68,11 @@ export function SoundSettings({ isOpen, onClose }: SoundSettingsProps) {
       startMusic();
     }
   }, [musicOn]);
+
+  const handleReducedToggle = useCallback((checked: boolean) => {
+    setReducedOn(checked);
+    setReducedMotionOverride(checked ? 'on' : 'off');
+  }, []);
 
   return (
     <AnimatePresence>
