@@ -6,6 +6,13 @@ import { LOFI_MUSIC_PRESETS } from '@/game/sounds';
 beforeAll(() => {
   Object.defineProperty(window, 'innerWidth', { writable: true, value: 390 });
   Object.defineProperty(window, 'innerHeight', { writable: true, value: 720 });
+  if (!('ResizeObserver' in globalThis)) {
+    (globalThis as any).ResizeObserver = class {
+      observe() {}
+      unobserve() {}
+      disconnect() {}
+    };
+  }
 });
 
 describe('SoundSettings (mobile)', () => {
