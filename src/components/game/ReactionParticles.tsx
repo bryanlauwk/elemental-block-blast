@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Position } from '@/game/types';
 import { BOMB_TIMINGS } from '@/game/bombTimings';
+import { isReducedMotion, subscribeReducedMotion } from '@/game/motionPreferences';
 
 interface Particle {
   id: string;
@@ -67,6 +68,15 @@ const ReactionParticles: React.FC<ReactionParticlesProps> = ({
   const [bombSmokes, setBombSmokes] = useState<
     { id: string; x: number; y: number }[]
   >([]);
+  const [bombBeams, setBombBeams] = useState<
+    { id: string; cx: number; cy: number; orient: 'h' | 'v'; length: number }[]
+  >([]);
+  const [bombCellFlashes, setBombCellFlashes] = useState<
+    { id: string; x: number; y: number; delay: number; orient: 'h' | 'v' }[]
+  >([]);
+  const [reduced, setReduced] = useState<boolean>(() => isReducedMotion());
+
+  useEffect(() => subscribeReducedMotion(setReduced), []);
 
   useEffect(() => {
     if (!trigger || trigger.positions.length === 0) return;
@@ -76,11 +86,13 @@ const ReactionParticles: React.FC<ReactionParticlesProps> = ({
       const newParticles: Particle[] = [];
       const debrisColors = ['#fff3b0', '#ffb627', '#ff6b35', '#d62828', '#6c757d', '#2b2b2b'];
 
-      centers.forEach((pos) => {
+      // Debris is the most visually noisy layer — skip entirely in reduced motion.
+      if (!reduced) centers.forEach((pos) => {
         const cx = gridOffset.x + (pos.x + 0.5) * cellSize;
         const cy = gridOffset.y + (pos.y + 0.5) * cellSize;
         // Radial debris shards — denser ring with gravity-affected fall.
-        for (let i = 0; i < 22; i++) {
+        const shards = 22;
+        for (let i = 0; i < shards; i++) {
           const angle = (Math.PI * 2 * i) / 22 + Math.random() * 0.3;
           newParticles.push({
             id: `bomb-${trigger.timestamp}-${pos.x}-${pos.y}-${i}`,
@@ -121,11 +133,66 @@ const ReactionParticles: React.FC<ReactionParticlesProps> = ({
         x: gridOffset.x + (pos.x + 0.5) * cellSize,
         y: gridOffset.y + (pos.y + 0.5) * cellSize,
       }));
-      const newSmokes = centers.map((pos) => ({
+      const newSmokes = reduced ? [] : centers.map((pos) => ({
         id: `bsm-${trigger.timestamp}-${pos.x}-${pos.y}`,
         x: gridOffset.x + (pos.x + 0.5) * cellSize,
         y: gridOffset.y + (pos.y + 0.5) * cellSize,
       }));
+
+      // === Row & column "blast beams" — make the clear physically visible. ===
+      // We render a horizontal and vertical streak from each bomb center and a
+      // staggered per-cell flash that sweeps outward along the row & column.
+      // Use the union of all trigger.positions to know which cells were cleared
+      // by *this* detonation set (engine pre-computes row+col cells).
+      const clearedSet = new Set(trigger.positions.map((p) => `${p.x},${p.y}`));
+      const newBeams: typeof bombBeams = [];
+      const newCellFlashes: typeof bombCellFlashes = [];
+      // Approximate grid extents from the cleared cells — covers full row/col.
+      const allX = trigger.positions.map((p) => p.x);
+      const allY = trigger.positions.map((p) => p.y);
+      const minX = Math.min(...allX), maxX = Math.max(...allX);
+      const minY = Math.min(...allY), maxY = Math.max(...allY);
+      centers.forEach((pos) => {
+        const cx = gridOffset.x + (pos.x + 0.5) * cellSize;
+        const cy = gridOffset.y + (pos.y + 0.5) * cellSize;
+        const hLen = (maxX - minX + 1) * cellSize;
+        const vLen = (maxY - minY + 1) * cellSize;
+        newBeams.push({
+          id: `bbh-${trigger.timestamp}-${pos.x}-${pos.y}`,
+          cx, cy, orient: 'h', length: hLen,
+        });
+        newBeams.push({
+          id: `bbv-${trigger.timestamp}-${pos.x}-${pos.y}`,
+          cx, cy, orient: 'v', length: vLen,
+        });
+        // Stagger cell flashes by distance from the bomb (per row / per col).
+        const perStepMs = reduced ? 18 : 32;
+        for (let xx = minX; xx <= maxX; xx++) {
+          if (!clearedSet.has(`${xx},${pos.y}`)) continue;
+          const dist = Math.abs(xx - pos.x);
+          newCellFlashes.push({
+            id: `bcfh-${trigger.timestamp}-${pos.x}-${pos.y}-${xx}`,
+            x: gridOffset.x + xx * cellSize,
+            y: gridOffset.y + pos.y * cellSize,
+            delay: (dist * perStepMs) / 1000,
+            orient: 'h',
+          });
+        }
+        for (let yy = minY; yy <= maxY; yy++) {
+          if (!clearedSet.has(`${pos.x},${yy}`)) continue;
+          const dist = Math.abs(yy - pos.y);
+          newCellFlashes.push({
+            id: `bcfv-${trigger.timestamp}-${pos.x}-${pos.y}-${yy}`,
+            x: gridOffset.x + pos.x * cellSize,
+            y: gridOffset.y + yy * cellSize,
+            delay: (dist * perStepMs) / 1000,
+            orient: 'v',
+          });
+        }
+      });
+      setBombBeams((prev) => [...prev, ...newBeams]);
+      setBombCellFlashes((prev) => [...prev, ...newCellFlashes]);
+
       setBombCharges((prev) => [...prev, ...newCharges]);
       setShockwaves((prev) => [...prev, ...newShocks]);
       setBombFlashes((prev) => [...prev, ...newFlashes]);
@@ -150,6 +217,10 @@ const ReactionParticles: React.FC<ReactionParticlesProps> = ({
       const particleTimeout = setTimeout(() => {
         setParticles((prev) => prev.filter((p) => !newParticles.some((np) => np.id === p.id)));
       }, BOMB_TIMINGS.debrisMs + 300);
+      const beamTimeout = setTimeout(() => {
+        setBombBeams((prev) => prev.filter((b) => !newBeams.some((nb) => nb.id === b.id)));
+        setBombCellFlashes((prev) => prev.filter((f) => !newCellFlashes.some((nf) => nf.id === f.id)));
+      }, BOMB_TIMINGS.shockwaveMs + 400);
       return () => {
         clearTimeout(chargeTimeout);
         clearTimeout(shockTimeout);
@@ -157,6 +228,7 @@ const ReactionParticles: React.FC<ReactionParticlesProps> = ({
         clearTimeout(fireballTimeout);
         clearTimeout(smokeTimeout);
         clearTimeout(particleTimeout);
+        clearTimeout(beamTimeout);
       };
     }
 
@@ -164,7 +236,7 @@ const ReactionParticles: React.FC<ReactionParticlesProps> = ({
     // the screen-shake, line-clear flash, and score popup already telegraph
     // a successful clear without cluttering the board.
     return;
-  }, [trigger, cellSize, gridOffset]);
+  }, [trigger, cellSize, gridOffset, reduced]);
 
   return (
     <div className="absolute inset-0 pointer-events-none overflow-hidden z-40">
@@ -258,7 +330,7 @@ const ReactionParticles: React.FC<ReactionParticlesProps> = ({
         ) : null
       ))}
       {/* Dissipation — rising dark smoke plume */}
-      {bombSmokes.map((s) => (
+      {!reduced && bombSmokes.map((s) => (
         <motion.div
           key={s.id}
           className="absolute rounded-full"
@@ -279,7 +351,7 @@ const ReactionParticles: React.FC<ReactionParticlesProps> = ({
         />
       ))}
       {/* Dark smoke ring follow-up for bomb */}
-      {shockwaves.filter((s) => s.kind === 'bomb').map((s) => (
+      {!reduced && shockwaves.filter((s) => s.kind === 'bomb').map((s) => (
         <motion.span
           key={`${s.id}-smoke`}
           className="absolute rounded-full pointer-events-none"
@@ -296,6 +368,64 @@ const ReactionParticles: React.FC<ReactionParticlesProps> = ({
             background:
               'radial-gradient(circle, rgba(40,30,30,0) 35%, rgba(60,50,50,0.55) 55%, rgba(20,15,15,0) 85%)',
             filter: 'blur(2px)',
+          }}
+        />
+      ))}
+      {/* === Row & column blast beams — directional streaks from the bomb === */}
+      {bombBeams.map((b) => {
+        const isH = b.orient === 'h';
+        const thickness = Math.max(6, cellSize * 0.45);
+        return (
+          <motion.div
+            key={b.id}
+            className="absolute pointer-events-none rounded-full"
+            initial={{ opacity: 0, scaleX: isH ? 0 : 1, scaleY: isH ? 1 : 0 }}
+            animate={{
+              opacity: [0, 1, 0.9, 0],
+              scaleX: isH ? [0, 1, 1, 1] : 1,
+              scaleY: isH ? 1 : [0, 1, 1, 1],
+            }}
+            transition={{
+              duration: (BOMB_TIMINGS.shockwaveMs + 150) / 1000,
+              times: [0, 0.18, 0.55, 1],
+              ease: 'easeOut',
+            }}
+            style={{
+              left: b.cx,
+              top: b.cy,
+              width: isH ? b.length : thickness,
+              height: isH ? thickness : b.length,
+              marginLeft: isH ? -(b.length / 2) : -(thickness / 2),
+              marginTop: isH ? -(thickness / 2) : -(b.length / 2),
+              background: isH
+                ? 'linear-gradient(90deg, rgba(255,224,130,0) 0%, rgba(255,200,90,0.95) 35%, #fff 50%, rgba(255,200,90,0.95) 65%, rgba(255,224,130,0) 100%)'
+                : 'linear-gradient(180deg, rgba(255,224,130,0) 0%, rgba(255,200,90,0.95) 35%, #fff 50%, rgba(255,200,90,0.95) 65%, rgba(255,224,130,0) 100%)',
+              boxShadow:
+                '0 0 16px rgba(255,180,80,0.85), 0 0 32px rgba(255,107,53,0.55)',
+              mixBlendMode: 'screen',
+              filter: 'blur(1px)',
+              transformOrigin: 'center center',
+            }}
+          />
+        );
+      })}
+      {/* Per-cell impact flashes sweeping outward along the row/column */}
+      {bombCellFlashes.map((f) => (
+        <motion.div
+          key={f.id}
+          className="absolute pointer-events-none rounded-md"
+          initial={{ opacity: 0, scale: 0.6 }}
+          animate={{ opacity: [0, 0.95, 0], scale: [0.6, 1.05, 0.85] }}
+          transition={{ duration: 0.42, delay: f.delay, ease: 'easeOut' }}
+          style={{
+            left: f.x,
+            top: f.y,
+            width: cellSize,
+            height: cellSize,
+            background:
+              'radial-gradient(circle, rgba(255,255,255,0.95) 0%, rgba(255,200,90,0.65) 40%, rgba(255,107,53,0.25) 75%, rgba(0,0,0,0) 100%)',
+            boxShadow: '0 0 12px rgba(255,180,80,0.8)',
+            mixBlendMode: 'screen',
           }}
         />
       ))}
