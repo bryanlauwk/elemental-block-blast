@@ -297,22 +297,36 @@ export function useBlockBlastEngine(): BlockBlastEngine {
       const remainingPieces = prev.availablePieces.filter(p => p.id !== piece.id);
       const newScore = prev.score + Math.floor(totalScore * feverMult) + piece.shape.length * 10;
 
-      // Refill with dynamic difficulty; first piece may be easier in comeback mode.
+      // Always keep three pieces in the tray for strategic flexibility: as soon as
+      // a piece is placed, refill the empty slot instead of waiting until all three
+      // are consumed.
       const needsComeback = failedAttempts >= 3;
       const rng = seededRngRef.current;
-      const newPieces = remainingPieces.length === 0
-        ? [
-            createRandomPiece(newScore, needsComeback, rng || undefined),
-            createRandomPiece(newScore, false, rng || undefined),
-            createRandomPiece(newScore, false, rng || undefined),
-          ]
-        : remainingPieces;
+      const newPieces = [...remainingPieces];
+      while (newPieces.length < 3) {
+        newPieces.push(createRandomPiece(newScore, needsComeback && newPieces.length === 0, rng || undefined));
+      }
 
-      // Surprise bomb: after a brief warm-up, ~22% chance one of three new
-      // pieces is a ticking single-cell bomb. Skips daily challenge so the
-      // shared seed stays deterministic without bomb RNG drift.
-      if (remainingPieces.length === 0 && !seededRngRef.current && newScore >= 150 && Math.random() < 0.22) {
-        const slot = Math.floor(Math.random() * newPieces.length);
+      // Surprise bomb: only when the board is getting crowded (≥55% filled) so it
+      // shows up as a genuine pressure-release surprise instead of arriving on an
+      // empty board. Skips daily challenge to keep the seeded run deterministic.
+      const totalCells = resolvedGrid.length * resolvedGrid[0].length;
+      const filledCells = resolvedGrid.reduce(
+        (sum, row) => sum + row.filter((c) => c.element !== null).length,
+        0,
+      );
+      const fillRatio = filledCells / totalCells;
+      const hasBombInTray = newPieces.some((p) => p.elements.includes('bomb' as any));
+      if (
+        !seededRngRef.current &&
+        !hasBombInTray &&
+        newScore >= 150 &&
+        fillRatio >= 0.55 &&
+        Math.random() < 0.35
+      ) {
+        // Replace the newest refilled slot so the player's other pieces stay intact.
+        const refilledStart = remainingPieces.length;
+        const slot = refilledStart + Math.floor(Math.random() * (newPieces.length - refilledStart));
         newPieces[slot] = createBombPiece();
       }
 
