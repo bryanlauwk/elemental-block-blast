@@ -160,41 +160,10 @@ const ReactionParticles: React.FC<ReactionParticlesProps> = ({
       };
     }
 
-    const config = particleConfig[trigger.type];
-    const newParticles: Particle[] = [];
-
-    trigger.positions.forEach((pos) => {
-      const centerX = gridOffset.x + (pos.x + 0.5) * cellSize;
-      const centerY = gridOffset.y + (pos.y + 0.5) * cellSize;
-
-      for (let i = 0; i < config.count; i++) {
-        const angle = (Math.PI * 2 * i) / config.count + Math.random() * 0.5;
-        const distance = 22 + Math.random() * 30;
-
-        newParticles.push({
-          id: `${trigger.timestamp}-${pos.x}-${pos.y}-${i}`,
-          x: centerX,
-          y: centerY,
-          type: trigger.type,
-          emoji: config.emojis[Math.floor(Math.random() * config.emojis.length)],
-          delay: Math.random() * 0.1,
-          angle,
-          distance,
-          size: 8 + Math.random() * 4,
-        });
-      }
-    });
-
-    setParticles(prev => [...prev, ...newParticles]);
-
-    // Clean up particles after the (now shorter) animation
-    const timeout = setTimeout(() => {
-      setParticles(prev => prev.filter(p => !newParticles.some(np => np.id === p.id)));
-    }, 600);
-
-    return () => {
-      clearTimeout(timeout);
-    };
+    // Non-bomb reactions intentionally render no sparkle/bubble particles —
+    // the screen-shake, line-clear flash, and score popup already telegraph
+    // a successful clear without cluttering the board.
+    return;
   }, [trigger, cellSize, gridOffset]);
 
   return (
