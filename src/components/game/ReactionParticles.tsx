@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Position } from '@/game/types';
+import { BOMB_TIMINGS } from '@/game/bombTimings';
 
 interface Particle {
   id: string;
@@ -133,22 +134,22 @@ const ReactionParticles: React.FC<ReactionParticlesProps> = ({
 
       const chargeTimeout = setTimeout(() => {
         setBombCharges((prev) => prev.filter((c) => !newCharges.some((nc) => nc.id === c.id)));
-      }, 260);
+      }, BOMB_TIMINGS.chargeMs + 40);
       const shockTimeout = setTimeout(() => {
         setShockwaves((prev) => prev.filter((s) => !newShocks.some((ns) => ns.id === s.id)));
-      }, 950);
+      }, BOMB_TIMINGS.shockwaveMs + 250);
       const flashTimeout = setTimeout(() => {
         setBombFlashes((prev) => prev.filter((f) => !newFlashes.some((nf) => nf.id === f.id)));
-      }, 550);
+      }, BOMB_TIMINGS.flashMs + 100);
       const fireballTimeout = setTimeout(() => {
         setBombFireballs((prev) => prev.filter((b) => !newFireballs.some((nb) => nb.id === b.id)));
-      }, 700);
+      }, BOMB_TIMINGS.fireballMs + 50);
       const smokeTimeout = setTimeout(() => {
         setBombSmokes((prev) => prev.filter((s) => !newSmokes.some((ns) => ns.id === s.id)));
-      }, 1500);
+      }, BOMB_TIMINGS.smokePlumeDelayMs + BOMB_TIMINGS.smokePlumeMs);
       const particleTimeout = setTimeout(() => {
         setParticles((prev) => prev.filter((p) => !newParticles.some((np) => np.id === p.id)));
-      }, 1100);
+      }, BOMB_TIMINGS.debrisMs + 300);
       return () => {
         clearTimeout(chargeTimeout);
         clearTimeout(shockTimeout);
@@ -205,7 +206,7 @@ const ReactionParticles: React.FC<ReactionParticlesProps> = ({
           className="absolute rounded-full"
           initial={{ opacity: 0.9, scale: 0.4 }}
           animate={{ opacity: 0, scale: 1.6 }}
-          transition={{ duration: 0.22, ease: 'easeOut' }}
+          transition={{ duration: BOMB_TIMINGS.chargeMs / 1000, ease: 'easeOut' }}
           style={{
             left: c.x,
             top: c.y,
@@ -227,7 +228,7 @@ const ReactionParticles: React.FC<ReactionParticlesProps> = ({
           className="absolute rounded-full"
           initial={{ opacity: 0.95, scale: 0.3 }}
           animate={{ opacity: 0, scale: 2.4 }}
-          transition={{ duration: 0.45, ease: 'easeOut' }}
+          transition={{ duration: BOMB_TIMINGS.flashMs / 1000, ease: 'easeOut' }}
           style={{
             left: f.x,
             top: f.y,
@@ -249,7 +250,7 @@ const ReactionParticles: React.FC<ReactionParticlesProps> = ({
           className="absolute rounded-full"
           initial={{ opacity: 0.95, scale: 0.5 }}
           animate={{ opacity: [0.95, 0.8, 0], scale: [0.5, 1.6, 2.1] }}
-          transition={{ duration: 0.65, times: [0, 0.5, 1], ease: 'easeOut' }}
+          transition={{ duration: BOMB_TIMINGS.fireballMs / 1000, times: [0, 0.5, 1], ease: 'easeOut' }}
           style={{
             left: b.x,
             top: b.y,
@@ -272,7 +273,7 @@ const ReactionParticles: React.FC<ReactionParticlesProps> = ({
             className="absolute rounded-full pointer-events-none"
             initial={{ opacity: 0.9, scale: 0.2 }}
             animate={{ opacity: 0, scale: 3.2 }}
-            transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
+            transition={{ duration: BOMB_TIMINGS.shockwaveMs / 1000, ease: [0.16, 1, 0.3, 1] }}
             style={{
               left: s.x,
               top: s.y,
@@ -294,7 +295,7 @@ const ReactionParticles: React.FC<ReactionParticlesProps> = ({
           className="absolute rounded-full"
           initial={{ opacity: 0.55, scale: 0.7, x: 0, y: 0 }}
           animate={{ opacity: 0, scale: 1.9, y: -cellSize * 1.4 }}
-          transition={{ duration: 1.3, delay: 0.25, ease: 'easeOut' }}
+          transition={{ duration: BOMB_TIMINGS.smokePlumeMs / 1000, delay: BOMB_TIMINGS.smokePlumeDelayMs / 1000, ease: 'easeOut' }}
           style={{
             left: s.x,
             top: s.y,
@@ -315,7 +316,7 @@ const ReactionParticles: React.FC<ReactionParticlesProps> = ({
           className="absolute rounded-full pointer-events-none"
           initial={{ opacity: 0.6, scale: 0.4 }}
           animate={{ opacity: 0, scale: 2.6 }}
-          transition={{ duration: 0.85, delay: 0.1, ease: 'easeOut' }}
+          transition={{ duration: BOMB_TIMINGS.smokeRingMs / 1000, delay: BOMB_TIMINGS.smokeRingDelayMs / 1000, ease: 'easeOut' }}
           style={{
             left: s.x,
             top: s.y,
