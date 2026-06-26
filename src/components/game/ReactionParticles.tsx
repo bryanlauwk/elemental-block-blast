@@ -208,7 +208,7 @@ const ReactionParticles: React.FC<ReactionParticlesProps> = ({
             id: `brp-${trigger.timestamp}-${pos.x}-${pos.y}-${i}`,
             x: cx,
             y: cy,
-            delay: (i * 90) / 1000,
+            delay: (i * 40) / 1000,
             ringIndex: i,
           });
         }
@@ -245,7 +245,7 @@ const ReactionParticles: React.FC<ReactionParticlesProps> = ({
       }, BOMB_TIMINGS.shockwaveMs + 400);
       const rippleTimeout = setTimeout(() => {
         setBombRipples((prev) => prev.filter((r) => !newRipples.some((nr) => nr.id === r.id)));
-      }, BOMB_TIMINGS.shockwaveMs + 500);
+      }, 900);
       return () => {
         clearTimeout(chargeTimeout);
         clearTimeout(shockTimeout);
@@ -447,7 +447,7 @@ const ReactionParticles: React.FC<ReactionParticlesProps> = ({
             initial={{ opacity: 0, scale: 0.15 }}
             animate={{ opacity: [0, borderAlpha, 0], scale: [0.15, maxScale * 0.6, maxScale] }}
             transition={{
-              duration: (BOMB_TIMINGS.shockwaveMs + 200) / 1000,
+              duration: 0.55,
               delay: r.delay,
               times: [0, 0.35, 1],
               ease: [0.16, 1, 0.3, 1],
