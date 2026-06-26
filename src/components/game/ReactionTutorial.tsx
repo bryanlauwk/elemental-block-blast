@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, ChevronRight, Flame, Droplets, FlaskConical, Sparkles, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { modalStyles } from '@/game/theme';
 
 interface ReactionTutorialProps {
   onComplete: () => void;
@@ -28,12 +27,12 @@ const tutorialSteps = [
           transition={{ duration: 1.5, repeat: Infinity, repeatDelay: 1 }}
           className="absolute flex gap-1"
         >
-          <Sparkles className="w-6 h-6 text-[#FFD700]" />
+          <Sparkles className="w-6 h-6 text-[hsl(var(--neon-cyan))]" />
         </motion.div>
       </div>
     ),
     icon: Sparkles,
-    color: '#FFD700',
+    color: 'hsl(var(--neon-cyan))',
   },
   {
     title: 'Fire Burns Wood',
@@ -66,7 +65,7 @@ const tutorialSteps = [
       </div>
     ),
     icon: Flame,
-    color: '#FF6B35',
+    color: 'hsl(var(--neon-magenta))',
   },
   {
     title: 'Water Extinguishes Fire',
@@ -99,7 +98,7 @@ const tutorialSteps = [
       </div>
     ),
     icon: Droplets,
-    color: '#00E5FF',
+    color: 'hsl(var(--neon-cyan))',
   },
   {
     title: 'Acid Dissolves Everything',
@@ -136,7 +135,7 @@ const tutorialSteps = [
       </div>
     ),
     icon: FlaskConical,
-    color: '#8BC34A',
+    color: 'hsl(var(--neon-mint))',
   },
 ];
 
@@ -183,22 +182,15 @@ const ReactionTutorial: React.FC<ReactionTutorialProps> = ({ onComplete, forceOp
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4"
+        className="fixed inset-0 z-50 flex items-center justify-center bg-[hsl(var(--neon-bg-deep)/0.82)] backdrop-blur-xl p-4"
       >
         <motion.div
           initial={{ scale: 0.9, y: 20 }}
           animate={{ scale: 1, y: 0 }}
           exit={{ scale: 0.9, y: 20 }}
-          className="rounded-2xl p-6 max-w-md w-full relative overflow-hidden"
-          style={modalStyles.container}
+          className="neon-modal-shell p-6 max-w-md w-full"
         >
-          {/* Decorative top gradient bar */}
-          <div 
-            className="absolute top-0 left-0 right-0 h-1"
-            style={{
-              background: 'linear-gradient(90deg, #FF6B35 0%, #FFD700 50%, #00E5FF 100%)',
-            }}
-          />
+          <div className="neon-accent-bar" />
 
           {/* Skip button */}
           <button
@@ -219,8 +211,12 @@ const ReactionTutorial: React.FC<ReactionTutorialProps> = ({ onComplete, forceOp
                   background: index === currentStep 
                     ? step.color 
                     : index < currentStep 
-                      ? 'rgba(255,255,255,0.6)' 
-                      : 'rgba(255,255,255,0.2)',
+                      ? 'hsl(var(--neon-cyan) / 0.6)'
+                      : 'hsl(0 0% 100% / 0.15)',
+                  boxShadow:
+                    index === currentStep
+                      ? `0 0 12px ${step.color}`
+                      : 'none',
                 }}
               />
             ))}
@@ -230,7 +226,7 @@ const ReactionTutorial: React.FC<ReactionTutorialProps> = ({ onComplete, forceOp
           <div className="text-center">
             <div className="inline-flex items-center gap-2 mb-2" style={{ color: step.color }}>
               <StepIcon className="w-6 h-6" />
-              <span className="text-lg font-bold">{step.title}</span>
+              <span className="font-display text-lg font-bold uppercase tracking-wide">{step.title}</span>
             </div>
 
             {step.visual}
@@ -244,30 +240,24 @@ const ReactionTutorial: React.FC<ReactionTutorialProps> = ({ onComplete, forceOp
           <div className="flex gap-3">
             {currentStep < tutorialSteps.length - 1 ? (
               <>
-                <Button
-                  variant="ghost"
+                <button
                   onClick={handleSkip}
-                  className="flex-1 text-white/50 hover:text-white/80 hover:bg-white/10"
+                  className="neon-cta neon-cta--ghost flex-1"
                 >
                   Skip
-                </Button>
-                <Button
+                </button>
+                <button
                   onClick={handleNext}
-                  className="flex-1 text-white border-0 hover:opacity-90"
-                  style={modalStyles.primaryButtonCyan}
+                  className="neon-cta flex-1"
                 >
-                  Next <ChevronRight className="w-4 h-4 ml-1" />
-                </Button>
+                  Next <ChevronRight className="w-4 h-4" />
+                </button>
               </>
             ) : (
-              <Button
-                onClick={handleComplete}
-                className="w-full text-white border-0 hover:opacity-90"
-                style={modalStyles.primaryButtonFire}
-              >
-                <Zap className="w-5 h-5 mr-2" />
+              <button onClick={handleComplete} className="neon-cta">
+                <Zap className="w-5 h-5" />
                 Let's Play! 🎮
-              </Button>
+              </button>
             )}
           </div>
         </motion.div>
