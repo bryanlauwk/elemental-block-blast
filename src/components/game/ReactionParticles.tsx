@@ -450,7 +450,7 @@ const ReactionParticles: React.FC<ReactionParticlesProps> = ({
               duration: 0.55,
               delay: r.delay,
               times: [0, 0.35, 1],
-              ease: [0.16, 1, 0.// 3, 1],
+              ease: [0.16, 1, 0.3, 1],
             }}
             style={{
               left: r.x,
