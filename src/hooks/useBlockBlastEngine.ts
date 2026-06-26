@@ -386,7 +386,7 @@ export function useBlockBlastEngine(): BlockBlastEngine {
         setShakeIntensity(10);
         setComboDisplay({ count: detonations.length, show: true, text: 'BOOM!' });
         setScorePopup({ score: bonus, show: true, reactionType: 'burn' });
-        setParticleTrigger({ type: 'burn', positions: burstPositions, timestamp: Date.now() });
+        setParticleTrigger({ type: 'bomb', positions: burstPositions, centers: detonations, timestamp: Date.now() });
         setTimeout(() => {
           setComboDisplay({ count: 0, show: false, text: '' });
           setScorePopup({ score: 0, show: false });
