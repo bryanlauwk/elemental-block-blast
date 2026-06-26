@@ -24,9 +24,9 @@ describe('SoundSettings (mobile)', () => {
       expect(screen.getByText(preset.label)).toBeInTheDocument();
     }
 
-    const shell = container.querySelector('.pixar-modal-shell');
+    const shell = container.querySelector('.neon-modal-shell');
     expect(shell).not.toBeNull();
-    expect(shell!.className).toMatch(/pixar-modal-shell--scroll/);
+    expect(shell!.className).toMatch(/neon-modal-shell--scroll/);
 
     const mobileViewportWrapper = container.querySelector('.fixed.inset-2');
     expect(mobileViewportWrapper).not.toBeNull();

@@ -679,6 +679,311 @@ All colors MUST be HSL.
   }
 }
 
+/* ─────────────────────────────────────────────────────────────
+   NEON MODAL SYSTEM
+   Unified neon glass surface for Leaderboard, Tutorial,
+   Achievements, Daily Challenge, and Sound Settings.
+   ───────────────────────────────────────────────────────────── */
+.neon-modal-shell {
+  position: relative;
+  width: 100%;
+  max-height: min(88dvh, 720px);
+  border-radius: 1.25rem;
+  background: linear-gradient(
+    160deg,
+    hsl(var(--neon-bg-glow) / 0.55) 0%,
+    hsl(var(--neon-bg-mid) / 0.78) 45%,
+    hsl(var(--neon-bg-deep) / 0.88) 100%
+  );
+  border: 1px solid hsl(var(--neon-cyan) / 0.32);
+  box-shadow:
+    0 32px 70px hsl(var(--neon-bg-deep) / 0.7),
+    0 0 38px -8px hsl(var(--neon-cyan) / 0.45),
+    0 0 46px -10px hsl(var(--neon-magenta) / 0.35),
+    inset 0 1px 0 hsl(0 0% 100% / 0.1),
+    inset 0 -1px 0 hsl(0 0% 100% / 0.04);
+  backdrop-filter: blur(26px) saturate(180%);
+  -webkit-backdrop-filter: blur(26px) saturate(180%);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.neon-modal-shell::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(
+    135deg,
+    hsl(var(--neon-cyan) / 0.65),
+    transparent 35%,
+    transparent 65%,
+    hsl(var(--neon-magenta) / 0.6)
+  );
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+          mask-composite: exclude;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.neon-modal-shell--scroll {
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+@supports (height: 100svh) {
+  @media (max-width: 640px) {
+    .neon-modal-shell--scroll {
+      max-height: calc(100svh - 1.5rem);
+    }
+  }
+}
+
+/* Top accent ribbon: mint → cyan → magenta. Replaces the orange/gold bar. */
+.neon-accent-bar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(
+    90deg,
+    hsl(var(--neon-mint)) 0%,
+    hsl(var(--neon-cyan)) 50%,
+    hsl(var(--neon-magenta)) 100%
+  );
+  box-shadow: 0 0 14px hsl(var(--neon-cyan) / 0.55);
+  z-index: 2;
+}
+
+/* Frosted icon chip used in modal headers. */
+.neon-icon-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.875rem;
+  background: linear-gradient(
+    135deg,
+    hsl(var(--neon-cyan) / 0.22),
+    hsl(var(--neon-magenta) / 0.16)
+  );
+  border: 1px solid hsl(var(--neon-cyan) / 0.5);
+  box-shadow:
+    0 0 18px hsl(var(--neon-cyan) / 0.32),
+    inset 0 0 12px hsl(var(--neon-cyan) / 0.15);
+  color: hsl(190 95% 80%);
+}
+.neon-icon-chip--magenta {
+  background: linear-gradient(
+    135deg,
+    hsl(var(--neon-magenta) / 0.24),
+    hsl(var(--neon-violet) / 0.18)
+  );
+  border-color: hsl(var(--neon-magenta) / 0.5);
+  box-shadow:
+    0 0 18px hsl(var(--neon-magenta) / 0.34),
+    inset 0 0 12px hsl(var(--neon-magenta) / 0.18);
+  color: hsl(325 95% 85%);
+}
+.neon-icon-chip--amber {
+  background: linear-gradient(
+    135deg,
+    hsl(var(--neon-amber) / 0.22),
+    hsl(var(--neon-magenta) / 0.14)
+  );
+  border-color: hsl(var(--neon-amber) / 0.55);
+  box-shadow:
+    0 0 18px hsl(var(--neon-amber) / 0.32),
+    inset 0 0 12px hsl(var(--neon-amber) / 0.16);
+  color: hsl(42 100% 80%);
+}
+
+/* List rows used by leaderboard / achievements / daily challenge. */
+.neon-row {
+  position: relative;
+  border-radius: 0.875rem;
+  background: linear-gradient(
+    150deg,
+    hsl(var(--neon-bg-mid) / 0.55),
+    hsl(var(--neon-bg-deep) / 0.7)
+  );
+  border: 1px solid hsl(var(--neon-mint) / 0.14);
+  transition: border-color 0.18s ease, box-shadow 0.18s ease, transform 0.15s ease;
+}
+.neon-row:hover {
+  border-color: hsl(var(--neon-mint) / 0.45);
+  box-shadow: 0 0 22px -6px hsl(var(--neon-mint) / 0.4);
+}
+.neon-row--cyan {
+  border-color: hsl(var(--neon-cyan) / 0.55);
+  box-shadow:
+    0 0 24px -6px hsl(var(--neon-cyan) / 0.5),
+    inset 0 0 18px hsl(var(--neon-cyan) / 0.08);
+  background: linear-gradient(
+    150deg,
+    hsl(var(--neon-cyan) / 0.12),
+    hsl(var(--neon-bg-deep) / 0.7)
+  );
+}
+.neon-row--amber {
+  border-color: hsl(var(--neon-amber) / 0.55);
+  box-shadow:
+    0 0 24px -6px hsl(var(--neon-amber) / 0.55),
+    inset 0 0 18px hsl(var(--neon-amber) / 0.1);
+  background: linear-gradient(
+    150deg,
+    hsl(var(--neon-amber) / 0.14),
+    hsl(var(--neon-bg-deep) / 0.72)
+  );
+}
+.neon-row--magenta {
+  border-color: hsl(var(--neon-magenta) / 0.55);
+  box-shadow:
+    0 0 24px -6px hsl(var(--neon-magenta) / 0.5),
+    inset 0 0 18px hsl(var(--neon-magenta) / 0.08);
+  background: linear-gradient(
+    150deg,
+    hsl(var(--neon-magenta) / 0.13),
+    hsl(var(--neon-bg-deep) / 0.7)
+  );
+}
+.neon-row--locked {
+  opacity: 0.55;
+  border-color: hsl(0 0% 100% / 0.08);
+  background: hsl(var(--neon-bg-deep) / 0.5);
+}
+
+/* Segmented control tabs (used in Leaderboard global/local + time period). */
+.neon-segmented {
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  border-radius: 0.875rem;
+  background: hsl(var(--neon-bg-deep) / 0.55);
+  border: 1px solid hsl(var(--neon-cyan) / 0.18);
+}
+.neon-segmented-btn {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.375rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.625rem;
+  font-family: 'Space Grotesk', system-ui, -apple-system, sans-serif;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: hsl(0 0% 100% / 0.55);
+  background: transparent;
+  transition: color 0.15s ease, background 0.18s ease, box-shadow 0.18s ease;
+}
+.neon-segmented-btn:hover {
+  color: hsl(0 0% 100% / 0.9);
+  background: hsl(var(--neon-cyan) / 0.08);
+}
+.neon-segmented-btn--active {
+  color: hsl(190 95% 90%);
+  background: linear-gradient(
+    135deg,
+    hsl(var(--neon-cyan) / 0.28),
+    hsl(var(--neon-magenta) / 0.2)
+  );
+  box-shadow:
+    0 0 18px -4px hsl(var(--neon-cyan) / 0.6),
+    inset 0 0 0 1px hsl(var(--neon-cyan) / 0.45);
+}
+.neon-segmented-btn--active.neon-segmented-btn--magenta {
+  color: hsl(325 95% 92%);
+  background: linear-gradient(
+    135deg,
+    hsl(var(--neon-magenta) / 0.32),
+    hsl(var(--neon-violet) / 0.22)
+  );
+  box-shadow:
+    0 0 18px -4px hsl(var(--neon-magenta) / 0.55),
+    inset 0 0 0 1px hsl(var(--neon-magenta) / 0.5);
+}
+
+/* Info callout used inside modals (e.g. challenge brief, best score). */
+.neon-info-box {
+  border-radius: 1rem;
+  padding: 1rem;
+  background: linear-gradient(
+    150deg,
+    hsl(var(--neon-cyan) / 0.14),
+    hsl(var(--neon-magenta) / 0.1)
+  );
+  border: 1px solid hsl(var(--neon-cyan) / 0.35);
+  box-shadow:
+    0 0 22px -8px hsl(var(--neon-cyan) / 0.4),
+    inset 0 1px 0 hsl(0 0% 100% / 0.06);
+}
+.neon-info-box--magenta {
+  background: linear-gradient(
+    150deg,
+    hsl(var(--neon-magenta) / 0.16),
+    hsl(var(--neon-violet) / 0.12)
+  );
+  border-color: hsl(var(--neon-magenta) / 0.4);
+  box-shadow:
+    0 0 22px -8px hsl(var(--neon-magenta) / 0.45),
+    inset 0 1px 0 hsl(0 0% 100% / 0.06);
+}
+
+/* Primary neon CTA button (filled). */
+.neon-cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.875rem 1.25rem;
+  border-radius: 1rem;
+  font-family: 'Space Grotesk', system-ui, -apple-system, sans-serif;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: hsl(245 70% 8%);
+  background: linear-gradient(
+    135deg,
+    hsl(var(--neon-mint)) 0%,
+    hsl(var(--neon-cyan)) 60%,
+    hsl(var(--neon-magenta)) 110%
+  );
+  border: 1px solid hsl(var(--neon-cyan) / 0.7);
+  box-shadow:
+    0 14px 32px -10px hsl(var(--neon-cyan) / 0.6),
+    0 0 28px -8px hsl(var(--neon-magenta) / 0.5),
+    inset 0 1px 0 hsl(0 0% 100% / 0.5);
+  transition: transform 0.15s ease, box-shadow 0.18s ease, filter 0.15s ease;
+}
+.neon-cta:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.06);
+  box-shadow:
+    0 18px 38px -10px hsl(var(--neon-cyan) / 0.75),
+    0 0 36px -8px hsl(var(--neon-magenta) / 0.6),
+    inset 0 1px 0 hsl(0 0% 100% / 0.6);
+}
+.neon-cta--ghost {
+  color: hsl(190 95% 90%);
+  background: hsl(var(--neon-bg-deep) / 0.6);
+  border: 1px solid hsl(var(--neon-cyan) / 0.3);
+  box-shadow: inset 0 0 12px hsl(var(--neon-cyan) / 0.1);
+}
+.neon-cta--ghost:hover {
+  background: hsl(var(--neon-cyan) / 0.12);
+  border-color: hsl(var(--neon-cyan) / 0.55);
+  filter: none;
+  transform: translateY(-1px);
+}
+
 .pixar-text-shimmer {
   background: linear-gradient(
     100deg,
