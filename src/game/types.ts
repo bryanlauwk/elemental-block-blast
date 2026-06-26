@@ -1,9 +1,11 @@
 // Element types for the periodic table of chaos
-export type ElementType = 'fire' | 'water' | 'wood' | 'acid' | 'life' | 'helium' | 'stone' | 'ash' | 'gold' | 'goldCracked';
+export type ElementType = 'fire' | 'water' | 'wood' | 'acid' | 'life' | 'helium' | 'stone' | 'ash' | 'gold' | 'goldCracked' | 'bomb';
 
 export interface Cell {
   element: ElementType | null;
   id: string;
+  /** Ticking-bomb countdown in seconds. Only set when element === 'bomb'. */
+  countdown?: number;
 }
 
 export interface Position {

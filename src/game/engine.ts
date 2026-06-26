@@ -46,7 +46,7 @@ type ReactionType = 'burn' | 'extinguish' | 'dissolve';
 type AffectedGroup = { type: ReactionType; positions: Position[] };
 
 // Elements acid cannot dissolve (inert / treasure / itself).
-const ACID_IMMUNE = new Set<ElementType>(['stone', 'helium', 'acid', 'gold', 'goldCracked']);
+const ACID_IMMUNE = new Set<ElementType>(['stone', 'helium', 'acid', 'gold', 'goldCracked', 'bomb']);
 
 export const createEmptyGrid = (width: number = GRID_WIDTH, height: number = GRID_HEIGHT): Cell[][] => {
   return Array.from({ length: height }, (_, y) =>
@@ -77,9 +77,11 @@ export const getRandomShape = (score: number = 0, rng?: SeededRandom): Position[
     let modifier = 1;
 
     if (score < 500) {
-      modifier = shapeSize <= 3 ? 1.5 : shapeSize <= 4 ? 0.8 : 0.3;
+      // Phase 1 — Sandbox: heavy bias toward 1-3 cell pieces, no 5+ blocks
+      modifier = shapeSize === 1 ? 2.4 : shapeSize === 2 ? 2.2 : shapeSize === 3 ? 1.8 : shapeSize === 4 ? 0.35 : 0;
     } else if (score < 1500) {
-      modifier = 1;
+      // Phase 2 — Toy Factory: still gentle, 4-cell pieces appear, 5+ very rare
+      modifier = shapeSize <= 2 ? 1.5 : shapeSize === 3 ? 1.4 : shapeSize === 4 ? 0.9 : 0.25;
     } else if (score < 3000) {
       modifier = shapeSize <= 2 ? 0.7 : shapeSize <= 4 ? 1.2 : 1.5;
     } else {
@@ -98,6 +100,17 @@ export const getRandomShape = (score: number = 0, rng?: SeededRandom): Position[
   }
 
   return BLOCK_SHAPES[0];
+};
+
+// A single-cell ticking bomb piece. Surprises the player periodically; on
+// placement the engine sets a 5-second countdown on the placed cell.
+export const createBombPiece = (rng?: SeededRandom): DraggablePiece => {
+  const suffix = rng ? rng.nextInt(100000, 999999).toString() : Math.random().toString(36).slice(2, 9);
+  return {
+    id: `bomb-${Date.now()}-${suffix}`,
+    shape: [{ x: 0, y: 0 }],
+    elements: ['bomb'],
+  };
 };
 
 // Create piece with UNIFORM element type (all blocks same element)

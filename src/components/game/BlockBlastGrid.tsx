@@ -103,7 +103,7 @@ const GridCell = memo(function GridCell({
 
       {cell.element && (
         <div className={cn('w-full h-full flex items-center justify-center p-0.5 relative z-10', reactionType && 'animate-pulse')}>
-          <ElementBlock element={cell.element} size={36} />
+          <ElementBlock element={cell.element} size={36} countdown={cell.countdown} />
         </div>
       )}
 

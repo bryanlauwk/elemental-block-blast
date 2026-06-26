@@ -12,6 +12,7 @@ import { SeededRandom, getDateSeed } from '@/game/seededRandom';
 import {
   createEmptyGrid,
   createRandomPiece,
+  createBombPiece,
   canPlacePieceAt,
   canAnyPieceFit,
   resolveGrid,
@@ -227,9 +228,11 @@ export function useBlockBlastEngine(): BlockBlastEngine {
         const newY = pos.y + p.y;
 
         if (newY >= 0 && newY < GRID_HEIGHT && newX >= 0 && newX < GRID_WIDTH) {
+          const el = piece.elements[i];
           newGrid[newY][newX] = {
-            element: piece.elements[i],
+            element: el,
             id: `${newX}-${newY}-${Date.now()}-${Math.random()}`,
+            ...(el === 'bomb' ? { countdown: 5 } : {}),
           };
         }
       });
@@ -304,6 +307,14 @@ export function useBlockBlastEngine(): BlockBlastEngine {
           ]
         : remainingPieces;
 
+      // Surprise bomb: after a brief warm-up, ~22% chance one of three new
+      // pieces is a ticking single-cell bomb. Skips daily challenge so the
+      // shared seed stays deterministic without bomb RNG drift.
+      if (remainingPieces.length === 0 && !seededRngRef.current && newScore >= 150 && Math.random() < 0.22) {
+        const slot = Math.floor(Math.random() * newPieces.length);
+        newPieces[slot] = createBombPiece();
+      }
+
       setFailedAttempts(0);
 
       const isGameOver = !canAnyPieceFit(resolvedGrid, newPieces);
@@ -326,6 +337,67 @@ export function useBlockBlastEngine(): BlockBlastEngine {
     setReactionPreviews([]);
     setReactionPreviewSummary(null);
   }, [failedAttempts, activateFever]);
+
+  // Bomb ticker: every second, decrement any bomb countdowns and detonate at
+  // 0 — clearing the full row and column the bomb sits on. Runs once for the
+  // lifetime of the hook and no-ops when no bombs are armed.
+  useEffect(() => {
+    const t = setInterval(() => {
+      setGameState(prev => {
+        if (prev.isGameOver) return prev;
+        let armed = false;
+        for (const row of prev.grid) {
+          for (const c of row) {
+            if (c.element === 'bomb' && (c.countdown ?? 0) > 0) { armed = true; break; }
+          }
+          if (armed) break;
+        }
+        if (!armed) return prev;
+
+        const newGrid = prev.grid.map(row => row.map(cell => ({ ...cell })));
+        const detonations: Position[] = [];
+        for (let y = 0; y < GRID_HEIGHT; y++) {
+          for (let x = 0; x < GRID_WIDTH; x++) {
+            const c = newGrid[y][x];
+            if (c.element === 'bomb' && typeof c.countdown === 'number') {
+              c.countdown -= 1;
+              if (c.countdown <= 0) detonations.push({ x, y });
+            }
+          }
+        }
+
+        if (detonations.length === 0) return { ...prev, grid: newGrid };
+
+        const cleared = new Set<string>();
+        detonations.forEach(({ x, y }) => {
+          for (let xx = 0; xx < GRID_WIDTH; xx++) cleared.add(`${xx},${y}`);
+          for (let yy = 0; yy < GRID_HEIGHT; yy++) cleared.add(`${x},${yy}`);
+        });
+        const burstPositions: Position[] = [];
+        cleared.forEach(k => {
+          const [xs, ys] = k.split(',');
+          const x = +xs, y = +ys;
+          burstPositions.push({ x, y });
+          newGrid[y][x] = { element: null, id: `${x}-${y}-${Date.now()}-${Math.random()}` };
+        });
+
+        const bonus = detonations.length * 200 + cleared.size * 10;
+        playSound('combo');
+        setShakeIntensity(10);
+        setComboDisplay({ count: detonations.length, show: true, text: 'BOOM!' });
+        setScorePopup({ score: bonus, show: true, reactionType: 'burn' });
+        setParticleTrigger({ type: 'burn', positions: burstPositions, timestamp: Date.now() });
+        setTimeout(() => {
+          setComboDisplay({ count: 0, show: false, text: '' });
+          setScorePopup({ score: 0, show: false });
+          setShakeIntensity(0);
+        }, 1000);
+
+        return { ...prev, grid: newGrid, score: prev.score + bonus };
+      });
+    }, 1000);
+    return () => clearInterval(t);
+  }, []);
 
   const findHint = useCallback(
     (blocked?: Position | null) => computeHint(gameState.grid, gameState.availablePieces, blocked),

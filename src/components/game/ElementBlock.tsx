@@ -8,10 +8,14 @@ interface ElementBlockProps {
   size?: number;
   isPreview?: boolean;
   showSymbol?: boolean;
+  /** Countdown number to render on bomb cells (1-5). */
+  countdown?: number;
 }
 
-export function ElementBlock({ element, size = 36, isPreview = false, showSymbol = true }: ElementBlockProps) {
+export function ElementBlock({ element, size = 36, isPreview = false, showSymbol = true, countdown }: ElementBlockProps) {
   const info = ELEMENT_INFO[element];
+  const isBomb = element === 'bomb';
+  const bombUrgent = isBomb && typeof countdown === 'number' && countdown <= 2;
 
   const getElementStyles = (): React.CSSProperties => {
     // Chunky Pixar "toy cube": glossy top, beveled inner edges and a short
@@ -46,6 +50,7 @@ export function ElementBlock({ element, size = 36, isPreview = false, showSymbol
       }
       className={cn(
         'relative flex items-center justify-center select-none border border-white/25 game-grid-cell overflow-hidden',
+        bombUrgent && 'animate-pulse',
       )}
       style={getElementStyles()}
     >
@@ -73,7 +78,7 @@ export function ElementBlock({ element, size = 36, isPreview = false, showSymbol
           />
         </svg>
       )}
-      {showSymbol && (
+      {showSymbol && !(isBomb && typeof countdown === 'number') && (
         <span
           className="relative z-10 font-bold text-white/95"
           style={{ 
@@ -82,6 +87,18 @@ export function ElementBlock({ element, size = 36, isPreview = false, showSymbol
           }}
         >
           {info.symbol}
+        </span>
+      )}
+      {isBomb && typeof countdown === 'number' && (
+        <span
+          className="relative z-10 font-black"
+          style={{
+            fontSize: size * 0.6,
+            color: bombUrgent ? '#FFE066' : '#FF4D4D',
+            textShadow: '0 1px 2px rgba(0,0,0,0.7), 0 0 10px rgba(255,77,77,0.9)',
+          }}
+        >
+          {countdown}
         </span>
       )}
     </motion.div>
