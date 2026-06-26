@@ -330,7 +330,7 @@ const ReactionParticles: React.FC<ReactionParticlesProps> = ({
         ) : null
       ))}
       {/* Dissipation — rising dark smoke plume */}
-      {bombSmokes.map((s) => (
+      {!reduced && bombSmokes.map((s) => (
         <motion.div
           key={s.id}
           className="absolute rounded-full"
@@ -351,7 +351,7 @@ const ReactionParticles: React.FC<ReactionParticlesProps> = ({
         />
       ))}
       {/* Dark smoke ring follow-up for bomb */}
-      {shockwaves.filter((s) => s.kind === 'bomb').map((s) => (
+      {!reduced && shockwaves.filter((s) => s.kind === 'bomb').map((s) => (
         <motion.span
           key={`${s.id}-smoke`}
           className="absolute rounded-full pointer-events-none"
@@ -368,6 +368,64 @@ const ReactionParticles: React.FC<ReactionParticlesProps> = ({
             background:
               'radial-gradient(circle, rgba(40,30,30,0) 35%, rgba(60,50,50,0.55) 55%, rgba(20,15,15,0) 85%)',
             filter: 'blur(2px)',
+          }}
+        />
+      ))}
+      {/* === Row & column blast beams — directional streaks from the bomb === */}
+      {bombBeams.map((b) => {
+        const isH = b.orient === 'h';
+        const thickness = Math.max(6, cellSize * 0.45);
+        return (
+          <motion.div
+            key={b.id}
+            className="absolute pointer-events-none rounded-full"
+            initial={{ opacity: 0, scaleX: isH ? 0 : 1, scaleY: isH ? 1 : 0 }}
+            animate={{
+              opacity: [0, 1, 0.9, 0],
+              scaleX: isH ? [0, 1, 1, 1] : 1,
+              scaleY: isH ? 1 : [0, 1, 1, 1],
+            }}
+            transition={{
+              duration: (BOMB_TIMINGS.shockwaveMs + 150) / 1000,
+              times: [0, 0.18, 0.55, 1],
+              ease: 'easeOut',
+            }}
+            style={{
+              left: b.cx,
+              top: b.cy,
+              width: isH ? b.length : thickness,
+              height: isH ? thickness : b.length,
+              marginLeft: isH ? -(b.length / 2) : -(thickness / 2),
+              marginTop: isH ? -(thickness / 2) : -(b.length / 2),
+              background: isH
+                ? 'linear-gradient(90deg, rgba(255,224,130,0) 0%, rgba(255,200,90,0.95) 35%, #fff 50%, rgba(255,200,90,0.95) 65%, rgba(255,224,130,0) 100%)'
+                : 'linear-gradient(180deg, rgba(255,224,130,0) 0%, rgba(255,200,90,0.95) 35%, #fff 50%, rgba(255,200,90,0.95) 65%, rgba(255,224,130,0) 100%)',
+              boxShadow:
+                '0 0 16px rgba(255,180,80,0.85), 0 0 32px rgba(255,107,53,0.55)',
+              mixBlendMode: 'screen',
+              filter: 'blur(1px)',
+              transformOrigin: 'center center',
+            }}
+          />
+        );
+      })}
+      {/* Per-cell impact flashes sweeping outward along the row/column */}
+      {bombCellFlashes.map((f) => (
+        <motion.div
+          key={f.id}
+          className="absolute pointer-events-none rounded-md"
+          initial={{ opacity: 0, scale: 0.6 }}
+          animate={{ opacity: [0, 0.95, 0], scale: [0.6, 1.05, 0.85] }}
+          transition={{ duration: 0.42, delay: f.delay, ease: 'easeOut' }}
+          style={{
+            left: f.x,
+            top: f.y,
+            width: cellSize,
+            height: cellSize,
+            background:
+              'radial-gradient(circle, rgba(255,255,255,0.95) 0%, rgba(255,200,90,0.65) 40%, rgba(255,107,53,0.25) 75%, rgba(0,0,0,0) 100%)',
+            boxShadow: '0 0 12px rgba(255,180,80,0.8)',
+            mixBlendMode: 'screen',
           }}
         />
       ))}
