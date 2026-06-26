@@ -8,6 +8,7 @@ import {
   GRID_HEIGHT,
 } from '@/game/types';
 import { playSound } from '@/game/sounds';
+import { BOMB_TIMINGS, BOMB_TOTAL_MS, BOMB_SHAKE_MS } from '@/game/bombTimings';
 import { SeededRandom, getDateSeed } from '@/game/seededRandom';
 import {
   createEmptyGrid,
@@ -383,19 +384,23 @@ export function useBlockBlastEngine(): BlockBlastEngine {
 
         const bonus = detonations.length * 200 + cleared.size * 10;
         playSound('combo');
+        // Detonation t=0: kick off the visual chain. Engine clears the cells
+        // immediately; ReactionParticles renders charge → flash → fireball →
+        // shockwave → smoke using the same BOMB_TIMINGS constants.
         setShakeIntensity(10);
         setComboDisplay({ count: detonations.length, show: true, text: 'BOOM!' });
         setScorePopup({ score: bonus, show: true, reactionType: 'burn' });
         setParticleTrigger({ type: 'bomb', positions: burstPositions, centers: detonations, timestamp: Date.now() });
+        // Shake ends with the shockwave; popup/score linger through dissipation.
+        setTimeout(() => setShakeIntensity(0), BOMB_SHAKE_MS);
         setTimeout(() => {
           setComboDisplay({ count: 0, show: false, text: '' });
           setScorePopup({ score: 0, show: false });
-          setShakeIntensity(0);
-        }, 1000);
+        }, BOMB_TOTAL_MS);
 
         return { ...prev, grid: newGrid, score: prev.score + bonus };
       });
-    }, 1000);
+    }, BOMB_TIMINGS.tickMs);
     return () => clearInterval(t);
   }, []);
 
