@@ -891,6 +891,8 @@ export function playSound(type: SoundType): void {
       case 'gameOver': playGameOver(); break;
       case 'select': playSelect(); break;
       case 'highScore': playHighScore(); break;
+      case 'bomb': playBomb(); break;
+      case 'fuse': playFuse(); break;
     }
   } catch (error) {
     console.warn('Audio playback failed:', error);
