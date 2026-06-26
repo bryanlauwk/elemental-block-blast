@@ -443,7 +443,7 @@ if (typeof window !== 'undefined') {
   if ('requestIdleCallback' in window) {
     (window as any).requestIdleCallback(warm, { timeout: 2000 });
   } else {
-    window.setTimeout(warm, 800);
+    setTimeout(warm, 800);
   }
 }
 
