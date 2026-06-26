@@ -4,7 +4,6 @@ import { Calendar, Trophy, Medal, Award, X, Loader2, Clock, Star, Flame } from '
 import { Button } from '@/components/ui/button';
 import { useDailyChallenge, DailyChallengeEntry } from '@/hooks/useDailyChallenge';
 import { getTodayDateString, getDisplayDate } from '@/game/seededRandom';
-import { modalStyles } from '@/game/theme';
 
 interface DailyChallengeModalProps {
   isOpen: boolean;
@@ -67,7 +66,7 @@ export function DailyChallengeModal({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-pixar-navy-deep/80 backdrop-blur-md z-50"
+            className="fixed inset-0 bg-[hsl(var(--neon-bg-deep)/0.82)] backdrop-blur-xl z-50"
             onClick={onClose}
           />
           
@@ -78,29 +77,17 @@ export function DailyChallengeModal({
             exit={{ opacity: 0, scale: 0.9, y: 20 }}
             className="fixed inset-x-2 sm:inset-x-4 top-1/2 -translate-y-1/2 z-50 max-w-md mx-auto"
           >
-            <div 
-              className="pixar-modal-shell p-4 sm:p-5"
-              style={modalStyles.container}
-            >
-              {/* Decorative top gradient bar */}
-              <div 
-                className="absolute top-0 left-0 right-0 h-1"
-                style={{
-                  background: 'linear-gradient(90deg, #FF6B35 0%, #FFD700 50%, #00E5FF 100%)',
-                }}
-              />
+            <div className="neon-modal-shell p-4 sm:p-5">
+              <div className="neon-accent-bar" />
 
               {/* Header */}
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
-                  <div 
-                    className="p-2.5 rounded-xl"
-                    style={modalStyles.headerIconFire}
-                  >
-                    <Calendar className="w-5 h-5 text-white" />
+                  <div className="neon-icon-chip neon-icon-chip--magenta w-10 h-10">
+                    <Calendar className="w-5 h-5" />
                   </div>
                   <div>
-                    <h2 className="text-lg font-bold text-white">Daily Challenge</h2>
+                    <h2 className="font-display text-lg font-bold uppercase tracking-wide text-white">Daily Challenge</h2>
                     <p className="text-xs text-white/50">{getDisplayDate(today)}</p>
                   </div>
                 </div>
@@ -115,14 +102,11 @@ export function DailyChallengeModal({
               </div>
 
               {/* Challenge Info */}
-              <div 
-                className="rounded-xl p-4 mb-4"
-                style={modalStyles.infoBoxFire}
-              >
+              <div className="neon-info-box neon-info-box--magenta mb-4">
                 <div className="flex items-start gap-3">
-                  <Flame className="w-5 h-5 text-[#FF6B35] flex-shrink-0 mt-0.5" />
+                  <Flame className="w-5 h-5 text-[hsl(var(--neon-magenta))] flex-shrink-0 mt-0.5" />
                   <div>
-                    <p className="text-sm text-white font-medium mb-1">
+                    <p className="font-display text-sm text-white font-semibold tracking-wide mb-1">
                       Same pieces for everyone!
                     </p>
                     <p className="text-xs text-white/60">
@@ -132,50 +116,46 @@ export function DailyChallengeModal({
                 </div>
                 
                 {/* Time until reset */}
-                <div className="flex items-center gap-2 mt-3 pt-3 border-t border-[#FF6B35]/20">
+                <div className="flex items-center gap-2 mt-3 pt-3 border-t border-[hsl(var(--neon-magenta)/0.25)]">
                   <Clock className="w-4 h-4 text-white/50" />
                   <span className="text-xs text-white/50">
-                    New challenge in <span className="text-[#FFD700] font-medium">{getTimeUntilReset()}</span>
+                    New challenge in <span className="font-display text-[hsl(var(--neon-cyan))] font-bold">{getTimeUntilReset()}</span>
                   </span>
                 </div>
               </div>
 
               {/* Your Best Score */}
               {playerBestScore !== null && playerBestScore !== undefined && (
-                <div 
-                  className="rounded-xl p-3 mb-4 text-center"
-                  style={modalStyles.infoBoxCyan}
-                >
-                  <p className="text-xs text-white/50 mb-1">Your Best Today</p>
-                  <p className="text-2xl font-bold text-[#00E5FF]">
+                <div className="neon-info-box mb-4 text-center">
+                  <p className="font-display text-[10px] uppercase tracking-[0.2em] text-white/55 mb-1">Your Best Today</p>
+                  <p className="font-display text-2xl font-bold text-[hsl(var(--neon-cyan))]">
                     {playerBestScore.toLocaleString()}
                   </p>
                 </div>
               )}
 
               {/* Start Button */}
-              <Button
+              <button
                 onClick={() => {
                   onStartChallenge();
                   onClose();
                 }}
-                className="w-full text-white font-bold py-6 rounded-xl mb-4 border-0 hover:opacity-90 transition-opacity"
-                style={modalStyles.primaryButtonFire}
+                className="neon-cta mb-4"
               >
-                <Flame className="w-5 h-5 mr-2" />
+                <Flame className="w-5 h-5" />
                 {playerBestScore ? 'Try Again' : 'Start Challenge'}
-              </Button>
+              </button>
 
               {/* Leaderboard */}
               <div className="flex-1 overflow-y-auto min-h-0">
-                <h3 className="text-sm font-medium text-white/50 mb-3 flex items-center gap-2">
-                  <Trophy className="w-4 h-4 text-[#FFD700]" />
+                <h3 className="font-display text-xs uppercase tracking-[0.18em] text-white/55 mb-3 flex items-center gap-2">
+                  <Trophy className="w-4 h-4 text-[hsl(var(--neon-amber))]" />
                   Today's Top Players
                 </h3>
 
                 {isLoading ? (
                   <div className="flex items-center justify-center py-8">
-                    <Loader2 className="w-6 h-6 text-[#00E5FF] animate-spin" />
+                    <Loader2 className="w-6 h-6 text-[hsl(var(--neon-cyan))] animate-spin" />
                   </div>
                 ) : error ? (
                   <div className="text-center py-6">
@@ -199,33 +179,20 @@ export function DailyChallengeModal({
                           initial={{ opacity: 0, x: -10 }}
                           animate={{ opacity: 1, x: 0 }}
                           transition={{ delay: index * 0.03 }}
-                          className={`
-                            flex items-center gap-3 py-2 px-3 rounded-xl
-                            ${isHighlighted 
-                              ? 'border' 
-                              : index === 0 
-                                ? 'border' 
-                                : 'bg-white/5'
-                            }
-                          `}
-                          style={
-                            isHighlighted 
-                              ? modalStyles.infoBoxCyan
-                              : index === 0 
-                                ? modalStyles.infoBoxFire
-                                : undefined
-                          }
+                          className={`neon-row flex items-center gap-3 py-2 px-3 ${
+                            isHighlighted ? 'neon-row--cyan' : index === 0 ? 'neon-row--amber' : ''
+                          }`}
                         >
                           <div className="w-6 flex justify-center">
                             {getRankIcon(index + 1)}
                           </div>
-                          <span className={`flex-1 font-medium truncate ${
-                            index === 0 ? 'text-[#FFD700]' : 'text-white'
+                          <span className={`flex-1 font-display font-semibold truncate ${
+                            index === 0 ? 'text-[hsl(var(--neon-amber))]' : 'text-white'
                           }`}>
                             {entry.player_name}
                           </span>
-                          <span className={`font-bold ${
-                            index === 0 ? 'text-[#FFD700]' : 'text-white'
+                          <span className={`font-display font-bold ${
+                            index === 0 ? 'text-[hsl(var(--neon-amber))]' : 'text-white'
                           }`}>
                             {entry.score.toLocaleString()}
                           </span>
