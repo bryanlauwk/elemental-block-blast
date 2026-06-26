@@ -13,7 +13,9 @@ export type SoundType =
   | 'gameOver'
   | 'drop'
   | 'select'
-  | 'highScore';
+  | 'highScore'
+  | 'bomb'
+  | 'fuse';
 
 export type LoFiMusicType =
   | 'cozy'
@@ -33,6 +35,8 @@ import morningTrack from '@/assets/music/morning.mp3.asset.json';
 import djTrack from '@/assets/music/dj.mp3.asset.json';
 import sunsetTrack from '@/assets/music/sunset.mp3.asset.json';
 import coffeeTrack from '@/assets/music/coffee.mp3.asset.json';
+import bombSfx from '@/assets/sfx/bomb.mp3.asset.json';
+import fuseSfx from '@/assets/sfx/fuse.mp3.asset.json';
 
 // Real ElevenLabs-generated lo-fi loops, one per mood.
 const LOFI_TRACK_URLS: Record<LoFiMusicType, string> = {
@@ -397,6 +401,41 @@ function playHighScore(): void {
   [523, 659, 784, 1047, 1319].forEach((freq, i) => setTimeout(() => { createTone(ctx, freq, 'sine', 0.3, 0.35, 0.01, 0.1); createTone(ctx, freq * 1.5, 'triangle', 0.2, 0.15, 0.02, 0.08); }, i * 80));
   setTimeout(() => { for (let i = 0; i < 6; i++) setTimeout(() => createTone(ctx, 1500 + Math.random() * 1000, 'sine', 0.1, 0.1, 0.01, 0.05), i * 50); }, 400);
 }
+
+// === Bomb SFX (sample-based via HTMLAudioElement) ===
+// Pooled players so rapid triggers don't cut each other off.
+const SFX_POOL_SIZE = 3;
+function buildSfxPool(url: string): HTMLAudioElement[] {
+  if (typeof window === 'undefined') return [];
+  const pool: HTMLAudioElement[] = [];
+  for (let i = 0; i < SFX_POOL_SIZE; i++) {
+    try {
+      const a = new Audio(url);
+      a.preload = 'auto';
+      a.crossOrigin = 'anonymous';
+      pool.push(a);
+    } catch {}
+  }
+  return pool;
+}
+const bombPool = buildSfxPool(bombSfx.url);
+const fusePool = buildSfxPool(fuseSfx.url);
+let bombPoolIdx = 0;
+let fusePoolIdx = 0;
+function playFromPool(pool: HTMLAudioElement[], idxRef: 'bomb' | 'fuse', volume: number) {
+  if (!pool.length) return;
+  const idx = idxRef === 'bomb' ? bombPoolIdx : fusePoolIdx;
+  const audio = pool[idx];
+  if (idxRef === 'bomb') bombPoolIdx = (bombPoolIdx + 1) % pool.length;
+  else fusePoolIdx = (fusePoolIdx + 1) % pool.length;
+  try {
+    audio.currentTime = 0;
+    audio.volume = volume;
+    void audio.play();
+  } catch {}
+}
+function playBomb(): void { playFromPool(bombPool, 'bomb', 0.75); }
+function playFuse(): void { playFromPool(fusePool, 'fuse', 0.45); }
 
 let sfxEnabled = true;
 let musicEnabled = true;
@@ -852,6 +891,8 @@ export function playSound(type: SoundType): void {
       case 'gameOver': playGameOver(); break;
       case 'select': playSelect(); break;
       case 'highScore': playHighScore(); break;
+      case 'bomb': playBomb(); break;
+      case 'fuse': playFuse(); break;
     }
   } catch (error) {
     console.warn('Audio playback failed:', error);

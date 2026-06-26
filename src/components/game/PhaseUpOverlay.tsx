@@ -16,7 +16,7 @@ export function PhaseUpOverlay({ phase, onDone }: PhaseUpOverlayProps) {
     } catch {
       // ignore if sound missing
     }
-    const t = setTimeout(onDone, 1600);
+    const t = setTimeout(onDone, 1200);
     return () => clearTimeout(t);
   }, [phase, onDone]);
 
@@ -24,41 +24,40 @@ export function PhaseUpOverlay({ phase, onDone }: PhaseUpOverlayProps) {
     <AnimatePresence>
       {phase && (
         <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          className="pointer-events-none fixed inset-0 z-50 flex items-center justify-center"
+          initial={{ opacity: 0, y: -16 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -10 }}
+          transition={{ type: "spring", stiffness: 360, damping: 26 }}
+          className="pointer-events-none fixed top-3 left-1/2 -translate-x-1/2 z-50 flex justify-center px-3 w-full max-w-md"
         >
           <div
-            className="absolute inset-0"
-            style={{
-              background: `radial-gradient(ellipse 60% 40% at 50% 50%, hsl(${phase.glow} / 0.45) 0%, transparent 70%)`,
-            }}
-          />
-          <motion.div
-            initial={{ scale: 0.6, opacity: 0, y: 20 }}
-            animate={{ scale: 1, opacity: 1, y: 0 }}
-            exit={{ scale: 0.9, opacity: 0, y: -10 }}
-            transition={{ type: "spring", stiffness: 320, damping: 18 }}
-            className="relative text-center px-8 py-6 rounded-3xl"
+            className="relative flex items-center gap-3 px-4 py-2.5 rounded-2xl backdrop-blur-md"
             style={{
               background:
-                "linear-gradient(180deg, hsl(var(--pixar-navy) / 0.92), hsl(var(--pixar-navy-deep) / 0.96))",
-              border: "2px solid hsl(var(--pixar-yellow) / 0.6)",
-              boxShadow: "0 20px 60px hsl(var(--pixar-navy-deep) / 0.8), 0 0 40px hsl(var(--pixar-yellow) / 0.25)",
+                "linear-gradient(180deg, hsl(var(--pixar-navy) / 0.78), hsl(var(--pixar-navy-deep) / 0.82))",
+              border: `1px solid hsl(${phase.glow} / 0.55)`,
+              boxShadow: `0 8px 24px hsl(var(--pixar-navy-deep) / 0.5), 0 0 18px hsl(${phase.glow} / 0.35)`,
             }}
           >
-            <p className="text-[10px] font-sans font-bold uppercase tracking-[0.4em] text-pixar-yellow/90">
-              Phase {phase.id} Unlocked
-            </p>
-            <p className="mt-2 text-5xl sm:text-6xl font-display bg-gradient-to-r from-pixar-yellow via-white to-pixar-red bg-clip-text text-transparent pixar-letter-shadow-yellow">
-              {phase.name}
-            </p>
-            <p className="mt-2 text-sm font-sans text-white/80">{phase.tagline}</p>
-            <p className="mt-1 text-xs font-sans text-white/55 italic">
-              {phase.unlocks}
-            </p>
-          </motion.div>
+            <span
+              className="text-[10px] font-sans font-bold uppercase tracking-[0.28em] px-2 py-0.5 rounded-full whitespace-nowrap"
+              style={{
+                color: `hsl(${phase.glow})`,
+                background: `hsl(${phase.glow} / 0.12)`,
+                border: `1px solid hsl(${phase.glow} / 0.4)`,
+              }}
+            >
+              Phase {phase.id}
+            </span>
+            <div className="flex flex-col leading-tight min-w-0">
+              <p className="text-sm sm:text-base font-display text-white truncate">
+                {phase.name}
+              </p>
+              <p className="text-[11px] font-sans text-white/65 truncate">
+                {phase.tagline}
+              </p>
+            </div>
+          </div>
         </motion.div>
       )}
     </AnimatePresence>

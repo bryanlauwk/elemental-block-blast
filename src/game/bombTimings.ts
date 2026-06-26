@@ -7,26 +7,26 @@ export const BOMB_TIMINGS = {
   /** Player-visible countdown tick interval. Matches the 5,4,3,2,1 cadence. */
   tickMs: 1000,
   /** Pre-detonation yellow charge ring pop. */
-  chargeMs: 220,
+  chargeMs: 360,
   /** White ignition flash. */
-  flashMs: 450,
+  flashMs: 750,
   /** Orange/red fireball core. */
-  fireballMs: 650,
+  fireballMs: 1100,
   /** Amber shockwave ring. */
-  shockwaveMs: 700,
+  shockwaveMs: 1150,
   /** Smoke ring follow-up (offset start, fades over). */
-  smokeRingDelayMs: 100,
-  smokeRingMs: 850,
+  smokeRingDelayMs: 180,
+  smokeRingMs: 1400,
   /** Rising dark plume (dissipation tail). */
-  smokePlumeDelayMs: 250,
-  smokePlumeMs: 1300,
+  smokePlumeDelayMs: 420,
+  smokePlumeMs: 2200,
   /** Debris shards (gravity-affected). */
-  debrisMs: 800,
+  debrisMs: 1300,
 } as const;
 
 /** Total duration from detonation tick until all visuals have fully dissipated. */
 export const BOMB_TOTAL_MS =
-  BOMB_TIMINGS.smokePlumeDelayMs + BOMB_TIMINGS.smokePlumeMs; // 1550ms
+  BOMB_TIMINGS.smokePlumeDelayMs + BOMB_TIMINGS.smokePlumeMs; // ~2620ms
 
 /** How long the screen-shake + score popup remain visible during a detonation. */
-export const BOMB_SHAKE_MS = BOMB_TIMINGS.shockwaveMs; // 700ms — ends with shockwave
+export const BOMB_SHAKE_MS = BOMB_TIMINGS.shockwaveMs; // ends with shockwave

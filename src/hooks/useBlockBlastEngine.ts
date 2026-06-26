@@ -357,17 +357,24 @@ export function useBlockBlastEngine(): BlockBlastEngine {
 
         const newGrid = prev.grid.map(row => row.map(cell => ({ ...cell })));
         const detonations: Position[] = [];
+        let anyCritical = false;
         for (let y = 0; y < GRID_HEIGHT; y++) {
           for (let x = 0; x < GRID_WIDTH; x++) {
             const c = newGrid[y][x];
             if (c.element === 'bomb' && typeof c.countdown === 'number') {
               c.countdown -= 1;
               if (c.countdown <= 0) detonations.push({ x, y });
+              else if (c.countdown <= 2) anyCritical = true;
             }
           }
         }
 
-        if (detonations.length === 0) return { ...prev, grid: newGrid };
+        if (detonations.length === 0) {
+          if (anyCritical) {
+            try { playSound('fuse'); } catch {}
+          }
+          return { ...prev, grid: newGrid };
+        }
 
         const cleared = new Set<string>();
         detonations.forEach(({ x, y }) => {
@@ -383,7 +390,8 @@ export function useBlockBlastEngine(): BlockBlastEngine {
         });
 
         const bonus = detonations.length * 200 + cleared.size * 10;
-        playSound('combo');
+        // Detonation SFX synced with the visual chain (charge → flash → boom).
+        playSound('bomb');
         // Detonation t=0: kick off the visual chain. Engine clears the cells
         // immediately; ReactionParticles renders charge → flash → fireball →
         // shockwave → smoke using the same BOMB_TIMINGS constants.
