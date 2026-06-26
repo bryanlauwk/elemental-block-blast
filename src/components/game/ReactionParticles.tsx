@@ -74,6 +74,9 @@ const ReactionParticles: React.FC<ReactionParticlesProps> = ({
   const [bombCellFlashes, setBombCellFlashes] = useState<
     { id: string; x: number; y: number; delay: number; orient: 'h' | 'v' }[]
   >([]);
+  const [bombRipples, setBombRipples] = useState<
+    { id: string; x: number; y: number; delay: number; ringIndex: number }[]
+  >([]);
   const [reduced, setReduced] = useState<boolean>(() => isReducedMotion());
 
   useEffect(() => subscribeReducedMotion(setReduced), []);
@@ -193,6 +196,25 @@ const ReactionParticles: React.FC<ReactionParticlesProps> = ({
       setBombBeams((prev) => [...prev, ...newBeams]);
       setBombCellFlashes((prev) => [...prev, ...newCellFlashes]);
 
+      // Centered shockwave ripple — 3 concentric rings staggered to feel cinematic
+      // and synced with the beam sweep (beam total ≈ shockwaveMs + 150).
+      const rippleCount = reduced ? 2 : 3;
+      const newRipples: typeof bombRipples = [];
+      centers.forEach((pos) => {
+        const cx = gridOffset.x + (pos.x + 0.5) * cellSize;
+        const cy = gridOffset.y + (pos.y + 0.5) * cellSize;
+        for (let i = 0; i < rippleCount; i++) {
+          newRipples.push({
+            id: `brp-${trigger.timestamp}-${pos.x}-${pos.y}-${i}`,
+            x: cx,
+            y: cy,
+            delay: (i * 90) / 1000,
+            ringIndex: i,
+          });
+        }
+      });
+      setBombRipples((prev) => [...prev, ...newRipples]);
+
       setBombCharges((prev) => [...prev, ...newCharges]);
       setShockwaves((prev) => [...prev, ...newShocks]);
       setBombFlashes((prev) => [...prev, ...newFlashes]);
@@ -221,6 +243,9 @@ const ReactionParticles: React.FC<ReactionParticlesProps> = ({
         setBombBeams((prev) => prev.filter((b) => !newBeams.some((nb) => nb.id === b.id)));
         setBombCellFlashes((prev) => prev.filter((f) => !newCellFlashes.some((nf) => nf.id === f.id)));
       }, BOMB_TIMINGS.shockwaveMs + 400);
+      const rippleTimeout = setTimeout(() => {
+        setBombRipples((prev) => prev.filter((r) => !newRipples.some((nr) => nr.id === r.id)));
+      }, BOMB_TIMINGS.shockwaveMs + 500);
       return () => {
         clearTimeout(chargeTimeout);
         clearTimeout(shockTimeout);
@@ -229,6 +254,7 @@ const ReactionParticles: React.FC<ReactionParticlesProps> = ({
         clearTimeout(smokeTimeout);
         clearTimeout(particleTimeout);
         clearTimeout(beamTimeout);
+        clearTimeout(rippleTimeout);
       };
     }
 
