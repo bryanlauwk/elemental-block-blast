@@ -411,6 +411,41 @@ let musicPlaying = false;
 let musicStep = 0;
 let visibilityHandler: (() => void) | null = null;
 let musicAudioEl: HTMLAudioElement | null = null;
+let musicAudioElB: HTMLAudioElement | null = null;
+let musicFadeRaf: number | null = null;
+let crossfadeScheduled = false;
+let timeUpdateHandler: (() => void) | null = null;
+const CROSSFADE_SEC = 3;
+
+// Preloaded audio cache — one HTMLAudioElement per mood, kept warm so switches are instant.
+const preloadedTracks: Partial<Record<LoFiMusicType, HTMLAudioElement>> = {};
+
+function preloadAllTracks(): void {
+  if (typeof window === 'undefined') return;
+  (Object.keys(LOFI_TRACK_URLS) as LoFiMusicType[]).forEach((mood) => {
+    if (preloadedTracks[mood]) return;
+    try {
+      const audio = new Audio();
+      audio.preload = 'auto';
+      audio.crossOrigin = 'anonymous';
+      audio.src = LOFI_TRACK_URLS[mood];
+      audio.load();
+      preloadedTracks[mood] = audio;
+    } catch (e) {
+      // ignore preload errors
+    }
+  });
+}
+
+if (typeof window !== 'undefined') {
+  // Warm cache on idle so the first mood switch is instant.
+  const warm = () => preloadAllTracks();
+  if ('requestIdleCallback' in window) {
+    (window as any).requestIdleCallback(warm, { timeout: 2000 });
+  } else {
+    setTimeout(warm, 800);
+  }
+}
 
 function getPreset(id: LoFiMusicType): LoFiPreset {
   return LOFI_MUSIC_PRESETS.find((preset) => preset.id === id) ?? LOFI_MUSIC_PRESETS[0];
@@ -446,7 +481,9 @@ export function setMusicVolume(volume: number): void {
   musicVolume = Math.max(0, Math.min(1, volume));
   saveSoundSettings();
   if (musicGainNode) musicGainNode.gain.setTargetAtTime(musicVolume, getAudioContext().currentTime, 0.05);
-  if (musicAudioEl) musicAudioEl.volume = Math.min(1, musicVolume * 2.6);
+  const target = Math.min(1, musicVolume * 2.6);
+  if (musicAudioEl) musicAudioEl.volume = target;
+  // Don't override musicAudioElB if it's mid-crossfade.
 }
 export function getMusicVolume(): number { return musicVolume; }
 export function getMusicType(): LoFiMusicType { return musicType; }
@@ -456,8 +493,7 @@ export function setMusicType(type: LoFiMusicType): void {
   activePreset = getPreset(type);
   saveSoundSettings();
   if (musicPlaying) {
-    stopMusic(false);
-    startMusic();
+    crossfadeToMood(type);
   }
 }
 export function setSoundEnabled(enabled: boolean): void { setSfxEnabled(enabled); }
@@ -465,17 +501,137 @@ export function isSoundEnabled(): boolean { return sfxEnabled; }
 
 function connectToMusic(node: AudioNode): void { if (musicGainNode) node.connect(musicGainNode); }
 
-function startTrack(url: string): void {
+function acquireTrackElement(mood: LoFiMusicType): HTMLAudioElement {
+  // Use the preloaded cached element when available so playback starts immediately.
+  const cached = preloadedTracks[mood];
+  if (cached) {
+    try { cached.currentTime = 0; } catch (e) {}
+    return cached;
+  }
+  const audio = new Audio(LOFI_TRACK_URLS[mood]);
+  audio.preload = 'auto';
+  audio.crossOrigin = 'anonymous';
+  preloadedTracks[mood] = audio;
+  return audio;
+}
+
+function targetVolume(): number {
+  return Math.min(1, musicVolume * 2.6);
+}
+
+function fadeAudio(
+  audio: HTMLAudioElement,
+  from: number,
+  to: number,
+  durationMs: number,
+  onDone?: () => void,
+): void {
+  const start = performance.now();
+  audio.volume = from;
+  const step = (now: number) => {
+    const t = Math.min(1, (now - start) / durationMs);
+    try { audio.volume = Math.max(0, Math.min(1, from + (to - from) * t)); } catch (e) {}
+    if (t < 1 && musicPlaying) {
+      musicFadeRaf = requestAnimationFrame(step);
+    } else {
+      onDone?.();
+    }
+  };
+  musicFadeRaf = requestAnimationFrame(step);
+}
+
+function attachLoopCrossfade(audio: HTMLAudioElement, mood: LoFiMusicType): void {
+  detachLoopCrossfade();
+  crossfadeScheduled = false;
+  const handler = () => {
+    if (!musicPlaying || crossfadeScheduled) return;
+    const dur = audio.duration;
+    if (!isFinite(dur) || dur <= CROSSFADE_SEC * 2) return;
+    if (dur - audio.currentTime <= CROSSFADE_SEC) {
+      crossfadeScheduled = true;
+      startCrossfade(mood, mood);
+    }
+  };
+  timeUpdateHandler = handler;
+  audio.addEventListener('timeupdate', handler);
+}
+
+function detachLoopCrossfade(): void {
+  if (musicAudioEl && timeUpdateHandler) {
+    musicAudioEl.removeEventListener('timeupdate', timeUpdateHandler);
+  }
+  timeUpdateHandler = null;
+}
+
+function startCrossfade(fromMood: LoFiMusicType, toMood: LoFiMusicType): void {
+  const incoming = acquireTrackElement(toMood);
+  // If the incoming element is the same instance currently playing (same mood loop crossfade),
+  // we can't play one element at two positions — clone via a fresh Audio.
+  const incomingEl = incoming === musicAudioEl ? (() => {
+    const fresh = new Audio(LOFI_TRACK_URLS[toMood]);
+    fresh.preload = 'auto';
+    fresh.crossOrigin = 'anonymous';
+    return fresh;
+  })() : incoming;
+  try { incomingEl.currentTime = 0; } catch (e) {}
+  incomingEl.volume = 0;
+  incomingEl.loop = false;
+  const outgoing = musicAudioEl;
+  musicAudioElB = incomingEl;
+
+  const beginFade = () => {
+    incomingEl.play().catch((err) => console.warn('Crossfade play blocked:', err));
+    const target = targetVolume();
+    // Fade in incoming
+    fadeAudio(incomingEl, 0, target, CROSSFADE_SEC * 1000);
+    // Fade out outgoing in parallel (use setInterval since rAF is taken)
+    if (outgoing) {
+      const startVol = outgoing.volume;
+      const start = performance.now();
+      const tick = () => {
+        const t = Math.min(1, (performance.now() - start) / (CROSSFADE_SEC * 1000));
+        try { outgoing.volume = Math.max(0, startVol * (1 - t)); } catch (e) {}
+        if (t < 1) {
+          requestAnimationFrame(tick);
+        } else {
+          try { outgoing.pause(); } catch (e) {}
+          // If outgoing wasn't a cached preload element, leave it for GC.
+          // The cached preloaded element for fromMood remains preloaded for future use.
+        }
+      };
+      requestAnimationFrame(tick);
+    }
+    // Promote incoming to current and set up its loop crossfade.
+    detachLoopCrossfade();
+    musicAudioEl = incomingEl;
+    musicAudioElB = null;
+    crossfadeScheduled = false;
+    attachLoopCrossfade(incomingEl, toMood);
+  };
+
+  if (incomingEl.readyState >= 2) beginFade();
+  else incomingEl.addEventListener('canplay', beginFade, { once: true });
+}
+
+function crossfadeToMood(toMood: LoFiMusicType): void {
+  if (!musicAudioEl) {
+    // Not currently playing via track — just start.
+    startTrack(toMood);
+    return;
+  }
+  startCrossfade(musicType, toMood);
+}
+
+function startTrack(mood: LoFiMusicType): void {
   try {
-    const audio = new Audio(url);
-    audio.loop = true;
-    audio.preload = 'auto';
-    audio.crossOrigin = 'anonymous';
-    audio.volume = Math.min(1, musicVolume * 2.6);
+    const audio = acquireTrackElement(mood);
+    audio.loop = false; // we manage looping via crossfade
+    audio.volume = targetVolume();
     musicAudioEl = audio;
     const play = () => audio.play().catch((err) => console.warn('Music autoplay blocked:', err));
     if (audio.readyState >= 2) play();
     else audio.addEventListener('canplay', play, { once: true });
+    attachLoopCrossfade(audio, mood);
   } catch (e) {
     console.warn('Failed to start lo-fi track:', e);
   }
@@ -625,7 +781,7 @@ export function startMusic(): void {
     musicStep = 0;
     const trackUrl = LOFI_TRACK_URLS[musicType];
     if (trackUrl) {
-      startTrack(trackUrl);
+      startTrack(musicType);
     } else {
       const ctx = getAudioContext();
       createLoFiMusic(ctx);
@@ -641,9 +797,17 @@ export function startMusic(): void {
 
 export function stopMusic(persistSetting = true): void {
   musicPlaying = false;
+  detachLoopCrossfade();
+  if (musicFadeRaf !== null) { cancelAnimationFrame(musicFadeRaf); musicFadeRaf = null; }
+  crossfadeScheduled = false;
   if (musicAudioEl) {
-    try { musicAudioEl.pause(); musicAudioEl.src = ''; } catch (e) {}
+    try { musicAudioEl.pause(); } catch (e) {}
+    // Don't blank src — keep buffered audio cached for instant restart.
     musicAudioEl = null;
+  }
+  if (musicAudioElB) {
+    try { musicAudioElB.pause(); } catch (e) {}
+    musicAudioElB = null;
   }
   musicOscillators.forEach(osc => { try { osc.stop(); osc.disconnect(); } catch (e) {} });
   musicOscillators = [];
