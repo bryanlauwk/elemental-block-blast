@@ -16,7 +16,7 @@ beforeAll(() => {
 });
 
 describe('SoundSettings (mobile)', () => {
-  it('renders all 8 lo-fi mood options inside a scrollable shell', () => {
+  it('renders all 8 lo-fi mood options inside a mobile-safe scrollable shell', () => {
     const { container } = render(<SoundSettings isOpen onClose={() => {}} />);
 
     expect(LOFI_MUSIC_PRESETS).toHaveLength(8);
@@ -26,6 +26,10 @@ describe('SoundSettings (mobile)', () => {
 
     const shell = container.querySelector('.pixar-modal-shell');
     expect(shell).not.toBeNull();
-    expect(shell!.className).toMatch(/overflow-y-auto/);
+    expect(shell!.className).toMatch(/pixar-modal-shell--scroll/);
+
+    const mobileViewportWrapper = container.querySelector('.fixed.inset-2');
+    expect(mobileViewportWrapper).not.toBeNull();
+    expect(mobileViewportWrapper!.className).toMatch(/items-start/);
   });
 });
