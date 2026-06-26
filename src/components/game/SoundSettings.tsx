@@ -83,7 +83,7 @@ export function SoundSettings({ isOpen, onClose }: SoundSettingsProps) {
             className="fixed inset-x-2 sm:inset-x-4 top-1/2 -translate-y-1/2 z-50 max-w-sm mx-auto"
           >
             <div 
-              className="pixar-modal-shell p-4 sm:p-5"
+              className="pixar-modal-shell p-4 sm:p-5 overflow-y-auto"
               style={modalStyles.container}
             >
               {/* Decorative top gradient bar */}
