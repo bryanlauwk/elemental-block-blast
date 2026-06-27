@@ -196,9 +196,8 @@ const ReactionParticles: React.FC<ReactionParticlesProps> = ({
       setBombBeams((prev) => [...prev, ...newBeams]);
       setBombCellFlashes((prev) => [...prev, ...newCellFlashes]);
 
-      // Centered shockwave ripple — 3 concentric rings staggered to feel cinematic
-      // and synced with the beam sweep (beam total ≈ shockwaveMs + 150).
-      const rippleCount = reduced ? 2 : 3;
+      // Centered shockwave ripple — max 2 compact rings for a punchy, non-intrusive feel.
+      const rippleCount = Math.min(2, reduced ? 1 : 2);
       const newRipples: typeof bombRipples = [];
       centers.forEach((pos) => {
         const cx = gridOffset.x + (pos.x + 0.5) * cellSize;
@@ -208,7 +207,7 @@ const ReactionParticles: React.FC<ReactionParticlesProps> = ({
             id: `brp-${trigger.timestamp}-${pos.x}-${pos.y}-${i}`,
             x: cx,
             y: cy,
-            delay: (i * 25) / 1000,
+            delay: (i * 20) / 1000,
             ringIndex: i,
           });
         }
@@ -245,7 +244,7 @@ const ReactionParticles: React.FC<ReactionParticlesProps> = ({
       }, BOMB_TIMINGS.shockwaveMs + 400);
       const rippleTimeout = setTimeout(() => {
         setBombRipples((prev) => prev.filter((r) => !newRipples.some((nr) => nr.id === r.id)));
-      }, 600);
+      }, 420);
       return () => {
         clearTimeout(chargeTimeout);
         clearTimeout(shockTimeout);
@@ -437,8 +436,8 @@ const ReactionParticles: React.FC<ReactionParticlesProps> = ({
       })}
       {/* Centered shockwave ripples — concentric expanding rings synced with the beam */}
       {bombRipples.map((r) => {
-        const baseSize = cellSize * (2.6 + r.ringIndex * 0.4);
-        const maxScale = 3.4 + r.ringIndex * 0.5;
+        const baseSize = cellSize * (2.0 + r.ringIndex * 0.3);
+        const maxScale = 2.2 + r.ringIndex * 0.35;
         const borderAlpha = 0.85 - r.ringIndex * 0.22;
         return (
           <motion.span
@@ -447,7 +446,7 @@ const ReactionParticles: React.FC<ReactionParticlesProps> = ({
             initial={{ opacity: 0, scale: 0.15 }}
             animate={{ opacity: [0, borderAlpha, 0], scale: [0.15, maxScale * 0.6, maxScale] }}
             transition={{
-              duration: 0.38,
+              duration: 0.28,
               delay: r.delay,
               times: [0, 0.35, 1],
               ease: [0.16, 1, 0.3, 1],
