@@ -436,8 +436,8 @@ const ReactionParticles: React.FC<ReactionParticlesProps> = ({
       })}
       {/* Centered shockwave ripples — concentric expanding rings synced with the beam */}
       {bombRipples.map((r) => {
-        const baseSize = cellSize * (2.6 + r.ringIndex * 0.4);
-        const maxScale = 3.4 + r.ringIndex * 0.5;
+        const baseSize = cellSize * (2.0 + r.ringIndex * 0.3);
+        const maxScale = 2.2 + r.ringIndex * 0.35;
         const borderAlpha = 0.85 - r.ringIndex * 0.22;
         return (
           <motion.span
@@ -446,7 +446,7 @@ const ReactionParticles: React.FC<ReactionParticlesProps> = ({
             initial={{ opacity: 0, scale: 0.15 }}
             animate={{ opacity: [0, borderAlpha, 0], scale: [0.15, maxScale * 0.6, maxScale] }}
             transition={{
-              duration: 0.38,
+              duration: 0.28,
               delay: r.delay,
               times: [0, 0.35, 1],
               ease: [0.16, 1, 0.3, 1],
