@@ -1230,7 +1230,7 @@ All colors MUST be HSL.
 .hero-prop { animation: hero-prop-float 6s ease-in-out infinite; }
 
 @media (prefers-reduced-motion: reduce) {
-  .mascot-bob, .hero-prop { animation: none !important; }
+  .hero-prop { animation: none !important; }
 }
 
 
