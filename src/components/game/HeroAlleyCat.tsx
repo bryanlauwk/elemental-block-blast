@@ -148,28 +148,38 @@ export const HeroAlleyCat = () => {
             mixBlendMode: 'screen',
           }}
         />
-        {/* The cat — softer cyan rim + slight haze for atmospheric blending */}
+        {/* The cat — soft DOF blur + cyan rim for atmospheric embedding */}
         <motion.img
           src={currentImage}
           alt="Neon alley cat"
           className="relative w-full h-auto"
           style={{
             filter:
-              'drop-shadow(0 1px 0 hsl(0 0% 0% / 0.35)) drop-shadow(0 0 6px hsl(var(--neon-cyan) / 0.35)) drop-shadow(0 0 14px hsl(var(--neon-magenta) / 0.22)) saturate(0.92) contrast(0.95)',
+              'blur(0.6px) drop-shadow(0 1px 0 hsl(0 0% 0% / 0.3)) drop-shadow(0 0 5px hsl(var(--neon-cyan) / 0.3)) drop-shadow(0 0 12px hsl(var(--neon-magenta) / 0.2)) saturate(0.82) contrast(0.9) brightness(0.92)',
             transform: facingRight ? 'scaleX(1)' : 'scaleX(-1)',
-            opacity: 0.92,
+            opacity: 0.82,
           }}
           loading="eager"
           draggable={false}
         />
-        {/* Atmospheric haze tint sampled from alley fog */}
+        {/* Atmospheric fog veil — matches alley navy haze density */}
         <div
           aria-hidden
           className="absolute inset-0 pointer-events-none"
           style={{
             background:
-              'linear-gradient(to top, hsl(220 40% 8% / 0.35) 0%, hsl(220 40% 8% / 0.05) 40%, transparent 100%)',
+              'linear-gradient(to top, hsl(220 45% 9% / 0.55) 0%, hsl(220 45% 10% / 0.3) 35%, hsl(220 40% 12% / 0.12) 70%, transparent 100%)',
             mixBlendMode: 'multiply',
+          }}
+        />
+        {/* Cool fog screen pass — bleeds cyan ambient onto the sprite */}
+        <div
+          aria-hidden
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            background:
+              'linear-gradient(to top, hsl(195 70% 45% / 0.08) 0%, hsl(280 60% 50% / 0.05) 60%, transparent 100%)',
+            mixBlendMode: 'screen',
           }}
         />
       </motion.div>
