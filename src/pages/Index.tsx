@@ -45,6 +45,7 @@ import PhaseUpOverlay from '@/components/game/PhaseUpOverlay';
 import LofiAlleyBackdrop from '@/components/game/LofiAlleyBackdrop';
 import HeroAlleyCat from '@/components/game/HeroAlleyCat';
 import HeroPhaseTint from '@/components/game/HeroPhaseTint';
+import sitCatAsset from '@/assets/alley-cat-sit.png.asset.json';
 
 const Index = () => {
   const {
