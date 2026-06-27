@@ -442,6 +442,7 @@ const ReactionParticles: React.FC<ReactionParticlesProps> = ({
         return (
           <motion.span
             key={r.id}
+            data-testid="bomb-ripple"
             className="absolute rounded-full pointer-events-none"
             initial={{ opacity: 0, scale: 0.15 }}
             animate={{ opacity: [0, borderAlpha, 0], scale: [0.15, maxScale * 0.6, maxScale] }}
