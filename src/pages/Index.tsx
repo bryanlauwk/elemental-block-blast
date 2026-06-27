@@ -832,14 +832,14 @@ const Index = () => {
                           </motion.div>
                         )}
                         
-                        {/* Mascot reaction */}
+                        {/* Alley cat reaction */}
                         <motion.img
-                          src={heroMascot}
-                          alt=""
+                          src={sitCatAsset.url}
+                          alt="Neon alley cat"
                           initial={{ scale: 0.6, opacity: 0, y: 10 }}
                           animate={{ scale: 1, opacity: 1, y: 0 }}
                           transition={{ type: 'spring', stiffness: 260, damping: 16, delay: 0.05 }}
-                          className="mascot-bob w-20 sm:w-24 h-auto mx-auto mb-1 select-none pointer-events-none drop-shadow-[0_10px_18px_rgba(0,0,0,0.45)]"
+                          className="w-20 sm:w-24 h-auto mx-auto mb-1 select-none pointer-events-none drop-shadow-[0_10px_18px_rgba(0,0,0,0.45)]"
                           draggable={false}
                         />
 
