@@ -596,17 +596,7 @@ const Index = () => {
                     }}
                   />
 
-                  <motion.img
-                    src={heroMascot}
-                    alt="Elemental Block Blast mascot — a glowing glass-block character"
-                    width={1024}
-                    height={1536}
-                    initial={{ opacity: 0, scale: 0.8, y: 20 }}
-                    animate={{ opacity: 1, scale: 1, y: 0 }}
-                    transition={{ delay: 0.2, type: 'spring', stiffness: 220, damping: 20 }}
-                    className="mascot-bob absolute -top-2 sm:-top-4 left-1/2 -translate-x-1/2 z-0 w-28 sm:w-36 md:w-40 h-auto pointer-events-none select-none opacity-90 drop-shadow-[0_18px_30px_rgba(0,0,0,0.55)]"
-                    draggable={false}
-                  />
+                  <HeroPhaseTint />
 
                   <div className="relative z-10 pt-14 sm:pt-20">
                     <GameTitle />
