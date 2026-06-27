@@ -114,14 +114,8 @@ export const HeroAlleyCat = () => {
       ref={containerRef}
       className="relative w-full h-16 sm:h-20 md:h-24 pointer-events-none select-none"
     >
-      <motion.img
-        src={currentImage}
-        alt="Neon alley cat"
-        className="absolute bottom-0 w-20 sm:w-24 md:w-28 h-auto"
-        style={{
-          filter: 'drop-shadow(0 0 10px hsl(var(--neon-cyan) / 0.45))',
-          transform: facingRight ? 'scaleX(1)' : 'scaleX(-1)',
-        }}
+      <motion.div
+        className="absolute bottom-0 w-20 sm:w-24 md:w-28"
         animate={{
           x: targetX,
           y: reduceMotion ? [0, -4, 0] : 0,
@@ -132,9 +126,53 @@ export const HeroAlleyCat = () => {
         }}
         initial={{ x: 0, opacity: 0 }}
         whileInView={{ opacity: 1 }}
-        loading="eager"
-        draggable={false}
-      />
+      >
+        {/* Soft contact shadow puddle to ground the cat */}
+        <div
+          aria-hidden
+          className="absolute left-1/2 -translate-x-1/2 -bottom-1 w-[85%] h-2 sm:h-2.5 rounded-[50%]"
+          style={{
+            background:
+              'radial-gradient(ellipse at center, hsl(0 0% 0% / 0.55) 0%, hsl(0 0% 0% / 0.25) 45%, transparent 75%)',
+            filter: 'blur(3px)',
+          }}
+        />
+        {/* Magenta back-rim glow bleeds into the alley palette */}
+        <div
+          aria-hidden
+          className="absolute inset-0 -z-10"
+          style={{
+            background:
+              'radial-gradient(ellipse at 50% 70%, hsl(var(--neon-magenta) / 0.28), transparent 65%)',
+            filter: 'blur(10px)',
+            mixBlendMode: 'screen',
+          }}
+        />
+        {/* The cat — softer cyan rim + slight haze for atmospheric blending */}
+        <motion.img
+          src={currentImage}
+          alt="Neon alley cat"
+          className="relative w-full h-auto"
+          style={{
+            filter:
+              'drop-shadow(0 1px 0 hsl(0 0% 0% / 0.35)) drop-shadow(0 0 6px hsl(var(--neon-cyan) / 0.35)) drop-shadow(0 0 14px hsl(var(--neon-magenta) / 0.22)) saturate(0.92) contrast(0.95)',
+            transform: facingRight ? 'scaleX(1)' : 'scaleX(-1)',
+            opacity: 0.92,
+          }}
+          loading="eager"
+          draggable={false}
+        />
+        {/* Atmospheric haze tint sampled from alley fog */}
+        <div
+          aria-hidden
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            background:
+              'linear-gradient(to top, hsl(220 40% 8% / 0.35) 0%, hsl(220 40% 8% / 0.05) 40%, transparent 100%)',
+            mixBlendMode: 'multiply',
+          }}
+        />
+      </motion.div>
     </div>
   );
 };
