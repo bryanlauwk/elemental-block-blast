@@ -244,7 +244,7 @@ const ReactionParticles: React.FC<ReactionParticlesProps> = ({
       }, BOMB_TIMINGS.shockwaveMs + 400);
       const rippleTimeout = setTimeout(() => {
         setBombRipples((prev) => prev.filter((r) => !newRipples.some((nr) => nr.id === r.id)));
-      }, 600);
+      }, 420);
       return () => {
         clearTimeout(chargeTimeout);
         clearTimeout(shockTimeout);
