@@ -9,6 +9,7 @@ import {
 } from '@/game/types';
 import { playSound } from '@/game/sounds';
 import { BOMB_TIMINGS, BOMB_TOTAL_MS, BOMB_SHAKE_MS } from '@/game/bombTimings';
+import { BOMB_CONFIG, computeBombChance } from '@/game/bombConfig';
 import { SeededRandom, getDateSeed } from '@/game/seededRandom';
 import {
   createEmptyGrid,
@@ -54,6 +55,14 @@ export interface BlockBlastEngine {
   placePiece: (piece: DraggablePiece, pos: Position) => void;
   getReactionPreview: (piece: DraggablePiece, pos: Position) => ReactionPreview[];
   findHint: (blocked?: Position | null) => { piece: DraggablePiece; pos: Position } | null;
+  /** Replace one tray piece with a freshly-generated one. Limited per turn. */
+  rerollPiece: (pieceId: string) => void;
+  /** Whether a reroll is currently available this turn. */
+  rerollAvailable: boolean;
+  /** Current board fill ratio (0..1) — drives the bomb meter UI. */
+  boardFillRatio: number;
+  /** Current per-refill bomb spawn chance (0..1) based on fill. */
+  bombChance: number;
 }
 
 export function useBlockBlastEngine(): BlockBlastEngine {
@@ -110,6 +119,8 @@ export function useBlockBlastEngine(): BlockBlastEngine {
   const [particleTrigger, setParticleTrigger] = useState<ParticleTrigger | null>(null);
   const [failedAttempts, setFailedAttempts] = useState(0); // Track for comeback mechanic
   const [isDailyChallenge, setIsDailyChallenge] = useState(false);
+  /** One reroll allowed per turn; consumed when used, refilled on placement. */
+  const [rerollAvailable, setRerollAvailable] = useState(true);
 
   // Seeded RNG for daily challenge mode
   const seededRngRef = useRef<SeededRandom | null>(null);
@@ -145,6 +156,7 @@ export function useBlockBlastEngine(): BlockBlastEngine {
     setReactionEvents([]);
     setReactionPreviewSummary(null);
     setFailedAttempts(0);
+    setRerollAvailable(true);
     endFever();
   }, [endFever]);
 
@@ -175,6 +187,8 @@ export function useBlockBlastEngine(): BlockBlastEngine {
     setReactionEvents([]);
     setReactionPreviewSummary(null);
     setFailedAttempts(0);
+    // Daily challenge is deterministic — disable rerolls to keep parity.
+    setRerollAvailable(false);
     endFever();
   }, [endFever]);
 
@@ -307,9 +321,9 @@ export function useBlockBlastEngine(): BlockBlastEngine {
         newPieces.push(createRandomPiece(newScore, needsComeback && newPieces.length === 0, rng || undefined));
       }
 
-      // Surprise bomb: only when the board is getting crowded (≥55% filled) so it
-      // shows up as a genuine pressure-release surprise instead of arriving on an
-      // empty board. Skips daily challenge to keep the seeded run deterministic.
+      // Surprise bomb: chance ramps smoothly with board fill (see BOMB_CONFIG)
+      // so bombs stay rare when the board is open and grow more likely as
+      // pressure builds. Skips daily challenge to keep the seeded run deterministic.
       const totalCells = resolvedGrid.length * resolvedGrid[0].length;
       const filledCells = resolvedGrid.reduce(
         (sum, row) => sum + row.filter((c) => c.element !== null).length,
@@ -317,12 +331,13 @@ export function useBlockBlastEngine(): BlockBlastEngine {
       );
       const fillRatio = filledCells / totalCells;
       const hasBombInTray = newPieces.some((p) => p.elements.includes('bomb' as any));
+      const bombChance = computeBombChance(fillRatio);
       if (
         !seededRngRef.current &&
         !hasBombInTray &&
-        newScore >= 150 &&
-        fillRatio >= 0.55 &&
-        Math.random() < 0.35
+        newScore >= BOMB_CONFIG.minScore &&
+        bombChance > 0 &&
+        Math.random() < bombChance
       ) {
         // Replace the newest refilled slot so the player's other pieces stay intact.
         const refilledStart = remainingPieces.length;
@@ -331,6 +346,8 @@ export function useBlockBlastEngine(): BlockBlastEngine {
       }
 
       setFailedAttempts(0);
+      // Refresh the reroll on every successful placement (one per turn).
+      if (!seededRngRef.current) setRerollAvailable(true);
 
       const isGameOver = !canAnyPieceFit(resolvedGrid, newPieces);
       if (isGameOver) {
@@ -352,6 +369,39 @@ export function useBlockBlastEngine(): BlockBlastEngine {
     setReactionPreviews([]);
     setReactionPreviewSummary(null);
   }, [failedAttempts, activateFever]);
+
+  /** Swap one tray piece for a freshly-generated one. Skips bombs to keep the
+   *  reroll a clean strategic tool — not a way to dodge the surprise. */
+  const rerollPiece = useCallback((pieceId: string) => {
+    setGameState(prev => {
+      if (prev.isGameOver) return prev;
+      if (!rerollAvailable) return prev;
+      if (seededRngRef.current) return prev; // disabled in daily challenge
+      const idx = prev.availablePieces.findIndex(p => p.id === pieceId);
+      if (idx === -1) return prev;
+      const replacement = createRandomPiece(prev.score);
+      const newPieces = [...prev.availablePieces];
+      newPieces[idx] = replacement;
+      playSound('select');
+      return {
+        ...prev,
+        availablePieces: newPieces,
+        // Clear selection if we just replaced the selected piece.
+        selectedPiece: prev.selectedPiece?.id === pieceId ? null : prev.selectedPiece,
+        dropPreview: prev.selectedPiece?.id === pieceId ? null : prev.dropPreview,
+      };
+    });
+    setRerollAvailable(false);
+  }, [rerollAvailable]);
+
+  // Derived: board fill ratio + current bomb chance — surfaced to the HUD.
+  const totalCellsLive = gameState.grid.length * (gameState.grid[0]?.length ?? 0);
+  const filledCellsLive = gameState.grid.reduce(
+    (sum, row) => sum + row.filter(c => c.element !== null).length,
+    0,
+  );
+  const boardFillRatio = totalCellsLive > 0 ? filledCellsLive / totalCellsLive : 0;
+  const bombChance = isDailyChallenge ? 0 : computeBombChance(boardFillRatio);
 
   // Bomb ticker: every second, decrement any bomb countdowns and detonate at
   // 0 — clearing the full row and column the bomb sits on. Runs once for the
@@ -475,5 +525,9 @@ export function useBlockBlastEngine(): BlockBlastEngine {
     placePiece,
     getReactionPreview,
     findHint,
+    rerollPiece,
+    rerollAvailable,
+    boardFillRatio,
+    bombChance,
   };
 }

@@ -31,6 +31,7 @@ import GameTitle from '@/components/game/GameTitle';
 import HeroBlockDisplay from '@/components/game/HeroBlockDisplay';
 import LottieBurst from '@/components/game/LottieBurst';
 import { FeverMeter } from '@/components/game/FeverMeter';
+import { BombMeter } from '@/components/game/BombMeter';
 import { Button } from '@/components/ui/button';
 import { Trophy, Play, RotateCcw, HelpCircle, Zap, Calendar, Volume2, Home, Award, Flame, Droplets, TreeDeciduous, Mountain, Wind, Lightbulb } from 'lucide-react';
 import { PixarChip, PixarButton, PixarStatChip, PixarBadge, PixarOverlay } from '@/components/game/pixar';
@@ -67,6 +68,10 @@ const Index = () => {
     feverMeter,
     feverActive,
     feverEndsAt,
+    rerollPiece,
+    rerollAvailable,
+    boardFillRatio,
+    bombChance,
   } = useBlockBlastEngine();
 
   const { highScores, topScore, saveScore, clearScores } = useHighScores();
@@ -750,6 +755,11 @@ const Index = () => {
                 {/* Reaction Fever meter */}
                 <FeverMeter meter={feverMeter} active={feverActive} endsAt={feverEndsAt} />
 
+                {/* Bomb pressure meter — explains when bombs may drop */}
+                {!isDailyChallenge && (
+                  <BombMeter fillRatio={boardFillRatio} chance={bombChance} />
+                )}
+
                 {/* Hint — ghosts a helpful placement (works on desktop & mobile) */}
                 {!gameState.isGameOver && (
                   <button
@@ -952,6 +962,8 @@ const Index = () => {
                 onDragHover={handleDragHover}
                 onDragDrop={handleDragDrop}
                 disabled={gameState.isGameOver}
+                onRerollPiece={isDailyChallenge ? undefined : rerollPiece}
+                rerollAvailable={rerollAvailable}
               />
             )}
 
