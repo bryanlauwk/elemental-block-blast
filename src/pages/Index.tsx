@@ -703,6 +703,9 @@ const Index = () => {
                   <PixarStatChip label="Streak" value={currentStreak} tone="yellow" />
                   <PixarStatChip label="XP" value={totalPoints.toLocaleString()} tone="neutral" />
                 </motion.div>
+
+                {/* Alley cat wanders at the bottom of the hero stage */}
+                <HeroAlleyCat />
               </motion.div>
             )}
             
