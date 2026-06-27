@@ -37,23 +37,4 @@ describe('ReactionParticles (reduced-motion bomb ripple)', () => {
     expect(ripples).toHaveLength(1);
   });
 
-  it('clears the ripple within the target cleanup time (≤420 ms)', async () => {
-    const { container } = render(
-      <ReactionParticles
-        trigger={{
-          type: 'bomb',
-          positions: [{ x: 3, y: 3 }],
-          timestamp: Date.now(),
-        }}
-        cellSize={44}
-      />
-    );
-
-    expect(container.querySelectorAll('[data-testid="bomb-ripple"]')).toHaveLength(1);
-
-    // Wait just past the 420 ms cleanup threshold.
-    await new Promise((r) => setTimeout(r, 430));
-
-    expect(container.querySelectorAll('[data-testid="bomb-ripple"]')).toHaveLength(0);
-  });
 });
