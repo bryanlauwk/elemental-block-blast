@@ -1,6 +1,18 @@
+import React from 'react';
 import { describe, it, expect, vi } from 'vitest';
 import { render } from '@testing-library/react';
 import ReactionParticles from './ReactionParticles';
+
+// Prevent Framer Motion rAF loops from hanging jsdom.
+vi.mock('framer-motion', async () => {
+  const React = await import('react');
+  const Plain = (tag: string) => ({ children, key, ...rest }: any) =>
+    React.createElement(tag, rest, children);
+  return {
+    motion: { span: Plain('span'), div: Plain('div') },
+    AnimatePresence: ({ children }: any) => children,
+  };
+});
 
 // Mock motion preferences so reduced motion is active.
 vi.mock('@/game/motionPreferences', () => ({
