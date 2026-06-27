@@ -29,7 +29,6 @@
   .animate-reaction-pulse,
   .animate-source-pulse,
   .animate-pulse,
-  .mascot-bob,
   .hero-prop {
     animation-duration: 1.4s !important;
   }
@@ -53,7 +52,6 @@
   .animate-reaction-pulse,
   .animate-source-pulse,
   .animate-pulse,
-  .mascot-bob,
   .hero-prop,
   .neon-flash-overlay {
     animation: none !important;

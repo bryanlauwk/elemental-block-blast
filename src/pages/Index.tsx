@@ -43,7 +43,9 @@ import AdaptiveStage from '@/components/game/AdaptiveStage';
 import PhasePill from '@/components/game/PhasePill';
 import PhaseUpOverlay from '@/components/game/PhaseUpOverlay';
 import LofiAlleyBackdrop from '@/components/game/LofiAlleyBackdrop';
-import heroMascot from '@/assets/hero-mascot.png';
+import HeroAlleyCat from '@/components/game/HeroAlleyCat';
+import HeroPhaseTint from '@/components/game/HeroPhaseTint';
+import sitCatAsset from '@/assets/alley-cat-sit.png.asset.json';
 
 const Index = () => {
   const {
@@ -595,17 +597,7 @@ const Index = () => {
                     }}
                   />
 
-                  <motion.img
-                    src={heroMascot}
-                    alt="Elemental Block Blast mascot — a glowing glass-block character"
-                    width={1024}
-                    height={1536}
-                    initial={{ opacity: 0, scale: 0.8, y: 20 }}
-                    animate={{ opacity: 1, scale: 1, y: 0 }}
-                    transition={{ delay: 0.2, type: 'spring', stiffness: 220, damping: 20 }}
-                    className="mascot-bob absolute -top-2 sm:-top-4 left-1/2 -translate-x-1/2 z-0 w-28 sm:w-36 md:w-40 h-auto pointer-events-none select-none opacity-90 drop-shadow-[0_18px_30px_rgba(0,0,0,0.55)]"
-                    draggable={false}
-                  />
+                  <HeroPhaseTint />
 
                   <div className="relative z-10 pt-14 sm:pt-20">
                     <GameTitle />
@@ -711,6 +703,9 @@ const Index = () => {
                   <PixarStatChip label="Streak" value={currentStreak} tone="yellow" />
                   <PixarStatChip label="XP" value={totalPoints.toLocaleString()} tone="neutral" />
                 </motion.div>
+
+                {/* Alley cat wanders at the bottom of the hero stage */}
+                <HeroAlleyCat />
               </motion.div>
             )}
             
@@ -840,14 +835,14 @@ const Index = () => {
                           </motion.div>
                         )}
                         
-                        {/* Mascot reaction */}
+                        {/* Alley cat reaction */}
                         <motion.img
-                          src={heroMascot}
-                          alt=""
+                          src={sitCatAsset.url}
+                          alt="Neon alley cat"
                           initial={{ scale: 0.6, opacity: 0, y: 10 }}
                           animate={{ scale: 1, opacity: 1, y: 0 }}
                           transition={{ type: 'spring', stiffness: 260, damping: 16, delay: 0.05 }}
-                          className="mascot-bob w-20 sm:w-24 h-auto mx-auto mb-1 select-none pointer-events-none drop-shadow-[0_10px_18px_rgba(0,0,0,0.45)]"
+                          className="w-20 sm:w-24 h-auto mx-auto mb-1 select-none pointer-events-none drop-shadow-[0_10px_18px_rgba(0,0,0,0.45)]"
                           draggable={false}
                         />
 
