@@ -4,9 +4,9 @@ import { render } from '@testing-library/react';
 import ReactionParticles from './ReactionParticles';
 
 // Prevent Framer Motion rAF loops from hanging jsdom.
-vi.mock('framer-motion', async () => {
-  const React = await import('react');
-  const Plain = (tag: string) => ({ children, key, ...rest }: any) =>
+vi.mock('framer-motion', () => {
+  const React = require('react');
+  const Plain = (tag: string) => ({ children, ...rest }: any) =>
     React.createElement(tag, rest, children);
   return {
     motion: { span: Plain('span'), div: Plain('div') },
