@@ -4,7 +4,7 @@ import { DraggablePiece, Position } from '@/game/types';
 import { ElementBlock } from './ElementBlock';
 import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { X } from 'lucide-react';
+import { X, RefreshCw } from 'lucide-react';
 import { playSound } from '@/game/sounds';
 
 type PointerKind = string;
@@ -18,9 +18,13 @@ interface PieceTrayProps {
   /** Called when a dragged piece is released. */
   onDragDrop?: (piece: DraggablePiece, clientX: number, clientY: number, pointerType: PointerKind) => void;
   disabled?: boolean;
+  /** Swap one piece for a freshly generated one (once per turn). */
+  onRerollPiece?: (pieceId: string) => void;
+  /** Whether the reroll action is currently available. */
+  rerollAvailable?: boolean;
 }
 
-export function PieceTray({ pieces, selectedPiece, onSelectPiece, onDragHover, onDragDrop, disabled }: PieceTrayProps) {
+export function PieceTray({ pieces, selectedPiece, onSelectPiece, onDragHover, onDragDrop, disabled, onRerollPiece, rerollAvailable }: PieceTrayProps) {
   const isMobile = useIsMobile();
 
   // Pointer-drag: press a piece and drag it onto the board (mouse + touch).
@@ -104,6 +108,29 @@ export function PieceTray({ pieces, selectedPiece, onSelectPiece, onDragHover, o
               } : { scale: 1, y: 0 }}
               disabled={disabled}
             >
+              {/* Per-piece reroll — one swap allowed per turn */}
+              {onRerollPiece && (
+                <button
+                  type="button"
+                  onPointerDown={(e) => { e.stopPropagation(); }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (!rerollAvailable || disabled) return;
+                    onRerollPiece(piece.id);
+                  }}
+                  disabled={!rerollAvailable || disabled}
+                  title={rerollAvailable ? 'Swap this piece (once per turn)' : 'Reroll used — place a piece to refresh'}
+                  aria-label="Reroll this piece"
+                  className={cn(
+                    'absolute -top-2 -right-2 z-10 rounded-full p-1 border transition-all',
+                    rerollAvailable && !disabled
+                      ? 'bg-white/10 border-cyan-300/60 text-cyan-200 hover:bg-white/20 hover:scale-110 active:scale-95 shadow-[0_0_10px_-2px_hsl(190_95%_60%/0.7)]'
+                      : 'bg-white/5 border-white/15 text-white/30 cursor-not-allowed'
+                  )}
+                >
+                  <RefreshCw className="w-3 h-3" />
+                </button>
+              )}
               {/* Piece preview grid */}
               <div 
                 className="grid gap-[2px]"
