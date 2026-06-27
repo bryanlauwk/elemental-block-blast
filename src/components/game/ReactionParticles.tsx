@@ -196,9 +196,8 @@ const ReactionParticles: React.FC<ReactionParticlesProps> = ({
       setBombBeams((prev) => [...prev, ...newBeams]);
       setBombCellFlashes((prev) => [...prev, ...newCellFlashes]);
 
-      // Centered shockwave ripple — 3 concentric rings staggered to feel cinematic
-      // and synced with the beam sweep (beam total ≈ shockwaveMs + 150).
-      const rippleCount = reduced ? 2 : 3;
+      // Centered shockwave ripple — max 2 compact rings for a punchy, non-intrusive feel.
+      const rippleCount = Math.min(2, reduced ? 1 : 2);
       const newRipples: typeof bombRipples = [];
       centers.forEach((pos) => {
         const cx = gridOffset.x + (pos.x + 0.5) * cellSize;
@@ -208,7 +207,7 @@ const ReactionParticles: React.FC<ReactionParticlesProps> = ({
             id: `brp-${trigger.timestamp}-${pos.x}-${pos.y}-${i}`,
             x: cx,
             y: cy,
-            delay: (i * 25) / 1000,
+            delay: (i * 20) / 1000,
             ringIndex: i,
           });
         }
