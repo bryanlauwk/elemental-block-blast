@@ -43,7 +43,8 @@ import AdaptiveStage from '@/components/game/AdaptiveStage';
 import PhasePill from '@/components/game/PhasePill';
 import PhaseUpOverlay from '@/components/game/PhaseUpOverlay';
 import LofiAlleyBackdrop from '@/components/game/LofiAlleyBackdrop';
-import heroMascot from '@/assets/hero-mascot.png';
+import HeroAlleyCat from '@/components/game/HeroAlleyCat';
+import HeroPhaseTint from '@/components/game/HeroPhaseTint';
 
 const Index = () => {
   const {
