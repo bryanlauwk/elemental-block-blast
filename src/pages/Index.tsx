@@ -44,8 +44,6 @@ import PhasePill from '@/components/game/PhasePill';
 import PhaseUpOverlay from '@/components/game/PhaseUpOverlay';
 import LofiAlleyBackdrop from '@/components/game/LofiAlleyBackdrop';
 import HeroPhaseTint from '@/components/game/HeroPhaseTint';
-import HeroCatScene from '@/components/game/HeroCatScene';
-import sitSceneImg from '@/assets/hero-alley-with-cat.jpg';
 
 const Index = () => {
   const {
@@ -704,8 +702,6 @@ const Index = () => {
                   <PixarStatChip label="XP" value={totalPoints.toLocaleString()} tone="neutral" />
                 </motion.div>
 
-                {/* Baked-in neon alley scene with the cat — subtle blink only */}
-                <HeroCatScene />
               </motion.div>
             )}
             
@@ -836,16 +832,6 @@ const Index = () => {
                         )}
                         
                         {/* Alley cat reaction */}
-                        <motion.img
-                          src={sitSceneImg}
-                          alt="Neon alley cat"
-                          initial={{ scale: 0.6, opacity: 0, y: 10 }}
-                          animate={{ scale: 1, opacity: 1, y: 0 }}
-                          transition={{ type: 'spring', stiffness: 260, damping: 16, delay: 0.05 }}
-                          className="w-40 sm:w-56 h-auto mx-auto mb-1 rounded-xl select-none pointer-events-none drop-shadow-[0_10px_18px_rgba(0,0,0,0.45)]"
-                          draggable={false}
-                        />
-
                         <p className="text-3xl font-display text-white mb-2 tracking-wide">
                           {isNewHighScore && !isDailyChallenge
                             ? 'Amazing!'

@@ -1,5 +1,5 @@
 import { motion, useReducedMotion } from "framer-motion";
-import alleyBg from "@/assets/lofi-neon-alley.jpg";
+import alleyBg from "@/assets/hero-alley-with-cat.jpg";
 
 interface LofiAlleyBackdropProps {
   /** Blur the artwork while gameplay is active so the board stays the focus. */
@@ -21,8 +21,13 @@ export const LofiAlleyBackdrop = ({ blurred = false, pulse = false }: LofiAlleyB
     <div aria-hidden className="fixed inset-0 -z-10 pointer-events-none overflow-hidden bg-[hsl(224_70%_6%)]">
       {/* Artwork — kept crisp so the alley reads like the reference */}
       <motion.div
-        className="absolute inset-0 bg-center bg-cover will-change-transform"
-        style={{ backgroundImage: `url(${alleyBg})` }}
+        className="absolute inset-0 bg-cover will-change-transform"
+        style={{
+          backgroundImage: `url(${alleyBg})`,
+          // Push the painted cat into the lower-right corner so it never
+          // sits behind the centered headline / CTA cluster.
+          backgroundPosition: "85% 100%",
+        }}
         animate={{
           filter: pulseActive
             ? "blur(0px) brightness(1.2) saturate(1.2)"
