@@ -40,9 +40,19 @@ export const LofiAlleyBackdrop = ({ blurred = false, pulse = false }: LofiAlleyB
       {/* Light navy wash — keeps glass UI legible without killing the colors */}
       <motion.div
         className="absolute inset-0"
-        style={{ backgroundColor: "hsl(224 70% 8%)" }}
-        animate={{ opacity: pulseActive ? 0.14 : blurred ? 0.35 : 0.24 }}
+        style={{ backgroundColor: "hsl(224 70% 6%)" }}
+        animate={{ opacity: pulseActive ? 0.25 : blurred ? 0.55 : 0.48 }}
         transition={{ duration: pulseActive ? 0.4 : 0.7, ease: "easeOut" }}
+      />
+
+      {/* Soft center spotlight so the headline + CTA cluster stay legible
+          over the busy alley artwork. */}
+      <div
+        className="absolute inset-0"
+        style={{
+          background:
+            "radial-gradient(ellipse 55% 50% at 50% 42%, hsl(224 70% 4% / 0.45) 0%, transparent 70%)",
+        }}
       />
 
       {/* Edge-only vignette — center stays vivid */}
