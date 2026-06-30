@@ -543,6 +543,8 @@ export function useBlockBlastEngine(): BlockBlastEngine {
     findHint,
     rerollPiece,
     rerollAvailable,
+    rerollsRemaining,
+    rerollsMax: REROLLS_PER_RUN,
     boardFillRatio,
     bombChance,
   };
