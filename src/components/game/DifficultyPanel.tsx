@@ -87,7 +87,7 @@ export function DifficultyPanel({
           />
         </div>
         <p className="mt-1.5 text-[10px] leading-snug text-white/55">
-          {phase.description ?? 'Pieces shift as you score higher.'}
+          Pieces shift as you score higher.
         </p>
       </div>
 
