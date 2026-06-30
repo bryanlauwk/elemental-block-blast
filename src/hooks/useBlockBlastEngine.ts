@@ -59,11 +59,19 @@ export interface BlockBlastEngine {
   rerollPiece: (pieceId: string) => void;
   /** Whether a reroll is currently available this turn. */
   rerollAvailable: boolean;
+  /** How many rerolls remain for the entire run (game-wide cap). */
+  rerollsRemaining: number;
+  /** Maximum number of rerolls allowed per run. */
+  rerollsMax: number;
   /** Current board fill ratio (0..1) — drives the bomb meter UI. */
   boardFillRatio: number;
   /** Current per-refill bomb spawn chance (0..1) based on fill. */
   bombChance: number;
 }
+
+/** Total rerolls available across a full run. Prevents infinite stalling by
+ *  cycling the tray over and over. */
+const REROLLS_PER_RUN = 5;
 
 export function useBlockBlastEngine(): BlockBlastEngine {
   const [gameState, setGameState] = useState<BlockBlastState>({
@@ -121,6 +129,8 @@ export function useBlockBlastEngine(): BlockBlastEngine {
   const [isDailyChallenge, setIsDailyChallenge] = useState(false);
   /** One reroll allowed per turn; consumed when used, refilled on placement. */
   const [rerollAvailable, setRerollAvailable] = useState(true);
+  /** Per-run reroll budget — once depleted, no more swaps for this game. */
+  const [rerollsRemaining, setRerollsRemaining] = useState(REROLLS_PER_RUN);
 
   // Seeded RNG for daily challenge mode
   const seededRngRef = useRef<SeededRandom | null>(null);
@@ -157,6 +167,7 @@ export function useBlockBlastEngine(): BlockBlastEngine {
     setReactionPreviewSummary(null);
     setFailedAttempts(0);
     setRerollAvailable(true);
+    setRerollsRemaining(REROLLS_PER_RUN);
     endFever();
   }, [endFever]);
 
@@ -189,6 +200,7 @@ export function useBlockBlastEngine(): BlockBlastEngine {
     setFailedAttempts(0);
     // Daily challenge is deterministic — disable rerolls to keep parity.
     setRerollAvailable(false);
+    setRerollsRemaining(0);
     endFever();
   }, [endFever]);
 
@@ -378,6 +390,7 @@ export function useBlockBlastEngine(): BlockBlastEngine {
     setGameState(prev => {
       if (prev.isGameOver) return prev;
       if (!rerollAvailable) return prev;
+      if (rerollsRemaining <= 0) return prev;
       if (seededRngRef.current) return prev; // disabled in daily challenge
       const idx = prev.availablePieces.findIndex(p => p.id === pieceId);
       if (idx === -1) return prev;
@@ -394,7 +407,8 @@ export function useBlockBlastEngine(): BlockBlastEngine {
       };
     });
     setRerollAvailable(false);
-  }, [rerollAvailable]);
+    setRerollsRemaining(n => Math.max(0, n - 1));
+  }, [rerollAvailable, rerollsRemaining]);
 
   // Derived: board fill ratio + current bomb chance — surfaced to the HUD.
   const totalCellsLive = gameState.grid.length * (gameState.grid[0]?.length ?? 0);
