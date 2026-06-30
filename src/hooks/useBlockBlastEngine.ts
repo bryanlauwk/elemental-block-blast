@@ -247,7 +247,8 @@ export function useBlockBlastEngine(): BlockBlastEngine {
           newGrid[newY][newX] = {
             element: el,
             id: `${newX}-${newY}-${Date.now()}-${Math.random()}`,
-            ...(el === 'bomb' ? { countdown: 5 } : {}),
+            // Tighter fuse → more pressure once a bomb lands.
+            ...(el === 'bomb' ? { countdown: 4 } : {}),
           };
         }
       });
@@ -314,7 +315,8 @@ export function useBlockBlastEngine(): BlockBlastEngine {
       // Always keep three pieces in the tray for strategic flexibility: as soon as
       // a piece is placed, refill the empty slot instead of waiting until all three
       // are consumed.
-      const needsComeback = failedAttempts >= 3;
+      // Comeback grace kicks in later so the game stays tense.
+      const needsComeback = failedAttempts >= 5;
       const rng = seededRngRef.current;
       const newPieces = [...remainingPieces];
       while (newPieces.length < 3) {

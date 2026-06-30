@@ -19,10 +19,10 @@ export interface BombConfig {
 }
 
 export const BOMB_CONFIG: BombConfig = {
-  minFill: 0.45,
-  rampEndFill: 0.8,
-  maxChance: 0.45,
-  minScore: 150,
+  minFill: 0.35,
+  rampEndFill: 0.7,
+  maxChance: 0.6,
+  minScore: 80,
 };
 
 /** Smooth (linear) ramp from 0 → maxChance based on board fill. */
