@@ -515,6 +515,8 @@ export function useBlockBlastEngine(): BlockBlastEngine {
     setReactionEvents([]);
     setReactionPreviewSummary(null);
     setFailedAttempts(0);
+    setRerollAvailable(true);
+    setRerollsRemaining(REROLLS_PER_RUN);
     endFever();
   }, [endFever]);
 
