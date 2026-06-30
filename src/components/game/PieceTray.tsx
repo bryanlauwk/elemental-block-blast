@@ -22,9 +22,13 @@ interface PieceTrayProps {
   onRerollPiece?: (pieceId: string) => void;
   /** Whether the reroll action is currently available. */
   rerollAvailable?: boolean;
+  /** How many rerolls remain for the whole run (game-wide cap). */
+  rerollsRemaining?: number;
+  /** Maximum number of rerolls per run (for display). */
+  rerollsMax?: number;
 }
 
-export function PieceTray({ pieces, selectedPiece, onSelectPiece, onDragHover, onDragDrop, disabled, onRerollPiece, rerollAvailable }: PieceTrayProps) {
+export function PieceTray({ pieces, selectedPiece, onSelectPiece, onDragHover, onDragDrop, disabled, onRerollPiece, rerollAvailable, rerollsRemaining, rerollsMax }: PieceTrayProps) {
   const isMobile = useIsMobile();
 
   // Pointer-drag: press a piece and drag it onto the board (mouse + touch).
@@ -78,6 +82,11 @@ export function PieceTray({ pieces, selectedPiece, onSelectPiece, onDragHover, o
     <div className="classic-piece-tray w-full">
       <p className="mb-2 text-center text-[10px] font-black uppercase tracking-[0.22em] text-white/45">
         Experiment Tray
+        {typeof rerollsRemaining === 'number' && typeof rerollsMax === 'number' && rerollsMax > 0 && (
+          <span className="ml-2 normal-case tracking-normal text-cyan-200/70">
+            · Rerolls {rerollsRemaining}/{rerollsMax}
+          </span>
+        )}
       </p>
       <div className="flex justify-center items-center gap-2 sm:gap-5 overflow-x-auto -mx-2 px-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         {pieces.map((piece) => {
@@ -116,14 +125,21 @@ export function PieceTray({ pieces, selectedPiece, onSelectPiece, onDragHover, o
                   onClick={(e) => {
                     e.stopPropagation();
                     if (!rerollAvailable || disabled) return;
+                    if (typeof rerollsRemaining === 'number' && rerollsRemaining <= 0) return;
                     onRerollPiece(piece.id);
                   }}
-                  disabled={!rerollAvailable || disabled}
-                  title={rerollAvailable ? 'Swap this piece (once per turn)' : 'Reroll used — place a piece to refresh'}
+                  disabled={!rerollAvailable || disabled || (typeof rerollsRemaining === 'number' && rerollsRemaining <= 0)}
+                  title={
+                    typeof rerollsRemaining === 'number' && rerollsRemaining <= 0
+                      ? 'No rerolls left for this run'
+                      : rerollAvailable
+                        ? `Swap this piece (once per turn — ${rerollsRemaining ?? '?'} left this run)`
+                        : 'Reroll used — place a piece to refresh'
+                  }
                   aria-label="Reroll this piece"
                   className={cn(
                     'absolute -top-2 -right-2 z-10 rounded-full p-1 border transition-all',
-                    rerollAvailable && !disabled
+                    rerollAvailable && !disabled && (typeof rerollsRemaining !== 'number' || rerollsRemaining > 0)
                       ? 'bg-white/10 border-cyan-300/60 text-cyan-200 hover:bg-white/20 hover:scale-110 active:scale-95 shadow-[0_0_10px_-2px_hsl(190_95%_60%/0.7)]'
                       : 'bg-white/5 border-white/15 text-white/30 cursor-not-allowed'
                   )}

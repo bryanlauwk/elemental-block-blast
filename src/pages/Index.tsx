@@ -44,6 +44,7 @@ import PhasePill from '@/components/game/PhasePill';
 import PhaseUpOverlay from '@/components/game/PhaseUpOverlay';
 import LofiAlleyBackdrop from '@/components/game/LofiAlleyBackdrop';
 import HeroPhaseTint from '@/components/game/HeroPhaseTint';
+import DifficultyPanel from '@/components/game/DifficultyPanel';
 
 const Index = () => {
   const {
@@ -70,6 +71,8 @@ const Index = () => {
     feverEndsAt,
     rerollPiece,
     rerollAvailable,
+    rerollsRemaining,
+    rerollsMax,
     boardFillRatio,
     bombChance,
   } = useBlockBlastEngine();
@@ -945,6 +948,8 @@ const Index = () => {
                 disabled={gameState.isGameOver}
                 onRerollPiece={isDailyChallenge ? undefined : rerollPiece}
                 rerollAvailable={rerollAvailable}
+                rerollsRemaining={isDailyChallenge ? undefined : rerollsRemaining}
+                rerollsMax={isDailyChallenge ? undefined : rerollsMax}
               />
             )}
 
@@ -959,6 +964,23 @@ const Index = () => {
           {/* Right Sidebar - Desktop only */}
           {hasStarted && (
             <div className="hidden lg:flex lg:flex-col lg:gap-4 lg:w-52 sticky top-24 self-start max-h-[calc(100vh-8rem)]">
+              {/* Difficulty panel — explains current phase + bomb pressure */}
+              <motion.div
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                className="neon-glass-panel p-4"
+              >
+                <DifficultyPanel
+                  phase={phase}
+                  next={next}
+                  progress={progress}
+                  fillRatio={boardFillRatio}
+                  bombChance={bombChance}
+                  rerollsRemaining={isDailyChallenge ? undefined : rerollsRemaining}
+                  rerollsMax={isDailyChallenge ? undefined : rerollsMax}
+                />
+              </motion.div>
+
               {/* Reaction Feed Panel */}
               <motion.div
                 initial={{ opacity: 0, x: 20 }}

@@ -19,10 +19,13 @@ export interface BombConfig {
 }
 
 export const BOMB_CONFIG: BombConfig = {
-  minFill: 0.35,
-  rampEndFill: 0.7,
-  maxChance: 0.6,
-  minScore: 80,
+  // Bombs stay out of the way until the board is genuinely cramped, then
+  // ramp up sharply. Keeps early-game clears clean and reserves bombs for
+  // pressure situations where they actually matter.
+  minFill: 0.6,
+  rampEndFill: 0.85,
+  maxChance: 0.5,
+  minScore: 300,
 };
 
 /** Smooth (linear) ramp from 0 → maxChance based on board fill. */
