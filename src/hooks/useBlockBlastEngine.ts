@@ -551,5 +551,6 @@ export function useBlockBlastEngine(): BlockBlastEngine {
     rerollsMax: REROLLS_PER_RUN,
     boardFillRatio,
     bombChance,
+    comebackMode: failedAttempts >= 5,
   };
 }
