@@ -31,7 +31,6 @@ import GameTitle from '@/components/game/GameTitle';
 import HeroBlockDisplay from '@/components/game/HeroBlockDisplay';
 import LottieBurst from '@/components/game/LottieBurst';
 import { FeverMeter } from '@/components/game/FeverMeter';
-import { BombMeter } from '@/components/game/BombMeter';
 import { Button } from '@/components/ui/button';
 import { Trophy, Play, RotateCcw, HelpCircle, Zap, Calendar, Volume2, Home, Award, Flame, Droplets, TreeDeciduous, Mountain, Wind, Lightbulb } from 'lucide-react';
 import { PixarChip, PixarButton, PixarStatChip, PixarBadge, PixarOverlay } from '@/components/game/pixar';
@@ -40,7 +39,6 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { playSound, startMusic } from '@/game/sounds';
 import { usePhase } from '@/hooks/usePhase';
 import AdaptiveStage from '@/components/game/AdaptiveStage';
-import PhasePill from '@/components/game/PhasePill';
 import PhaseUpOverlay from '@/components/game/PhaseUpOverlay';
 import LofiAlleyBackdrop from '@/components/game/LofiAlleyBackdrop';
 import HeroPhaseTint from '@/components/game/HeroPhaseTint';
@@ -75,6 +73,7 @@ const Index = () => {
     rerollsMax,
     boardFillRatio,
     bombChance,
+    comebackMode,
   } = useBlockBlastEngine();
 
   const { highScores, topScore, saveScore, clearScores } = useHighScores();
@@ -716,12 +715,6 @@ const Index = () => {
                   initial={{ opacity: 0, y: -20 }}
                   animate={{ opacity: 1, y: 0 }}
                 >
-                  {/* Hidden on phones to save vertical space (top bar already brands it) */}
-                  <h1 className="hidden sm:block ui-label-lg">
-                    <span className="bg-clip-text text-transparent bg-[linear-gradient(180deg,#ffffff,rgba(255,255,255,0.65))] drop-shadow-[0_0_12px_hsl(190_95%_60%/0.35)]">
-                      Block Blast
-                    </span>
-                  </h1>
                   {/* Daily challenge indicator */}
                   {isDailyChallenge && (
                     <motion.div
@@ -743,16 +736,8 @@ const Index = () => {
                   compact
                 />
 
-                {/* Phase progress indicator */}
-                <PhasePill phase={phase} next={next} progress={progress} />
-
                 {/* Reaction Fever meter */}
                 <FeverMeter meter={feverMeter} active={feverActive} endsAt={feverEndsAt} />
-
-                {/* Bomb pressure meter — explains when bombs may drop */}
-                {!isDailyChallenge && (
-                  <BombMeter fillRatio={boardFillRatio} chance={bombChance} />
-                )}
 
                 {/* Hint — ghosts a helpful placement (works on desktop & mobile) */}
                 {!gameState.isGameOver && (
@@ -978,6 +963,8 @@ const Index = () => {
                   bombChance={bombChance}
                   rerollsRemaining={isDailyChallenge ? undefined : rerollsRemaining}
                   rerollsMax={isDailyChallenge ? undefined : rerollsMax}
+                  score={gameState.score}
+                  comebackMode={comebackMode}
                 />
               </motion.div>
 
