@@ -108,27 +108,20 @@ export function useGlobalLeaderboard() {
         throw new Error('Please choose an appropriate name');
       }
 
-      // Submit the score
-      const { error: insertError } = await supabase
-        .from('leaderboard')
-        .insert({ player_name: sanitizedName, score });
+      // Submit via validated RPC — the direct INSERT policy has been
+      // removed so the server-side function is the only write path.
+      const { data, error: rpcError } = await supabase.rpc('submit_leaderboard_score', {
+        _player_name: sanitizedName,
+        _score: score,
+      });
 
-      if (insertError) {
-        throw insertError;
+      if (rpcError) {
+        throw rpcError;
       }
 
-      // Get the player's rank
-      const { count, error: countError } = await supabase
-        .from('leaderboard')
-        .select('*', { count: 'exact', head: true })
-        .gt('score', score);
-
-      if (countError) {
-        console.warn('Could not fetch rank:', countError);
-        return { success: true };
-      }
-
-      return { success: true, rank: (count || 0) + 1 };
+      const row = Array.isArray(data) ? data[0] : data;
+      const rank = row?.rank ? Number(row.rank) : undefined;
+      return { success: true, rank };
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to submit score';
       setError(message);
