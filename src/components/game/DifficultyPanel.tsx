@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { Bomb, Gauge } from 'lucide-react';
+import { Bomb, Gauge, Shapes } from 'lucide-react';
 import { PhaseConfig } from '@/game/phases';
 import { BOMB_CONFIG } from '@/game/bombConfig';
 import { cn } from '@/lib/utils';
@@ -12,6 +12,21 @@ interface DifficultyPanelProps {
   bombChance: number; // 0..1
   rerollsRemaining?: number;
   rerollsMax?: number;
+  /** Current score — used to derive the active piece-size rules. */
+  score?: number;
+  /** Whether the engine is currently biasing tiny pieces (comeback mode). */
+  comebackMode?: boolean;
+}
+
+/**
+ * Mirrors the shape-weight tiers in `src/game/engine.ts::getRandomShape`
+ * so the panel truthfully reports which piece-size rule is active.
+ */
+function getPieceRule(score: number): { range: string; note: string } {
+  if (score < 400) return { range: '1–4 cells', note: '5+ shapes rare' };
+  if (score < 1200) return { range: '2–5 cells', note: 'balanced mix' };
+  if (score < 2500) return { range: '3–5+ cells', note: 'big shapes dominate' };
+  return { range: '5+ cells', note: 'small relief rare' };
 }
 
 /**
@@ -27,12 +42,16 @@ export function DifficultyPanel({
   bombChance,
   rerollsRemaining,
   rerollsMax,
+  score = 0,
+  comebackMode = false,
 }: DifficultyPanelProps) {
   const fillPct = Math.round(fillRatio * 100);
   const chancePct = Math.round(bombChance * 100);
   const thresholdPct = Math.round(BOMB_CONFIG.minFill * 100);
   const peakPct = Math.round(BOMB_CONFIG.rampEndFill * 100);
   const armed = bombChance > 0;
+  const pieceRule = getPieceRule(score);
+  const bombsUnlocked = score >= BOMB_CONFIG.minScore;
 
   // Qualitative intensity label for the bomb pressure
   const intensity =
@@ -89,6 +108,42 @@ export function DifficultyPanel({
         <p className="mt-1.5 text-[10px] leading-snug text-white/55">
           Pieces shift as you score higher.
         </p>
+      </div>
+
+      <div className="h-px bg-white/10" />
+
+      {/* Active rules — the exact numbers the engine is using right now */}
+      <div>
+        <div className="flex items-center gap-2 mb-2">
+          <Shapes className="w-4 h-4 text-cyan-300" />
+          <h3 className="ui-label-xs text-white/85">Active rules</h3>
+        </div>
+        <ul className="space-y-1 text-[10px] leading-snug text-white/70">
+          <li className="flex items-baseline justify-between gap-2">
+            <span className="text-white/55">Piece size</span>
+            <span className="text-white/90 font-semibold tabular-nums">{pieceRule.range}</span>
+          </li>
+          <li className="flex items-baseline justify-between gap-2">
+            <span className="text-white/55">Mix</span>
+            <span className="text-white/80">{pieceRule.note}</span>
+          </li>
+          <li className="flex items-baseline justify-between gap-2">
+            <span className="text-white/55">Bombs</span>
+            <span className={cn('font-semibold', bombsUnlocked ? 'text-pixar-red' : 'text-white/70')}>
+              {bombsUnlocked ? `${thresholdPct}%+ fill` : `unlocks @ ${BOMB_CONFIG.minScore}pts`}
+            </span>
+          </li>
+          <li className="flex items-baseline justify-between gap-2">
+            <span className="text-white/55">Max chance</span>
+            <span className="text-white/90 tabular-nums">{Math.round(BOMB_CONFIG.maxChance * 100)}% @ {peakPct}%</span>
+          </li>
+          {comebackMode && (
+            <li className="flex items-baseline justify-between gap-2">
+              <span className="text-white/55">Assist</span>
+              <span className="text-pixar-yellow font-semibold">Comeback: tiny pieces</span>
+            </li>
+          )}
+        </ul>
       </div>
 
       <div className="h-px bg-white/10" />
