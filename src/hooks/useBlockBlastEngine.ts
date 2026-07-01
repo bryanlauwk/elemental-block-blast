@@ -67,6 +67,8 @@ export interface BlockBlastEngine {
   boardFillRatio: number;
   /** Current per-refill bomb spawn chance (0..1) based on fill. */
   bombChance: number;
+  /** Whether the engine is currently biasing tiny pieces to help the player. */
+  comebackMode: boolean;
 }
 
 /** Total rerolls available across a full run. Prevents infinite stalling by
