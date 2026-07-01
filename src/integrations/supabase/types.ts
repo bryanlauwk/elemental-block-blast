@@ -100,6 +100,13 @@ export type Database = {
           success: boolean
         }[]
       }
+      submit_leaderboard_score: {
+        Args: { _player_name: string; _score: number }
+        Returns: {
+          rank: number
+          success: boolean
+        }[]
+      }
     }
     Enums: {
       app_role: "admin" | "moderator" | "user"
