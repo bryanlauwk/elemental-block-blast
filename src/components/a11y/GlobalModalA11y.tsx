@@ -9,7 +9,16 @@ const FOCUSABLE_SELECTOR = [
   '[tabindex]:not([tabindex="-1"])',
 ].join(',');
 
-const CUSTOM_MODAL_SELECTOR = '.fixed.inset-0.z-50:not(.pixar-modal-overlay)';
+// Match any fixed/z-50 overlay that isn't the Radix/pixar overlay (which
+// handles its own a11y). We deliberately do NOT require `.inset-0` because
+// most modals in this app render the backdrop as `.fixed.inset-0.z-50` and
+// the actual content panel as a *sibling* `.fixed.z-50` with `.inset-x-2`
+// / `.top-1/2` etc. — the panel is what we need to trap focus inside.
+const CUSTOM_MODAL_SELECTOR = '.fixed.z-50:not(.pixar-modal-overlay)';
+// Backdrops (used to dispatch a click on Escape, since each backdrop already
+// wires an `onClose` handler in JSX).
+const BACKDROP_SELECTOR =
+  '.fixed.inset-0.z-50:not(.pixar-modal-overlay), .fixed.inset-0.z-40:not(.pixar-modal-overlay)';
 
 const getFocusable = (root: HTMLElement) =>
   Array.from(root.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR)).filter(
@@ -78,14 +87,33 @@ export function GlobalModalA11y() {
     };
 
     const scan = () => {
-      const modals = Array.from(document.querySelectorAll<HTMLElement>(CUSTOM_MODAL_SELECTOR)).filter(
+      const candidates = Array.from(document.querySelectorAll<HTMLElement>(CUSTOM_MODAL_SELECTOR)).filter(
         (element) => element.offsetParent !== null,
       );
-      activateModal(modals.at(-1) ?? null);
+      // Prefer the topmost panel that actually contains focusable controls —
+      // this skips empty backdrops and picks the real modal content.
+      const withFocusables = candidates.filter((el) => getFocusable(el).length > 0);
+      activateModal((withFocusables.at(-1) ?? candidates.at(-1)) ?? null);
     };
 
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (!activeModal || event.key !== 'Tab') return;
+      if (!activeModal) return;
+
+      if (event.key === 'Escape') {
+        // Trigger the modal's own close handler by dispatching a click on
+        // its backdrop — every modal's backdrop already binds `onClose`.
+        const backdrops = Array.from(
+          document.querySelectorAll<HTMLElement>(BACKDROP_SELECTOR),
+        ).filter((el) => el.offsetParent !== null);
+        const backdrop = backdrops.at(-1);
+        if (backdrop) {
+          event.preventDefault();
+          backdrop.click();
+        }
+        return;
+      }
+
+      if (event.key !== 'Tab') return;
 
       const focusable = getFocusable(activeModal);
       if (focusable.length === 0) {
