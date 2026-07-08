@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion';
 import { Bomb, Gauge, Shapes } from 'lucide-react';
 import { PhaseConfig } from '@/game/phases';
-import { BOMB_CONFIG } from '@/game/bombConfig';
+import { getBombConfigForPhase } from '@/game/bombConfig';
 import { cn } from '@/lib/utils';
 
 interface DifficultyPanelProps {
@@ -23,10 +23,12 @@ interface DifficultyPanelProps {
  * so the panel truthfully reports which piece-size rule is active.
  */
 function getPieceRule(score: number): { range: string; note: string } {
-  if (score < 400) return { range: '1–4 cells', note: '5+ shapes rare' };
-  if (score < 1200) return { range: '2–5 cells', note: 'balanced mix' };
-  if (score < 2500) return { range: '3–5+ cells', note: 'big shapes dominate' };
-  return { range: '5+ cells', note: 'small relief rare' };
+  if (score < 500) return { range: '1–3 cells', note: 'welcoming warm-up' };
+  if (score < 1500) return { range: '2–4 cells', note: 'balanced mix' };
+  if (score < 3000) return { range: '3–5 cells', note: '5+ common' };
+  if (score < 5000) return { range: '4–5+ cells', note: 'small relief rare' };
+  if (score < 9000) return { range: '5+ cells', note: 'brutal' };
+  return { range: '5+ cells', note: 'awkward giants' };
 }
 
 /**
@@ -47,11 +49,14 @@ export function DifficultyPanel({
 }: DifficultyPanelProps) {
   const fillPct = Math.round(fillRatio * 100);
   const chancePct = Math.round(bombChance * 100);
-  const thresholdPct = Math.round(BOMB_CONFIG.minFill * 100);
-  const peakPct = Math.round(BOMB_CONFIG.rampEndFill * 100);
+  const bombCfg = getBombConfigForPhase(phase.id);
+  const thresholdPct = Math.round(bombCfg.minFill * 100);
+  const peakPct = Math.round(bombCfg.rampEndFill * 100);
+  const bombsDisabled = bombCfg.maxChance <= 0;
   const armed = bombChance > 0;
   const pieceRule = getPieceRule(score);
-  const bombsUnlocked = score >= BOMB_CONFIG.minScore;
+  const bombsUnlocked = !bombsDisabled && score >= bombCfg.minScore;
+  const previewsOff = phase.id >= 3;
 
   // Qualitative intensity label for the bomb pressure
   const intensity =
@@ -130,13 +135,33 @@ export function DifficultyPanel({
           <li className="flex items-baseline justify-between gap-2">
             <span className="text-white/55">Bombs</span>
             <span className={cn('font-semibold', bombsUnlocked ? 'text-pixar-red' : 'text-white/70')}>
-              {bombsUnlocked ? `${thresholdPct}%+ fill` : `unlocks @ ${BOMB_CONFIG.minScore}pts`}
+              {bombsDisabled
+                ? 'safe zone'
+                : bombsUnlocked
+                  ? `${thresholdPct}%+ fill`
+                  : `unlocks @ ${bombCfg.minScore}pts`}
             </span>
           </li>
           <li className="flex items-baseline justify-between gap-2">
             <span className="text-white/55">Max chance</span>
-            <span className="text-white/90 tabular-nums">{Math.round(BOMB_CONFIG.maxChance * 100)}% @ {peakPct}%</span>
+            <span className="text-white/90 tabular-nums">
+              {bombsDisabled ? '—' : `${Math.round(bombCfg.maxChance * 100)}% @ ${peakPct}%`}
+            </span>
           </li>
+          <li className="flex items-baseline justify-between gap-2">
+            <span className="text-white/55">Previews</span>
+            <span className={cn('font-semibold', previewsOff ? 'text-pixar-red' : 'text-white/80')}>
+              {previewsOff ? 'off — read the board' : 'on'}
+            </span>
+          </li>
+          {typeof rerollsRemaining === 'number' && typeof rerollsMax === 'number' && (
+            <li className="flex items-baseline justify-between gap-2">
+              <span className="text-white/55">Rerolls</span>
+              <span className="text-white/90 tabular-nums font-semibold">
+                {rerollsRemaining}/{rerollsMax}
+              </span>
+            </li>
+          )}
           {comebackMode && (
             <li className="flex items-baseline justify-between gap-2">
               <span className="text-white/55">Assist</span>
