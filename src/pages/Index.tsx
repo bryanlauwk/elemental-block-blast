@@ -16,7 +16,6 @@ import { PlayerNameModal } from '@/components/game/PlayerNameModal';
 import { DailyChallengeModal } from '@/components/game/DailyChallengeModal';
 import { ShareButtons } from '@/components/game/ShareButtons';
 import { SoundSettings } from '@/components/game/SoundSettings';
-import { KeyboardHints } from '@/components/game/KeyboardHints';
 import { ExitConfirmModal } from '@/components/game/ExitConfirmModal';
 import { StreakBadge } from '@/components/game/StreakBadge';
 import { AchievementPopup } from '@/components/game/AchievementPopup';
@@ -32,7 +31,7 @@ import HeroBlockDisplay from '@/components/game/HeroBlockDisplay';
 import LottieBurst from '@/components/game/LottieBurst';
 import { FeverMeter } from '@/components/game/FeverMeter';
 import { Button } from '@/components/ui/button';
-import { Trophy, Play, RotateCcw, HelpCircle, Zap, Calendar, Volume2, Home, Award, Flame, Droplets, TreeDeciduous, Mountain, Wind, Lightbulb } from 'lucide-react';
+import { Trophy, Play, RotateCcw, HelpCircle, Zap, Calendar, Volume2, Home, Award, Flame, Droplets, TreeDeciduous, Mountain, Wind } from 'lucide-react';
 import { PixarChip, PixarButton, PixarStatChip, PixarBadge, PixarOverlay } from '@/components/game/pixar';
 import { Position, DraggablePiece, GRID_WIDTH, GRID_HEIGHT } from '@/game/types';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -62,7 +61,6 @@ const Index = () => {
     setDropPreview,
     canPlacePiece,
     placePiece,
-    findHint,
     perfectClearSignal,
     feverMeter,
     feverActive,
@@ -298,22 +296,6 @@ const Index = () => {
     if (cell && canPlacePiece(piece, cell)) placePiece(piece, cell);
     setDropPreview(null);
   }, [cellFromPoint, canPlacePiece, placePiece, setDropPreview]);
-
-  // "Hint" — ghost a helpful placement on the board for a moment.
-  const hintTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const handleHint = useCallback(() => {
-    const hint = findHint();
-    if (!hint) return;
-    playSound('select');
-    selectPiece(hint.piece);
-    setDropPreview(hint.pos);
-    if (hintTimer.current) clearTimeout(hintTimer.current);
-    hintTimer.current = setTimeout(() => setDropPreview(null), 1800);
-  }, [findHint, selectPiece, setDropPreview]);
-
-  useEffect(() => () => {
-    if (hintTimer.current) clearTimeout(hintTimer.current);
-  }, []);
 
   // Kick off the ambient soundtrack on the Play gesture so the game has music
   // from the very start (respects the saved music setting via startMusic()).
@@ -739,18 +721,6 @@ const Index = () => {
                 {/* Reaction Fever meter */}
                 <FeverMeter meter={feverMeter} active={feverActive} endsAt={feverEndsAt} />
 
-                {/* Hint — ghosts a helpful placement (works on desktop & mobile) */}
-                {!gameState.isGameOver && (
-                  <button
-                    onClick={handleHint}
-                    className="ui-btn-xs ui-label-xs mt-2 bg-white/[0.04] backdrop-blur-md border border-cyan-300/30 text-white/80 hover:text-white hover:border-cyan-300/60 hover:shadow-[0_0_18px_-4px_hsl(190_95%_60%/0.55)] active:scale-95 transition-all"
-                    title="Show a helpful move"
-                  >
-                    <Lightbulb className="w-3.5 h-3.5 text-cyan-300 drop-shadow-[0_0_6px_hsl(190_95%_60%/0.7)]" />
-                    Hint
-                  </button>
-                )}
-
                 {/* Game Grid */}
                 <div className="relative" style={{ perspective: '900px' }}>
                 <motion.div animate={boardFlip} style={{ transformStyle: 'preserve-3d' }}>
@@ -1017,8 +987,6 @@ const Index = () => {
         </div>
       </main>
       
-      {/* Keyboard Hints - Desktop only */}
-      {hasStarted && <KeyboardHints />}
     </div>
   );
 };
