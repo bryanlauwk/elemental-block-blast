@@ -519,10 +519,10 @@ const Index = () => {
       />
 
       {/* Main content wrapper - proper spacing zones */}
-      <main className="flex-1 flex flex-col items-center justify-between px-3 sm:px-4 py-2 sm:py-6 pt-14 sm:pt-20 md:pt-24 min-h-[calc(100dvh-60px)]">
-        <div className="flex gap-4 sm:gap-6 items-start max-w-4xl w-full justify-center flex-1">
+      <main className="flex-1 flex flex-col items-center justify-between px-3 sm:px-4 py-3 sm:py-6 pb-6 sm:pb-8 pt-14 sm:pt-20 md:pt-24 min-h-[calc(100dvh-60px)]">
+        <div className="flex gap-5 sm:gap-8 items-start max-w-4xl w-full justify-center flex-1">
           {/* Main game column */}
-          <div className="flex flex-col items-center w-full max-w-[400px] h-full">
+          <div className="flex flex-col items-center gap-3 sm:gap-5 w-full max-w-[400px] h-full">
             {/* Start screen - landing page */}
             {!hasStarted && (
               <motion.div
@@ -691,7 +691,7 @@ const Index = () => {
             {hasStarted && (
               <>
                 <motion.div
-                  className="text-center"
+                  className="text-center min-h-0"
                   initial={{ opacity: 0, y: -20 }}
                   animate={{ opacity: 1, y: 0 }}
                 >
@@ -700,7 +700,6 @@ const Index = () => {
                     <motion.div
                       initial={{ opacity: 0, scale: 0.8 }}
                       animate={{ opacity: 1, scale: 1 }}
-                      className="mt-1"
                     >
                       <PixarBadge tone="yellow" icon={<Calendar className="w-3 h-3" />}>
                         Daily Challenge
@@ -908,7 +907,7 @@ const Index = () => {
 
             {/* Element Legend - tablets only (hidden on phones to save height; in the sidebar on desktop) */}
             {hasStarted && (
-              <div className="mt-2 hidden sm:block lg:hidden">
+              <div className="hidden sm:block lg:hidden">
                 <ElementLegend />
               </div>
             )}
@@ -916,7 +915,7 @@ const Index = () => {
 
           {/* Right Sidebar - Desktop only */}
           {hasStarted && (
-            <div className="hidden lg:flex lg:flex-col lg:gap-4 lg:w-52 sticky top-24 self-start max-h-[calc(100vh-8rem)]">
+            <div className="hidden lg:flex lg:flex-col lg:gap-5 lg:w-52 sticky top-24 self-start max-h-[calc(100vh-8rem)]">
               {/* Reaction Feed Panel */}
               <motion.div
                 initial={{ opacity: 0, x: 20 }}
