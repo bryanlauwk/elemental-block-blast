@@ -9,7 +9,8 @@ import {
 } from '@/game/types';
 import { playSound } from '@/game/sounds';
 import { BOMB_TIMINGS, BOMB_TOTAL_MS, BOMB_SHAKE_MS } from '@/game/bombTimings';
-import { BOMB_CONFIG, computeBombChance } from '@/game/bombConfig';
+import { computeBombChance, getBombConfigForPhase, getBombFuseForPhase } from '@/game/bombConfig';
+import { getPhaseForScore } from '@/game/phases';
 import { SeededRandom, getDateSeed } from '@/game/seededRandom';
 import {
   createEmptyGrid,
@@ -72,8 +73,8 @@ export interface BlockBlastEngine {
 }
 
 /** Total rerolls available across a full run. Prevents infinite stalling by
- *  cycling the tray over and over. */
-const REROLLS_PER_RUN = 5;
+ *  cycling the tray over and over. Tightened so rerolls feel precious. */
+const REROLLS_PER_RUN = 3;
 
 export function useBlockBlastEngine(): BlockBlastEngine {
   const [gameState, setGameState] = useState<BlockBlastState>({
@@ -129,10 +130,10 @@ export function useBlockBlastEngine(): BlockBlastEngine {
   const [particleTrigger, setParticleTrigger] = useState<ParticleTrigger | null>(null);
   const [failedAttempts, setFailedAttempts] = useState(0); // Track for comeback mechanic
   const [isDailyChallenge, setIsDailyChallenge] = useState(false);
-  /** One reroll allowed per turn; consumed when used, refilled on placement. */
-  const [rerollAvailable, setRerollAvailable] = useState(true);
   /** Per-run reroll budget — once depleted, no more swaps for this game. */
   const [rerollsRemaining, setRerollsRemaining] = useState(REROLLS_PER_RUN);
+  /** Derived: a reroll is available whenever the run still has budget. */
+  const rerollAvailable = rerollsRemaining > 0;
 
   // Seeded RNG for daily challenge mode
   const seededRngRef = useRef<SeededRandom | null>(null);
@@ -168,7 +169,6 @@ export function useBlockBlastEngine(): BlockBlastEngine {
     setReactionEvents([]);
     setReactionPreviewSummary(null);
     setFailedAttempts(0);
-    setRerollAvailable(true);
     setRerollsRemaining(REROLLS_PER_RUN);
     endFever();
   }, [endFever]);
@@ -201,7 +201,6 @@ export function useBlockBlastEngine(): BlockBlastEngine {
     setReactionPreviewSummary(null);
     setFailedAttempts(0);
     // Daily challenge is deterministic — disable rerolls to keep parity.
-    setRerollAvailable(false);
     setRerollsRemaining(0);
     endFever();
   }, [endFever]);
@@ -216,10 +215,17 @@ export function useBlockBlastEngine(): BlockBlastEngine {
   const setDropPreview = useCallback((pos: Position | null) => {
     setGameState(prev => {
       if (pos && prev.selectedPiece && canPlacePieceAt(prev.grid, prev.selectedPiece, pos)) {
-        const previews = computeReactionPreview(prev.grid, prev.selectedPiece, pos);
+        const phaseId = getPhaseForScore(prev.score).id;
+        // Late game strips training wheels: no ghost highlights on the grid
+        // (phase ≥ 5) and no "+X pts" summary pill (phase ≥ 3).
+        const showGridPreviews = phaseId < 5;
+        const showSummary = phaseId < 3;
+        const previews = showGridPreviews
+          ? computeReactionPreview(prev.grid, prev.selectedPiece, pos)
+          : [];
         setReactionPreviews(previews);
 
-        if (previews.length > 0) {
+        if (showSummary && previews.length > 0) {
           const typeCounts: Record<string, { count: number; points: number }> = {};
           previews.forEach(p => {
             const key = p.type;
@@ -258,11 +264,12 @@ export function useBlockBlastEngine(): BlockBlastEngine {
 
         if (newY >= 0 && newY < GRID_HEIGHT && newX >= 0 && newX < GRID_WIDTH) {
           const el = piece.elements[i];
+          const phaseId = getPhaseForScore(prev.score).id;
           newGrid[newY][newX] = {
             element: el,
             id: `${newX}-${newY}-${Date.now()}-${Math.random()}`,
-            // Tighter fuse → more pressure once a bomb lands.
-            ...(el === 'bomb' ? { countdown: 4 } : {}),
+            // Late phases shorten the fuse for extra pressure.
+            ...(el === 'bomb' ? { countdown: getBombFuseForPhase(phaseId) } : {}),
           };
         }
       });
@@ -329,8 +336,10 @@ export function useBlockBlastEngine(): BlockBlastEngine {
       // Always keep three pieces in the tray for strategic flexibility: as soon as
       // a piece is placed, refill the empty slot instead of waiting until all three
       // are consumed.
-      // Comeback grace kicks in later so the game stays tense.
-      const needsComeback = failedAttempts >= 5;
+      // Comeback grace kicks in later so the game stays tense, and only
+      // during early phases — the late game doesn't bail the player out.
+      const currentPhaseId = getPhaseForScore(newScore).id;
+      const needsComeback = failedAttempts >= 8 && currentPhaseId <= 3;
       const rng = seededRngRef.current;
       const newPieces = [...remainingPieces];
       while (newPieces.length < 3) {
@@ -347,11 +356,12 @@ export function useBlockBlastEngine(): BlockBlastEngine {
       );
       const fillRatio = filledCells / totalCells;
       const hasBombInTray = newPieces.some((p) => p.elements.includes('bomb' as any));
-      const bombChance = computeBombChance(fillRatio);
+      const phaseCfg = getBombConfigForPhase(currentPhaseId);
+      const bombChance = computeBombChance(fillRatio, phaseCfg);
       if (
         !seededRngRef.current &&
         !hasBombInTray &&
-        newScore >= BOMB_CONFIG.minScore &&
+        newScore >= phaseCfg.minScore &&
         bombChance > 0 &&
         Math.random() < bombChance
       ) {
@@ -362,8 +372,6 @@ export function useBlockBlastEngine(): BlockBlastEngine {
       }
 
       setFailedAttempts(0);
-      // Refresh the reroll on every successful placement (one per turn).
-      if (!seededRngRef.current) setRerollAvailable(true);
 
       const isGameOver = !canAnyPieceFit(resolvedGrid, newPieces);
       if (isGameOver) {
@@ -391,7 +399,6 @@ export function useBlockBlastEngine(): BlockBlastEngine {
   const rerollPiece = useCallback((pieceId: string) => {
     setGameState(prev => {
       if (prev.isGameOver) return prev;
-      if (!rerollAvailable) return prev;
       if (rerollsRemaining <= 0) return prev;
       if (seededRngRef.current) return prev; // disabled in daily challenge
       const idx = prev.availablePieces.findIndex(p => p.id === pieceId);
@@ -408,9 +415,8 @@ export function useBlockBlastEngine(): BlockBlastEngine {
         dropPreview: prev.selectedPiece?.id === pieceId ? null : prev.dropPreview,
       };
     });
-    setRerollAvailable(false);
     setRerollsRemaining(n => Math.max(0, n - 1));
-  }, [rerollAvailable, rerollsRemaining]);
+  }, [rerollsRemaining]);
 
   // Derived: board fill ratio + current bomb chance — surfaced to the HUD.
   const totalCellsLive = gameState.grid.length * (gameState.grid[0]?.length ?? 0);
@@ -419,7 +425,10 @@ export function useBlockBlastEngine(): BlockBlastEngine {
     0,
   );
   const boardFillRatio = totalCellsLive > 0 ? filledCellsLive / totalCellsLive : 0;
-  const bombChance = isDailyChallenge ? 0 : computeBombChance(boardFillRatio);
+  const currentPhaseId = getPhaseForScore(gameState.score).id;
+  const bombChance = isDailyChallenge
+    ? 0
+    : computeBombChance(boardFillRatio, getBombConfigForPhase(currentPhaseId));
 
   // Bomb ticker: every second, decrement any bomb countdowns and detonate at
   // 0 — clearing the full row and column the bomb sits on. Runs once for the
@@ -517,7 +526,6 @@ export function useBlockBlastEngine(): BlockBlastEngine {
     setReactionEvents([]);
     setReactionPreviewSummary(null);
     setFailedAttempts(0);
-    setRerollAvailable(true);
     setRerollsRemaining(REROLLS_PER_RUN);
     endFever();
   }, [endFever]);
@@ -551,6 +559,6 @@ export function useBlockBlastEngine(): BlockBlastEngine {
     rerollsMax: REROLLS_PER_RUN,
     boardFillRatio,
     bombChance,
-    comebackMode: failedAttempts >= 5,
+    comebackMode: failedAttempts >= 8 && getPhaseForScore(gameState.score).id <= 3,
   };
 }
