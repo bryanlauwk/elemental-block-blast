@@ -78,19 +78,24 @@ export const getRandomShape = (score: number = 0, rng?: SeededRandom): Position[
     const shapeSize = BLOCK_SHAPES[shapeIndex].length;
     let modifier = 1;
 
-    if (score < 400) {
-      // Phase 1 — Sandbox: still approachable but 4-cell pieces appear often
-      // and the rare 5+ chunk is no longer impossible.
-      modifier = shapeSize === 1 ? 1.4 : shapeSize === 2 ? 1.6 : shapeSize === 3 ? 1.6 : shapeSize === 4 ? 1.0 : 0.4;
-    } else if (score < 1200) {
-      // Phase 2 — Toy Factory: balanced mix with regular large pieces.
-      modifier = shapeSize <= 2 ? 0.9 : shapeSize === 3 ? 1.2 : shapeSize === 4 ? 1.3 : 0.9;
-    } else if (score < 2500) {
-      // Phase 3 — Cloud City: big pieces dominate, small ones get scarce.
-      modifier = shapeSize <= 2 ? 0.45 : shapeSize === 3 ? 1.0 : shapeSize <= 4 ? 1.5 : 1.9;
+    if (score < 500) {
+      // Sandbox — welcoming onboarding: mostly 2–3 cell pieces.
+      modifier = shapeSize === 1 ? 1.6 : shapeSize === 2 ? 1.8 : shapeSize === 3 ? 1.5 : shapeSize === 4 ? 0.7 : 0.2;
+    } else if (score < 1500) {
+      // Toy Factory — balanced 2–4, 5+ start to appear.
+      modifier = shapeSize === 1 ? 0.9 : shapeSize <= 3 ? 1.2 : shapeSize === 4 ? 1.3 : 0.6;
+    } else if (score < 3000) {
+      // Cloud City — 3–4 dominant, 5+ common.
+      modifier = shapeSize <= 2 ? 0.5 : shapeSize === 3 ? 1.2 : shapeSize === 4 ? 1.5 : 1.4;
+    } else if (score < 5000) {
+      // Crystal Caverns — 4–5 dominant, small pieces rare.
+      modifier = shapeSize <= 2 ? 0.25 : shapeSize === 3 ? 0.8 : shapeSize === 4 ? 1.6 : 2.0;
+    } else if (score < 9000) {
+      // Volcano Run — 5+ common, brutal.
+      modifier = shapeSize <= 2 ? 0.15 : shapeSize === 3 ? 0.6 : shapeSize === 4 ? 1.2 : 2.6;
     } else {
-      // Phase 4 — Volcano Run: brutal. Small relief pieces are rare.
-      modifier = shapeSize <= 2 ? 0.25 : shapeSize <= 4 ? 1.0 : 2.6;
+      // Cosmic Void — awkward big pieces almost every draw.
+      modifier = shapeSize <= 2 ? 0.1 : shapeSize === 3 ? 0.4 : shapeSize === 4 ? 1.0 : 3.0;
     }
 
     return { shapeIndex, weight: weight * modifier };
