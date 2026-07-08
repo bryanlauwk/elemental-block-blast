@@ -1,51 +1,63 @@
-## Baked-in Alley Cat Hero — Regenerate Background + Subtle Overlay Animation
+## Goal
+Make the game feel addictive by trimming easy-mode conveniences and reshaping the difficulty curve into clearer per-phase steps — challenging but fair, with early wins that get progressively tighter.
 
-### Problem
-The current `HeroAlleyCat` sprite floats over the alley with a visible grey contact shadow and slides left/right unnaturally. No amount of blur/fog blending fixes the "sticker on background" feel because the sprite was never lit by the same scene.
+## 1. Reduce hints & conveniences
 
-### New Approach
-Bake the cat **into** the alley artwork itself, then layer only tiny, looped micro-animations (tail swing + eye blink) on top — anchored exactly where the cat sits in the painted image.
+**Remove the free "Hint" button (biggest crutch)**
+- `src/pages/Index.tsx`: delete the Hint button in the action row and the `handleHint`/`findHint` wiring. Keep `findHint` in the engine (unused) so tests don't break.
 
----
+**Gate reroll behind a real cost, not a per-turn refill**
+- `src/hooks/useBlockBlastEngine.ts`:
+  - Drop the "one reroll per turn" refill (`rerollAvailable = true` on every placement).
+  - Rerolls consume only from the per-run budget. Lower `REROLLS_PER_RUN` from 5 → 3.
+  - `rerollAvailable` becomes derived: `rerollsRemaining > 0`.
 
-### 1. Regenerate the hero backdrop (single composed image)
+**Trim the reaction-preview crutch by phase**
+- `src/hooks/useBlockBlastEngine.ts::setDropPreview`: pass current phase into preview logic. In phase ≥ 3 (Cloud City+), stop emitting `reactionPreviewSummary` (the big "+X pts" pill). In phase ≥ 5 (Volcano Run+), also stop emitting `reactionPreviews` (the ghost highlights on the grid). Players learn to read the board instead of following hints.
 
-Generate one new wide hero image (1920×1024) that replaces `src/assets/lofi-neon-alley.jpg` for the **landing hero area only** (keep the existing alley image for gameplay backdrop untouched to avoid regressions).
+**Remove desktop `KeyboardHints` overlay**
+- `src/pages/Index.tsx`: remove the `<KeyboardHints />` render + import. Shortcuts still work; the always-visible hint UI goes.
 
-Prompt direction:
-> "Cozy neon city alley at night, anime lo-fi game background, soft brush painted, glowing cyan and magenta signs, wet reflective ground, warm window lights. A small cute neon cat sits naturally on the alley floor in the lower-center, eyes half-closed, tail curled — fully painted into the scene with matching lighting, reflections on the wet ground beneath it, and ambient cyan/magenta rim light. No sticker look. Cinematic depth of field."
+## 2. Reshape the difficulty curve per phase
 
-Save to `src/assets/hero-alley-with-cat.jpg` and upload via `lovable-assets create`.
+**Piece-size tiers (`src/game/engine.ts::getRandomShape`)** — gentler start, sharper mid-game bite, brutal late-game:
 
-### 2. Tiny overlay animations (no sprite movement)
+| Score band | Phase | New feel |
+|---|---|---|
+| 0–500 | Sandbox | Mostly 2–3 cells, occasional 4 (welcoming) |
+| 500–1500 | Toy Factory | Balanced 2–4, 5+ starts to appear |
+| 1500–3000 | Cloud City | 3–4 dominant, 5+ common |
+| 3000–5000 | Crystal Caverns | 4–5 dominant, small pieces rare |
+| 5000–9000 | Volcano Run | 5+ common, 3x3 square appears more |
+| 9000+ | Cosmic Void | Awkward big pieces almost every draw |
 
-Replace `HeroAlleyCat.tsx` with `HeroCatOverlay.tsx`, which positions two micro-elements **absolutely** over the baked image at the cat's painted location:
+Update `getPieceRule()` in `DifficultyPanel.tsx` to match the new bands + phase names.
 
-- **Tail tip**: a small transparent PNG of just the tail tip, generated to match. Anchored at the tail base, animated with a gentle CSS rotation `[-6deg, 6deg]` over 2.4s ease-in-out infinite.
-- **Eye blink**: two tiny dark ellipses (CSS only, no image) positioned at the cat's eye coordinates, with `scaleY: [1, 0.05, 1]` blink every 4–6s (randomized).
+**Bomb pressure per phase (`src/game/bombConfig.ts` + engine call site)**
+- Turn `BOMB_CONFIG` into a phase-aware helper: return different `{minFill, rampEndFill, maxChance, minScore}` per phase id.
+- Phase 1: bombs disabled entirely (`maxChance: 0`) — pure onboarding.
+- Phase 2: `minFill 0.65, max 0.25`.
+- Phase 3: `minFill 0.6, max 0.4`.
+- Phase 4: `minFill 0.55, max 0.5`.
+- Phase 5–6: `minFill 0.5, max 0.6`, shorter fuse (3s instead of 4s in `placePiece`).
+- `useBlockBlastEngine.placePiece` and the live `bombChance` derivation both read the phase-aware config so the HUD stays truthful.
 
-Both overlays use percentage positioning relative to the hero image container so they scale with viewport. Reduced motion: hide overlays entirely (cat just sits still in the painted scene).
+**Comeback assist is later & rarer**
+- `placePiece`: raise `failedAttempts >= 5` threshold to `>= 8`, and only allow it in phase ≤ 3. Late game shouldn't get bailed out.
 
-### 3. Wire into landing hero
+## 3. HUD sync
 
-In `src/pages/Index.tsx`:
-- Replace the `<HeroAlleyCat />` block with a `<div>` that renders the new baked image as `<img>` and `<HeroCatOverlay />` absolutely positioned on top.
-- Remove `HeroPhaseTint` usage from inside this hero block (or keep it as a screen-blend over the new image — TBD, default: keep it for phase color cycling, opacity reduced to 0.6 since the new image is more dominant).
-- Delete `HeroAlleyCat.tsx` and its 4 cat sprite assets (`alley-cat-walk-1/2`, `sit`, `stretch`) via `lovable-assets delete`.
+`src/components/game/DifficultyPanel.tsx`
+- Update the "Active rules" section to read from the same phase-aware bomb config helper (so the "unlocks @ X pts" and "Max chance … @ Y% fill" numbers update per phase instead of being global constants).
+- Add a small "Assists" line: shows `Rerolls: N/3` and, if applicable, `Previews: off` once phase ≥ 3 — so the player understands the training wheels came off.
 
-### 4. Files
+## Technical section
 
-| File | Action |
-|------|--------|
-| `src/assets/hero-alley-with-cat.jpg` | New baked hero image |
-| `src/assets/tail-tip.png` | New small tail-tip sprite |
-| `src/components/game/HeroCatOverlay.tsx` | New — tail + eye-blink overlay |
-| `src/components/game/HeroAlleyCat.tsx` | Delete |
-| `src/assets/alley-cat-walk-1/2/sit/stretch.png.asset.json` | Delete (4 files) |
-| `src/pages/Index.tsx` | Swap component + image |
+- No schema/backend changes.
+- Files edited: `src/game/engine.ts`, `src/game/bombConfig.ts`, `src/hooks/useBlockBlastEngine.ts`, `src/pages/Index.tsx`, `src/components/game/DifficultyPanel.tsx`.
+- Files unchanged intentionally: `KeyboardHints.tsx` (kept on disk, just unmounted), `findHint` in engine (kept for tests).
+- Existing unit tests in `src/game/engine.test.ts` should still pass — piece-size tuning is inside the same function and doesn't change public API.
 
-### Acceptance
-- Cat is part of the painted alley — no grey shadow, no horizontal sliding.
-- Only the tail tip sways and the eyes blink occasionally.
-- Reduced motion freezes everything to the still painting.
-- Gameplay backdrop unchanged.
+## Out of scope
+- No new phases, no new mechanics, no visual redesign.
+- Daily challenge stays deterministic (bombs still disabled there).
