@@ -28,6 +28,9 @@ export function PhaseUpOverlay({ phase, onDone }: PhaseUpOverlayProps) {
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -10 }}
           transition={{ type: "spring", stiffness: 360, damping: 26 }}
+          data-non-modal
+          role="status"
+          aria-live="polite"
           className="pointer-events-none fixed top-3 left-1/2 -translate-x-1/2 z-50 flex justify-center px-3 w-full max-w-md"
         >
           <div
