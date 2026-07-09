@@ -8,7 +8,7 @@ const PROFANITY_LIST = [
   'nigga', 'retard', 'homo', 'gay', 'lesbian', 'penis', 'vagina', 'anus',
   'porn', 'sex', 'sexy', 'nude', 'naked', 'boob', 'tits', 'titty',
   'dildo', 'vibrator', 'blowjob', 'handjob', 'cumshot', 'orgasm',
-  'masturbat', 'wank', 'jerk', 'sperm', 'semen',
+  'masturbate', 'masturbating', 'masturbation', 'wank', 'jerk', 'sperm', 'semen',
   // Hate speech
   'nazi', 'hitler', 'kkk', 'racist',
   // Common leetspeak variations
