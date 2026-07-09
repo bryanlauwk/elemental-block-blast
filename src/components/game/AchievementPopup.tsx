@@ -25,6 +25,9 @@ export function AchievementPopup({ achievement, onDismiss }: AchievementPopupPro
           initial={{ opacity: 0, y: -100, scale: 0.8 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: -50, scale: 0.9 }}
+          data-non-modal
+          role="status"
+          aria-live="polite"
           className="fixed top-20 sm:top-20 left-4 right-4 sm:left-1/2 sm:right-auto sm:-translate-x-1/2 z-50 mx-auto max-w-sm sm:max-w-none sm:w-auto"
           onClick={onDismiss}
         >
