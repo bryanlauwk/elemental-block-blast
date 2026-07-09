@@ -14,7 +14,11 @@ const FOCUSABLE_SELECTOR = [
 // most modals in this app render the backdrop as `.fixed.inset-0.z-50` and
 // the actual content panel as a *sibling* `.fixed.z-50` with `.inset-x-2`
 // / `.top-1/2` etc. — the panel is what we need to trap focus inside.
-const CUSTOM_MODAL_SELECTOR = '.fixed.z-50:not(.pixar-modal-overlay)';
+// Exclude the pixar overlay (handles its own a11y) AND transient
+// non-modal notifications (achievement popups, phase-up banners) which
+// should not trap focus or lock scroll.
+const CUSTOM_MODAL_SELECTOR =
+  '.fixed.z-50:not(.pixar-modal-overlay):not([data-non-modal])';
 // Backdrops (used to dispatch a click on Escape, since each backdrop already
 // wires an `onClose` handler in JSX).
 const BACKDROP_SELECTOR =
